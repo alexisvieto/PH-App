@@ -59,7 +59,9 @@ Por cada módulo:
 - Auth (login staff + portal residente), app shell con branding.
 - **Listo cuando:** un staff y un residente pueden entrar y cada uno ve solo lo que le toca; RLS verificado con consulta cruzada.
 
-### Fase 1 — Padrón / Censo
+> **✅ CIMIENTO (Fase 0 + Fase 1) COMPLETO Y AUDITADO — 2026-06-15.** Multi-tenant, padrón, RLS, RPCs atómicos, app (auth/onboarding/shell/CRUD), selector de org activa. Commit en rama `cimiento-fase-1` (sin push). Auditoría (arquitectura+código+seguridad) aplicada.
+
+### Fase 1 — Padrón / Censo  ✅
 **Objetivo:** la base de datos viva de todo el PH.
 - Listado de propietarios (actualizable por venta), unidades, inquilinos.
 - Alquileres: ficha "conoce a tu cliente" + tabla de % de apartamentos en alquiler.

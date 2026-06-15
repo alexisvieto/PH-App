@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 
+import { OrgSwitcher, type OrgOption } from "@/components/org-switcher";
 import type { Brand } from "@/lib/brand";
 import { ORG_ROLE_LABEL, ORG_TYPE_LABEL } from "@/lib/padron";
 import { createClient } from "@/lib/supabase/client";
@@ -32,6 +33,8 @@ export function AppShell({
   orgType,
   role,
   userEmail,
+  orgs,
+  activeOrgId,
   children,
 }: {
   brand: Brand;
@@ -39,6 +42,8 @@ export function AppShell({
   orgType: OrgType;
   role: OrgRole | null;
   userEmail: string | null;
+  orgs: OrgOption[];
+  activeOrgId: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -104,6 +109,9 @@ export function AppShell({
       {/* Sidebar escritorio */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-surface p-4 md:flex">
         {sidebarHead}
+        {orgs.length > 1 && (
+          <OrgSwitcher options={orgs} activeId={activeOrgId} />
+        )}
         <div className="mt-6 flex-1">{nav}</div>
         <UserFooter userEmail={userEmail} role={role} onLogout={logout} />
       </aside>
@@ -122,7 +130,10 @@ export function AppShell({
                 <X className="size-5" />
               </button>
             </div>
-            <div className="flex-1">{nav}</div>
+            {orgs.length > 1 && (
+              <OrgSwitcher options={orgs} activeId={activeOrgId} />
+            )}
+            <div className="mt-4 flex-1">{nav}</div>
             <UserFooter userEmail={userEmail} role={role} onLogout={logout} />
           </aside>
         </div>

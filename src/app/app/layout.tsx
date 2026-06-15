@@ -12,6 +12,11 @@ export default async function AppLayout({
   if (!ctx) redirect("/login");
   if (!ctx.activeOrg) redirect("/onboarding");
 
+  const orgs = ctx.memberships.map((m) => ({
+    id: m.organization_id,
+    name: m.org?.name ?? "Organización",
+  }));
+
   return (
     <AppShell
       brand={ctx.brand}
@@ -19,6 +24,8 @@ export default async function AppLayout({
       orgType={ctx.activeOrg.type}
       role={ctx.role}
       userEmail={ctx.email}
+      orgs={orgs}
+      activeOrgId={ctx.activeOrg.id}
     >
       {children}
     </AppShell>

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { cache } from "react";
 
 import {
@@ -10,6 +11,9 @@ import {
 } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
+
+/** Nombre de la cookie que recuerda la organización activa del staff. */
+export const ACTIVE_ORG_COOKIE = "active_org";
 
 type OrgRole = Database["public"]["Enums"]["org_role"];
 type OrgType = Database["public"]["Enums"]["org_type"];
@@ -61,7 +65,15 @@ export const getSessionContext = cache(
     ]);
 
     const memberships = (rawMemberships ?? []) as unknown as Membership[];
-    const active = memberships[0] ?? null;
+
+    // Org activa: la guardada en cookie (si el usuario sigue siendo miembro),
+    // o la primera membresía como fallback.
+    const cookieStore = await cookies();
+    const preferred = cookieStore.get(ACTIVE_ORG_COOKIE)?.value ?? null;
+    const active =
+      (preferred && memberships.find((m) => m.organization_id === preferred)) ||
+      memberships[0] ||
+      null;
     const activeOrg = active?.org ?? null;
 
     return {
