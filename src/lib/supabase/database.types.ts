@@ -70,6 +70,172 @@ export type Database = {
           },
         ]
       }
+      charges: {
+        Row: {
+          amount: number
+          building_id: string
+          concept: Database["public"]["Enums"]["charge_concept"]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          organization_id: string
+          period: string | null
+          unit_id: string
+        }
+        Insert: {
+          amount: number
+          building_id: string
+          concept?: Database["public"]["Enums"]["charge_concept"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          organization_id: string
+          period?: string | null
+          unit_id: string
+        }
+        Update: {
+          amount?: number
+          building_id?: string
+          concept?: Database["public"]["Enums"]["charge_concept"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          organization_id?: string
+          period?: string | null
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "charges_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "charges_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "charges_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          building_id: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          organization_id: string
+          spent_on: string
+          supplier: string | null
+        }
+        Insert: {
+          amount: number
+          building_id: string
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          organization_id: string
+          spent_on?: string
+          supplier?: string | null
+        }
+        Update: {
+          amount?: number
+          building_id?: string
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          organization_id?: string
+          spent_on?: string
+          supplier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_settings: {
+        Row: {
+          base_amount: number
+          building_id: string
+          created_by: string | null
+          currency: string
+          id: string
+          method: Database["public"]["Enums"]["fee_method"]
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          base_amount?: number
+          building_id: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          method?: Database["public"]["Enums"]["fee_method"]
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          base_amount?: number
+          building_id?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          method?: Database["public"]["Enums"]["fee_method"]
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_settings_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: true
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -164,6 +330,70 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          building_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          organization_id: string
+          paid_on: string
+          reference: string | null
+          unit_id: string
+        }
+        Insert: {
+          amount: number
+          building_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          organization_id: string
+          paid_on?: string
+          reference?: string | null
+          unit_id: string
+        }
+        Update: {
+          amount?: number
+          building_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          organization_id?: string
+          paid_on?: string
+          reference?: string | null
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       people: {
         Row: {
@@ -492,6 +722,10 @@ export type Database = {
         Returns: string
       }
       end_lease: { Args: { p_unit_id: string }; Returns: undefined }
+      generate_monthly_charges: {
+        Args: { p_building_id: string; p_due_date?: string; p_period: string }
+        Returns: number
+      }
       has_org_role: {
         Args: { org: string; roles: Database["public"]["Enums"]["org_role"][] }
         Returns: boolean
@@ -513,9 +747,25 @@ export type Database = {
     }
     Enums: {
       building_type: "residencial" | "comercial" | "mixto"
+      charge_concept: "mantenimiento" | "extraordinaria" | "multa" | "otro"
       doc_type: "cedula" | "pasaporte" | "ruc" | "otro"
+      expense_category:
+        | "servicios"
+        | "mantenimiento"
+        | "personal"
+        | "administrativo"
+        | "seguros"
+        | "reserva"
+        | "otro"
+      fee_method: "por_coeficiente" | "monto_fijo"
       org_role: "owner" | "administrador" | "asistente"
       org_type: "administradora" | "self_managed"
+      payment_method:
+        | "efectivo"
+        | "transferencia"
+        | "cheque"
+        | "tarjeta"
+        | "otro"
       unit_status: "ocupada" | "desocupada" | "en_venta" | "en_alquiler"
       unit_type: "apartamento" | "local" | "parqueo" | "deposito" | "otro"
     }
@@ -646,9 +896,27 @@ export const Constants = {
   public: {
     Enums: {
       building_type: ["residencial", "comercial", "mixto"],
+      charge_concept: ["mantenimiento", "extraordinaria", "multa", "otro"],
       doc_type: ["cedula", "pasaporte", "ruc", "otro"],
+      expense_category: [
+        "servicios",
+        "mantenimiento",
+        "personal",
+        "administrativo",
+        "seguros",
+        "reserva",
+        "otro",
+      ],
+      fee_method: ["por_coeficiente", "monto_fijo"],
       org_role: ["owner", "administrador", "asistente"],
       org_type: ["administradora", "self_managed"],
+      payment_method: [
+        "efectivo",
+        "transferencia",
+        "cheque",
+        "tarjeta",
+        "otro",
+      ],
       unit_status: ["ocupada", "desocupada", "en_venta", "en_alquiler"],
       unit_type: ["apartamento", "local", "parqueo", "deposito", "otro"],
     },

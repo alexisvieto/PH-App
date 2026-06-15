@@ -77,7 +77,15 @@ export default async function BuildingDetailPage({
         >
           ← Edificios
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">{building.name}</h1>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold">{building.name}</h1>
+          <Link
+            href={`/app/edificios/${buildingId}/cobros`}
+            className="shrink-0 rounded-lg border border-brand px-3 py-1.5 text-sm font-medium text-brand transition hover:bg-brand-soft/40"
+          >
+            Cobros
+          </Link>
+        </div>
         <p className="text-sm text-muted">
           {BUILDING_TYPE_LABEL[building.type]}
           {building.address ? ` · ${building.address}` : ""}
