@@ -19,13 +19,14 @@ export default async function ComunicadosPage() {
       .order("name", { ascending: true }),
     supabase
       .from("announcements")
-      .select("id, title, body, published_at, building:buildings(name)")
+      .select("id, title, body, published_at, building_id")
       .eq("organization_id", orgId)
       .order("published_at", { ascending: false })
       .limit(100),
   ]);
 
   const list = announcements ?? [];
+  const buildingName = new Map((buildings ?? []).map((b) => [b.id, b.name]));
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -50,7 +51,9 @@ export default async function ComunicadosPage() {
       ) : (
         <div className="space-y-3">
           {list.map((a) => {
-            const building = (a.building as { name: string } | null)?.name;
+            const building = a.building_id
+              ? buildingName.get(a.building_id)
+              : null;
             return (
               <article
                 key={a.id}
