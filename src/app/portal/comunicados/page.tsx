@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Megaphone } from "lucide-react";
 
+import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -30,10 +31,13 @@ export default async function PortalComunicados() {
         </div>
       </div>
 
+      <MarkAnnouncementsRead ids={news.map((a) => a.id)} />
+
       {news.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-line bg-surface p-8 text-center text-sm text-muted">
           No hay comunicados por ahora.
         </p>
+
       ) : (
         <div className="space-y-3">
           {news.map((a) => (

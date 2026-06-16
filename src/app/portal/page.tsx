@@ -8,6 +8,7 @@ import {
   Phone,
 } from "lucide-react";
 
+import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -32,6 +33,8 @@ export default async function PortalHome() {
       <h1 className="text-2xl font-semibold">
         Hola{firstName ? `, ${firstName}` : ""} 👋
       </h1>
+
+      <MarkAnnouncementsRead ids={news.map((a) => a.id)} />
 
       {/* Comunicados primero: el portal es comunicativo */}
       <section className="space-y-3">

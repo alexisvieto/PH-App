@@ -1,4 +1,5 @@
-import { Megaphone } from "lucide-react";
+import Link from "next/link";
+import { Eye, Megaphone } from "lucide-react";
 
 import { NewAnnouncementForm } from "@/components/forms/new-announcement-form";
 import { formatDate } from "@/lib/format";
@@ -11,22 +12,30 @@ export default async function ComunicadosPage() {
   if (!orgId) return null;
 
   const supabase = await createClient();
-  const [{ data: buildings }, { data: announcements }] = await Promise.all([
-    supabase
-      .from("buildings")
-      .select("id, name")
-      .eq("organization_id", orgId)
-      .order("name", { ascending: true }),
-    supabase
-      .from("announcements")
-      .select("id, title, body, published_at, building_id")
-      .eq("organization_id", orgId)
-      .order("published_at", { ascending: false })
-      .limit(100),
-  ]);
+  const [{ data: buildings }, { data: announcements }, { data: reads }] =
+    await Promise.all([
+      supabase
+        .from("buildings")
+        .select("id, name")
+        .eq("organization_id", orgId)
+        .order("name", { ascending: true }),
+      supabase
+        .from("announcements")
+        .select("id, title, body, published_at, building_id")
+        .eq("organization_id", orgId)
+        .order("published_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("announcement_reads")
+        .select("announcement_id")
+        .eq("organization_id", orgId),
+    ]);
 
   const list = announcements ?? [];
   const buildingName = new Map((buildings ?? []).map((b) => [b.id, b.name]));
+  const readCount = new Map<string, number>();
+  for (const r of reads ?? [])
+    readCount.set(r.announcement_id, (readCount.get(r.announcement_id) ?? 0) + 1);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -68,9 +77,17 @@ export default async function ComunicadosPage() {
                 <p className="mt-1 whitespace-pre-line text-sm text-ink/80">
                   {a.body}
                 </p>
-                <p className="mt-2 text-xs text-muted">
-                  Para: {building ?? "Todos los edificios"}
-                </p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted">
+                    Para: {building ?? "Todos los edificios"}
+                  </p>
+                  <Link
+                    href={`/app/comunicados/${a.id}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:underline"
+                  >
+                    <Eye className="size-3.5" /> Visto por {readCount.get(a.id) ?? 0}
+                  </Link>
+                </div>
               </article>
             );
           })}
