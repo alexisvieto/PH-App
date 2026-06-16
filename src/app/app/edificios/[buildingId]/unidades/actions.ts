@@ -9,6 +9,11 @@ import { Constants } from "@/lib/supabase/database.types";
 import type { Database } from "@/lib/supabase/database.types";
 
 type PaymentMethod = Database["public"]["Enums"]["payment_method"];
+type ChargeConcept = Database["public"]["Enums"]["charge_concept"];
+
+// Cargos manuales: multa / extraordinaria / otro (la cuota de mantenimiento
+// se crea por el RPC de generación, no a mano).
+const MANUAL_CONCEPTS: ChargeConcept[] = ["multa", "extraordinaria", "otro"];
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -31,6 +36,49 @@ function revalidateUnit(buildingId: string, unitId: string) {
   revalidatePath(`/app/edificios/${buildingId}`);
   revalidatePath(`/app/edificios/${buildingId}/cobros`);
   revalidatePath("/app");
+}
+
+/** Agrega un cargo manual (multa, extraordinaria u otro) a una unidad. */
+export async function createCharge(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+
+  const unitId = String(formData.get("unit_id") ?? "");
+  if (!UUID.test(unitId)) return { error: "Unidad inválida.", ok: false };
+
+  const concept = String(formData.get("concept") ?? "") as ChargeConcept;
+  if (!MANUAL_CONCEPTS.includes(concept))
+    return { error: "Concepto de cargo inválido.", ok: false };
+
+  const amount = Number(formData.get("amount"));
+  if (!Number.isFinite(amount) || amount <= 0)
+    return { error: "El monto debe ser mayor a cero.", ok: false };
+
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const dueDate = String(formData.get("due_date") ?? "").trim();
+  if (dueDate && !ISO_DATE.test(dueDate))
+    return { error: "Fecha de vencimiento inválida.", ok: false };
+
+  const { supabase, buildingId } = await buildingOf(unitId);
+  if (!buildingId) return { error: "Unidad no encontrada.", ok: false };
+
+  const { error } = await supabase.from("charges").insert({
+    organization_id: orgId,
+    building_id: buildingId,
+    unit_id: unitId,
+    concept,
+    description,
+    amount,
+    ...(dueDate ? { due_date: dueDate } : {}),
+  });
+  if (error) return { error: error.message, ok: false };
+
+  revalidateUnit(buildingId, unitId);
+  return { error: null, ok: true };
 }
 
 /** Registra un pago/abono de una unidad (ledger). */

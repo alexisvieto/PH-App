@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 
+import { NewChargeForm } from "@/components/forms/new-charge-form";
 import { NewPaymentForm } from "@/components/forms/new-payment-form";
 import { formatDate, formatMoney } from "@/lib/format";
 import { getSessionContext } from "@/lib/session";
@@ -40,14 +41,33 @@ export default async function EstadoCuentaPage({
             {st.ownerName ? ` · ${st.ownerName}` : ""}
           </p>
         </div>
-        <a
-          href={`/app/edificios/${buildingId}/unidades/${unitId}/estado/pdf`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm font-medium transition hover:border-brand hover:text-brand"
-        >
-          <Download className="size-4" /> PDF
-        </a>
+        <div className="flex shrink-0 gap-2">
+          <a
+            href={`/app/edificios/${buildingId}/unidades/${unitId}/estado/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm font-medium transition hover:border-brand hover:text-brand"
+          >
+            <Download className="size-4" /> Estado PDF
+          </a>
+          {owes ? (
+            <span
+              className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-muted opacity-60"
+              title="No se puede emitir con saldo pendiente"
+            >
+              Paz y salvo
+            </span>
+          ) : (
+            <a
+              href={`/app/edificios/${buildingId}/unidades/${unitId}/estado/paz-y-salvo`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-brand px-3 py-1.5 text-sm font-medium text-brand transition hover:bg-brand-soft/40"
+            >
+              Paz y salvo
+            </a>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -65,7 +85,10 @@ export default async function EstadoCuentaPage({
         </div>
       </div>
 
-      <NewPaymentForm unitId={unitId} defaultDate={today} />
+      <div className="flex flex-wrap gap-3">
+        <NewPaymentForm unitId={unitId} defaultDate={today} />
+        <NewChargeForm unitId={unitId} />
+      </div>
 
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <table className="w-full text-sm">
