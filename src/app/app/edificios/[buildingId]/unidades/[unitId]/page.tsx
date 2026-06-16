@@ -96,6 +96,12 @@ export default async function UnitDetailPage({
           >
             {UNIT_STATUS_LABEL[unit.status]}
           </span>
+          <Link
+            href={`/app/edificios/${buildingId}/unidades/${unitId}/estado`}
+            className="ml-auto shrink-0 rounded-lg border border-brand px-3 py-1.5 text-sm font-medium text-brand transition hover:bg-brand-soft/40"
+          >
+            Estado de cuenta
+          </Link>
         </div>
         <p className="text-sm text-muted">
           {UNIT_TYPE_LABEL[unit.type]}

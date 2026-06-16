@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
+import { getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
+import { Constants } from "@/lib/supabase/database.types";
+import type { Database } from "@/lib/supabase/database.types";
+
+type PaymentMethod = Database["public"]["Enums"]["payment_method"];
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -22,8 +27,54 @@ async function buildingOf(unitId: string) {
 
 function revalidateUnit(buildingId: string, unitId: string) {
   revalidatePath(`/app/edificios/${buildingId}/unidades/${unitId}`);
+  revalidatePath(`/app/edificios/${buildingId}/unidades/${unitId}/estado`);
   revalidatePath(`/app/edificios/${buildingId}`);
+  revalidatePath(`/app/edificios/${buildingId}/cobros`);
   revalidatePath("/app");
+}
+
+/** Registra un pago/abono de una unidad (ledger). */
+export async function createPayment(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+
+  const unitId = String(formData.get("unit_id") ?? "");
+  if (!UUID.test(unitId)) return { error: "Unidad inválida.", ok: false };
+
+  const amount = Number(formData.get("amount"));
+  if (!Number.isFinite(amount) || amount <= 0)
+    return { error: "El monto debe ser mayor a cero.", ok: false };
+
+  const paidOn = String(formData.get("paid_on") ?? "").trim();
+  if (paidOn && !ISO_DATE.test(paidOn))
+    return { error: "Fecha de pago inválida.", ok: false };
+
+  const method = String(formData.get("method") ?? "") as PaymentMethod;
+  if (!(Constants.public.Enums.payment_method as readonly string[]).includes(method))
+    return { error: "Método de pago inválido.", ok: false };
+
+  const reference = String(formData.get("reference") ?? "").trim() || null;
+
+  const { supabase, buildingId } = await buildingOf(unitId);
+  if (!buildingId) return { error: "Unidad no encontrada.", ok: false };
+
+  const { error } = await supabase.from("payments").insert({
+    organization_id: orgId,
+    building_id: buildingId,
+    unit_id: unitId,
+    amount,
+    method,
+    reference,
+    ...(paidOn ? { paid_on: paidOn } : {}),
+  });
+  if (error) return { error: error.message, ok: false };
+
+  revalidateUnit(buildingId, unitId);
+  return { error: null, ok: true };
 }
 
 /**
