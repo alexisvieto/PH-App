@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { ActionState } from "@/lib/action-state";
+import type { ActionState, GenState } from "@/lib/action-state";
 import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { Constants } from "@/lib/supabase/database.types";
@@ -12,9 +12,6 @@ type FeeMethod = Database["public"]["Enums"]["fee_method"];
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export type GenState = { error: string | null; ok: boolean; count: number };
-export const GEN_EMPTY: GenState = { error: null, ok: false, count: 0 };
 
 /** Verifica que el edificio pertenezca a la org activa (anti-IDOR). */
 async function buildingInOrg(

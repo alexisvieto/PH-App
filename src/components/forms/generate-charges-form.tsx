@@ -3,11 +3,9 @@
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 
-import {
-  generateCharges,
-  GEN_EMPTY,
-} from "@/app/app/edificios/[buildingId]/cobros/actions";
+import { generateCharges } from "@/app/app/edificios/[buildingId]/cobros/actions";
 import { SubmitButton } from "@/components/submit-button";
+import { GEN_EMPTY } from "@/lib/action-state";
 
 const input =
   "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand bg-white";
