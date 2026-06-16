@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { ChevronRight, FileText, Mail, Megaphone, Phone } from "lucide-react";
+import {
+  ChevronRight,
+  FileText,
+  Mail,
+  Megaphone,
+  MessagesSquare,
+  Phone,
+} from "lucide-react";
 
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
@@ -87,6 +94,26 @@ export default async function PortalHome() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* Canal con la administración */}
+      <section className="space-y-3">
+        <h2 className="font-semibold">Atención</h2>
+        <Link
+          href="/portal/quejas"
+          className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 transition hover:border-brand/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-brand-soft text-brand">
+              <MessagesSquare className="size-4" />
+            </div>
+            <div>
+              <p className="font-medium">Quejas y solicitudes</p>
+              <p className="text-sm text-muted">Escríbele a la administración</p>
+            </div>
+          </div>
+          <ChevronRight className="size-5 text-muted" />
+        </Link>
       </section>
 
       {/* Contacto con la administración */}

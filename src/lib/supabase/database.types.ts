@@ -532,6 +532,105 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_messages: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          organization_id: string
+          ticket_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          building_id: string
+          category: Database["public"]["Enums"]["ticket_category"]
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          category?: Database["public"]["Enums"]["ticket_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          category?: Database["public"]["Enums"]["ticket_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unit_leases: {
         Row: {
           building_id: string
@@ -817,6 +916,8 @@ export type Database = {
         | "cheque"
         | "tarjeta"
         | "otro"
+      ticket_category: "queja" | "solicitud" | "sugerencia"
+      ticket_status: "abierta" | "en_proceso" | "resuelta" | "cerrada"
       unit_status: "ocupada" | "desocupada" | "en_venta" | "en_alquiler"
       unit_type: "apartamento" | "local" | "parqueo" | "deposito" | "otro"
     }
@@ -968,6 +1069,8 @@ export const Constants = {
         "tarjeta",
         "otro",
       ],
+      ticket_category: ["queja", "solicitud", "sugerencia"],
+      ticket_status: ["abierta", "en_proceso", "resuelta", "cerrada"],
       unit_status: ["ocupada", "desocupada", "en_venta", "en_alquiler"],
       unit_type: ["apartamento", "local", "parqueo", "deposito", "otro"],
     },

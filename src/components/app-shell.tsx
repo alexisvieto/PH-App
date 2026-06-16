@@ -9,6 +9,7 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  MessagesSquare,
   Users,
   X,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const NAV = [
   { href: "/app/edificios", label: "Edificios", icon: Building2, exact: false },
   { href: "/app/personas", label: "Personas", icon: Users, exact: false },
   { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
+  { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
 ];
 
 export function AppShell({
