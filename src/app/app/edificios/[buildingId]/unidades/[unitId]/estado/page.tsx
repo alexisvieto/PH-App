@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 
 import { NewChargeForm } from "@/components/forms/new-charge-form";
 import { NewPaymentForm } from "@/components/forms/new-payment-form";
+import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/format";
 import { getSessionContext } from "@/lib/session";
 import { getUnitStatement } from "@/lib/statement";
@@ -21,7 +22,7 @@ export default async function EstadoCuentaPage({
   const st = await getUnitStatement(unitId, orgId);
   if (!st) notFound();
 
-  const owes = st.balance > 0.005;
+  const owes = st.balance > BALANCE_TOLERANCE;
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 

@@ -2,6 +2,9 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type Enums = Database["public"]["Enums"];
 
+/** Tolerancia de centavos para considerar una unidad "al día" (saldo ≈ 0). */
+export const BALANCE_TOLERANCE = 0.005;
+
 export const CHARGE_CONCEPT_LABEL: Record<Enums["charge_concept"], string> = {
   mantenimiento: "Mantenimiento",
   extraordinaria: "Extraordinaria",

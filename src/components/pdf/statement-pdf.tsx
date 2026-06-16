@@ -11,7 +11,7 @@ import { VENDOR_CREDIT } from "@/lib/brand";
 import type { UnitStatement } from "@/lib/statement";
 
 const money = (n: number) =>
-  `$${Number(n).toLocaleString("en-US", {
+  `$${(Number.isFinite(n) ? n : 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

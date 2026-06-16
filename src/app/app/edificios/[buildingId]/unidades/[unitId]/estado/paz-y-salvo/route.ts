@@ -1,6 +1,7 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { PazSalvoPDF } from "@/components/pdf/paz-salvo-pdf";
+import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { getSessionContext } from "@/lib/session";
 import { getUnitStatement } from "@/lib/statement";
 
@@ -18,7 +19,7 @@ export async function GET(
   if (!st) return new Response("No encontrado", { status: 404 });
 
   // No se emite paz y salvo si la unidad tiene saldo pendiente.
-  if (st.balance > 0.005) {
+  if (st.balance > BALANCE_TOLERANCE) {
     return new Response(
       "La unidad tiene saldo pendiente; no se puede emitir paz y salvo.",
       { status: 409 },
@@ -31,20 +32,24 @@ export async function GET(
     day: "numeric",
   });
 
-  const buffer = await renderToBuffer(
-    PazSalvoPDF({
-      brand: ctx.brand,
-      buildingName: st.buildingName,
-      unitCode: st.unitCode,
-      ownerName: st.ownerName,
-      generatedOn,
-    }),
-  );
-
-  return new Response(new Uint8Array(buffer), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="paz-y-salvo-${st.unitCode}.pdf"`,
-    },
-  });
+  try {
+    const buffer = await renderToBuffer(
+      PazSalvoPDF({
+        brand: ctx.brand,
+        buildingName: st.buildingName,
+        unitCode: st.unitCode,
+        ownerName: st.ownerName,
+        generatedOn,
+      }),
+    );
+    const safeCode = st.unitCode.replace(/[^a-zA-Z0-9_-]/g, "_");
+    return new Response(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="paz-y-salvo-${safeCode}.pdf"`,
+      },
+    });
+  } catch {
+    return new Response("No se pudo generar el documento.", { status: 500 });
+  }
 }

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
-import { getSessionContext } from "@/lib/session";
+import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { Constants } from "@/lib/supabase/database.types";
 import type { Database } from "@/lib/supabase/database.types";
@@ -22,6 +22,8 @@ export async function createExpense(
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;
   if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!canManage(ctx.role))
+    return { error: "Solo un administrador puede registrar gastos.", ok: false };
 
   const buildingId = String(formData.get("building_id") ?? "");
   if (!UUID.test(buildingId)) return { error: "Edificio inválido.", ok: false };
@@ -48,6 +50,14 @@ export async function createExpense(
   const supplier = String(formData.get("supplier") ?? "").trim() || null;
 
   const supabase = await createClient();
+  const { data: building } = await supabase
+    .from("buildings")
+    .select("id")
+    .eq("id", buildingId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!building) return { error: "Edificio no encontrado.", ok: false };
+
   const { error } = await supabase.from("expenses").insert({
     organization_id: orgId,
     building_id: buildingId,

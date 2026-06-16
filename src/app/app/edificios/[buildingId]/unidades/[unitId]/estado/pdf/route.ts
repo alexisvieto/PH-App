@@ -24,14 +24,18 @@ export async function GET(
     day: "numeric",
   });
 
-  const buffer = await renderToBuffer(
-    StatementPDF({ statement: st, brand: ctx.brand, generatedOn }),
-  );
-
-  return new Response(new Uint8Array(buffer), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="estado-cuenta-${st.unitCode}.pdf"`,
-    },
-  });
+  try {
+    const buffer = await renderToBuffer(
+      StatementPDF({ statement: st, brand: ctx.brand, generatedOn }),
+    );
+    const safeCode = st.unitCode.replace(/[^a-zA-Z0-9_-]/g, "_");
+    return new Response(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="estado-cuenta-${safeCode}.pdf"`,
+      },
+    });
+  } catch {
+    return new Response("No se pudo generar el documento.", { status: 500 });
+  }
 }
