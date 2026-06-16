@@ -51,6 +51,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_reads_announcement_org"
+            columns: ["announcement_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id", "organization_id"]
+          },
         ]
       }
       announcements: {
@@ -94,10 +101,140 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_announcements_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      anomaly_photos: {
+        Row: {
+          anomaly_id: string
+          created_at: string
+          id: string
+          organization_id: string
+          sort_order: number
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          anomaly_id: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          sort_order?: number
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          anomaly_id?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          sort_order?: number
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anomaly_photos_anomaly_id_fkey"
+            columns: ["anomaly_id"]
+            isOneToOne: false
+            referencedRelation: "anomaly_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anomaly_photos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anomaly_reports: {
+        Row: {
+          building_id: string
+          created_at: string
+          created_by: string | null
+          description: string
+          equipment_id: string | null
+          id: string
+          organization_id: string
+          status: Database["public"]["Enums"]["anomaly_status"]
+          supplier_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          equipment_id?: string | null
+          id?: string
+          organization_id: string
+          status?: Database["public"]["Enums"]["anomaly_status"]
+          supplier_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          equipment_id?: string | null
+          id?: string
+          organization_id?: string
+          status?: Database["public"]["Enums"]["anomaly_status"]
+          supplier_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anomaly_reports_building_id_fkey"
             columns: ["building_id"]
             isOneToOne: false
             referencedRelation: "buildings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anomaly_reports_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anomaly_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_anomaly_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_anomaly_equipment_org"
+            columns: ["equipment_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_anomaly_supplier_org"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }
@@ -219,6 +356,106 @@ export type Database = {
             referencedRelation: "units"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_charges_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_charges_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      equipment: {
+        Row: {
+          building_id: string
+          category: Database["public"]["Enums"]["equipment_category"]
+          created_at: string
+          created_by: string | null
+          id: string
+          location: string | null
+          maintenance_frequency_days: number | null
+          name: string
+          next_maintenance: string | null
+          notes: string | null
+          organization_id: string
+          quantity: number
+          serial_number: string | null
+          status: Database["public"]["Enums"]["equipment_status"]
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          category?: Database["public"]["Enums"]["equipment_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location?: string | null
+          maintenance_frequency_days?: number | null
+          name: string
+          next_maintenance?: string | null
+          notes?: string | null
+          organization_id: string
+          quantity?: number
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["equipment_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          category?: Database["public"]["Enums"]["equipment_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location?: string | null
+          maintenance_frequency_days?: number | null
+          name?: string
+          next_maintenance?: string | null
+          notes?: string | null
+          organization_id?: string
+          quantity?: number
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["equipment_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_equipment_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_equipment_supplier_org"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
         ]
       }
       expenses: {
@@ -273,6 +510,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_expenses_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
         ]
       }
       fee_settings: {
@@ -316,6 +560,95 @@ export type Database = {
           },
           {
             foreignKeyName: "fee_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_fee_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      maintenance_logs: {
+        Row: {
+          building_id: string
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          description: string
+          equipment_id: string
+          id: string
+          organization_id: string
+          performed_on: string
+          supplier_id: string | null
+        }
+        Insert: {
+          building_id: string
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          equipment_id: string
+          id?: string
+          organization_id: string
+          performed_on?: string
+          supplier_id?: string | null
+        }
+        Update: {
+          building_id?: string
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          equipment_id?: string
+          id?: string
+          organization_id?: string
+          performed_on?: string
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_maintlog_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_maintlog_equipment_org"
+            columns: ["equipment_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_maintlog_supplier_org"
+            columns: ["supplier_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "maintenance_logs_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_logs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_logs_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -460,6 +793,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_payments_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_payments_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
             foreignKeyName: "payments_building_id_fkey"
             columns: ["building_id"]
             isOneToOne: false
@@ -571,6 +918,53 @@ export type Database = {
         }
         Relationships: []
       }
+      suppliers: {
+        Row: {
+          contact_name: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_messages: {
         Row: {
           author_id: string
@@ -581,7 +975,7 @@ export type Database = {
           ticket_id: string
         }
         Insert: {
-          author_id?: string | null
+          author_id?: string
           body: string
           created_at?: string
           id?: string
@@ -589,7 +983,7 @@ export type Database = {
           ticket_id: string
         }
         Update: {
-          author_id?: string | null
+          author_id?: string
           body?: string
           created_at?: string
           id?: string
@@ -654,6 +1048,27 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_tickets_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_tickets_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "tickets_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tickets_organization_id_fkey"
             columns: ["organization_id"]
@@ -909,10 +1324,10 @@ export type Database = {
       }
       create_ticket: {
         Args: {
-          p_unit_id: string
+          p_body: string
           p_category: Database["public"]["Enums"]["ticket_category"]
           p_subject: string
-          p_body: string
+          p_unit_id: string
         }
         Returns: string
       }
@@ -929,6 +1344,10 @@ export type Database = {
       is_org_member: { Args: { org: string }; Returns: boolean }
       is_org_resident: { Args: { org: string }; Returns: boolean }
       is_unit_resident: { Args: { unit: string }; Returns: boolean }
+      link_people_to_user: {
+        Args: { p_email: string; p_user: string }
+        Returns: undefined
+      }
       register_lease: {
         Args: {
           p_rent?: number
@@ -944,9 +1363,24 @@ export type Database = {
       }
     }
     Enums: {
+      anomaly_status: "abierta" | "resuelta"
       building_type: "residencial" | "comercial" | "mixto"
       charge_concept: "mantenimiento" | "extraordinaria" | "multa" | "otro"
       doc_type: "cedula" | "pasaporte" | "ruc" | "otro"
+      equipment_category:
+        | "elevador"
+        | "piscina"
+        | "gimnasio"
+        | "planta_electrica"
+        | "bomba"
+        | "tanque_reserva"
+        | "alarma_incendio"
+        | "aire_acondicionado"
+        | "computadora"
+        | "jardin"
+        | "herramienta"
+        | "otro"
+      equipment_status: "operativo" | "en_reparacion" | "fuera_servicio"
       expense_category:
         | "servicios"
         | "mantenimiento"
@@ -1095,9 +1529,25 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      anomaly_status: ["abierta", "resuelta"],
       building_type: ["residencial", "comercial", "mixto"],
       charge_concept: ["mantenimiento", "extraordinaria", "multa", "otro"],
       doc_type: ["cedula", "pasaporte", "ruc", "otro"],
+      equipment_category: [
+        "elevador",
+        "piscina",
+        "gimnasio",
+        "planta_electrica",
+        "bomba",
+        "tanque_reserva",
+        "alarma_incendio",
+        "aire_acondicionado",
+        "computadora",
+        "jardin",
+        "herramienta",
+        "otro",
+      ],
+      equipment_status: ["operativo", "en_reparacion", "fuera_servicio"],
       expense_category: [
         "servicios",
         "mantenimiento",

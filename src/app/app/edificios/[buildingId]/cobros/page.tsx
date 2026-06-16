@@ -35,7 +35,9 @@ export default async function CobrosPage({
       .maybeSingle(),
     supabase
       .from("charges")
-      .select("id, concept, period, amount, due_date, unit:units(code)")
+      .select(
+        "id, concept, period, amount, due_date, unit:units!charges_unit_id_fkey(code)",
+      )
       .eq("building_id", buildingId)
       .order("period", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
