@@ -25,6 +25,10 @@ export default async function PortalQuejaDetalle({
     .from("tickets")
     .select("id, subject, category, status")
     .eq("id", ticketId)
+    .in(
+      "unit_id",
+      res.units.map((u) => u.id),
+    )
     .maybeSingle();
   if (!ticket) notFound();
 
@@ -59,10 +63,16 @@ export default async function PortalQuejaDetalle({
 
       <TicketThread messages={thread} />
 
-      <div className="rounded-2xl border border-line bg-surface p-4">
-        <p className="mb-2 text-sm font-medium">Responder</p>
-        <TicketReplyForm ticketId={ticket.id} />
-      </div>
+      {ticket.status === "cerrada" ? (
+        <p className="rounded-2xl border border-line bg-surface p-4 text-sm text-muted">
+          Esta solicitud está cerrada. Si necesitas algo más, abre una nueva.
+        </p>
+      ) : (
+        <div className="rounded-2xl border border-line bg-surface p-4">
+          <p className="mb-2 text-sm font-medium">Responder</p>
+          <TicketReplyForm ticketId={ticket.id} />
+        </div>
+      )}
     </div>
   );
 }

@@ -20,6 +20,8 @@ export function NewTicketForm({
   const [state, action] = useActionState(createTicket, EMPTY_ACTION_STATE);
   const [open, setOpen] = useFormPanel(state, "Solicitud enviada.");
 
+  if (units.length === 0) return null;
+
   if (!open) {
     return (
       <button

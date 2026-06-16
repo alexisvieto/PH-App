@@ -534,7 +534,7 @@ export type Database = {
       }
       ticket_messages: {
         Row: {
-          author_id: string | null
+          author_id: string
           body: string
           created_at: string
           id: string
@@ -865,6 +865,15 @@ export type Database = {
           p_name: string
           p_slug?: string
           p_type?: Database["public"]["Enums"]["org_type"]
+        }
+        Returns: string
+      }
+      create_ticket: {
+        Args: {
+          p_unit_id: string
+          p_category: Database["public"]["Enums"]["ticket_category"]
+          p_subject: string
+          p_body: string
         }
         Returns: string
       }

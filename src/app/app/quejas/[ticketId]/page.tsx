@@ -27,6 +27,7 @@ export default async function QuejaDetallePage({
     .from("tickets")
     .select("id, subject, category, status, unit_id, created_at")
     .eq("id", ticketId)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (!ticket) notFound();
 
@@ -65,22 +66,31 @@ export default async function QuejaDetallePage({
           </span>
         </div>
         <p className="text-sm text-muted">
-          {TICKET_CATEGORY_LABEL[ticket.category]} · Unidad{" "}
-          {(unit as { code: string } | null)?.code ?? "—"}
+          {TICKET_CATEGORY_LABEL[ticket.category]} · Unidad {unit?.code ?? "—"}
         </p>
       </div>
 
       <div className="rounded-2xl border border-line bg-surface p-4">
         <p className="mb-2 text-xs font-medium uppercase text-muted">Cambiar estado</p>
-        <TicketStatusControl ticketId={ticket.id} current={ticket.status} />
+        <TicketStatusControl
+          key={ticket.status}
+          ticketId={ticket.id}
+          current={ticket.status}
+        />
       </div>
 
       <TicketThread messages={thread} />
 
-      <div className="rounded-2xl border border-line bg-surface p-4">
-        <p className="mb-2 text-sm font-medium">Responder</p>
-        <TicketReplyForm ticketId={ticket.id} />
-      </div>
+      {ticket.status === "cerrada" ? (
+        <p className="rounded-2xl border border-line bg-surface p-4 text-sm text-muted">
+          Este ticket está cerrado.
+        </p>
+      ) : (
+        <div className="rounded-2xl border border-line bg-surface p-4">
+          <p className="mb-2 text-sm font-medium">Responder</p>
+          <TicketReplyForm ticketId={ticket.id} />
+        </div>
+      )}
     </div>
   );
 }
