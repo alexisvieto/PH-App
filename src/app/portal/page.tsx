@@ -7,12 +7,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function PortalHome() {
   const res = await getResidentContext();
-  if (!res) return null;
+  if (!res?.orgId) return null;
 
   const supabase = await createClient();
   const { data: announcements } = await supabase
     .from("announcements")
     .select("id, title, body, published_at")
+    .eq("organization_id", res.orgId)
     .order("published_at", { ascending: false })
     .limit(4);
   const news = announcements ?? [];

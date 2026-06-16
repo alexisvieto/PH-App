@@ -24,6 +24,10 @@ export async function createAnnouncement(
   const body = String(formData.get("body") ?? "").trim();
   if (!title) return { error: "El título es obligatorio.", ok: false };
   if (!body) return { error: "El mensaje es obligatorio.", ok: false };
+  if (title.length > 200)
+    return { error: "El título es muy largo (máx. 200).", ok: false };
+  if (body.length > 5000)
+    return { error: "El mensaje es muy largo (máx. 5000).", ok: false };
 
   const buildingRaw = String(formData.get("building_id") ?? "").trim();
   const buildingId = buildingRaw || null;
@@ -46,9 +50,14 @@ export async function createAnnouncement(
     building_id: buildingId,
     title,
     body,
+    created_by: ctx.userId,
   });
-  if (error) return { error: error.message, ok: false };
+  if (error) {
+    console.error("createAnnouncement:", error);
+    return { error: "No se pudo publicar el comunicado.", ok: false };
+  }
 
   revalidatePath("/app/comunicados");
+  revalidatePath("/portal", "layout");
   return { error: null, ok: true };
 }

@@ -35,7 +35,8 @@ export async function GET(
         "Content-Disposition": `inline; filename="estado-cuenta-${safeCode}.pdf"`,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("estado pdf:", err);
     return new Response("No se pudo generar el documento.", { status: 500 });
   }
 }

@@ -2,13 +2,18 @@ import Link from "next/link";
 import { Megaphone } from "lucide-react";
 
 import { formatDate } from "@/lib/format";
+import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PortalComunicados() {
+  const res = await getResidentContext();
+  if (!res?.orgId) return null;
+
   const supabase = await createClient();
   const { data: announcements } = await supabase
     .from("announcements")
     .select("id, title, body, published_at")
+    .eq("organization_id", res.orgId)
     .order("published_at", { ascending: false })
     .limit(100);
   const news = announcements ?? [];

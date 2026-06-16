@@ -55,6 +55,8 @@ export async function getUnitStatement(
       .select("person:people(full_name)")
       .eq("unit_id", unitId)
       .eq("is_active", true)
+      .order("share", { ascending: false })
+      .limit(1)
       .maybeSingle(),
     supabase
       .from("charges")

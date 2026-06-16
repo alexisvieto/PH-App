@@ -42,6 +42,7 @@ export function NewAnnouncementForm({
           name="title"
           required
           autoFocus
+          maxLength={200}
           className={input}
           placeholder="Ej. Mantenimiento de la piscina"
         />
@@ -52,6 +53,7 @@ export function NewAnnouncementForm({
           name="body"
           required
           rows={4}
+          maxLength={5000}
           className={`${input} resize-y`}
           placeholder="Escribe el comunicado para los residentes…"
         />

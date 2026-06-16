@@ -152,20 +152,29 @@ export const getResidentContext = cache(
         `unit:units(id, code, building:buildings(name, org:organizations(id, ${ORG_BRAND_COLUMNS})))`,
       )
       .eq("is_active", true)
-      .in("person_id", personIds);
+      .in("person_id", personIds)
+      .limit(50);
 
-    const units: ResidentUnit[] = [];
-    let org: OrgBrandingWithId | null = null;
-    for (const o of owns ?? []) {
-      const u = o.unit as {
-        id: string;
-        code: string;
-        building: { name: string; org: OrgBrandingWithId | null } | null;
-      } | null;
-      if (!u) continue;
-      units.push({ id: u.id, code: u.code, buildingName: u.building?.name ?? "Edificio" });
-      if (!org && u.building?.org) org = u.building.org;
-    }
+    type OwnedUnit = {
+      id: string;
+      code: string;
+      building: { name: string; org: OrgBrandingWithId | null } | null;
+    };
+    const owned = (owns ?? [])
+      .map((o) => o.unit as OwnedUnit | null)
+      .filter((u): u is OwnedUnit => !!u);
+
+    // v1: el portal opera sobre UNA organización (la primera). Si el dueño
+    // tuviera unidades en varias orgs, se mostrarían solo las de esa org
+    // (selector multi-org = pendiente).
+    const org = owned.find((u) => u.building?.org)?.building?.org ?? null;
+    const units: ResidentUnit[] = owned
+      .filter((u) => !org || u.building?.org?.id === org.id)
+      .map((u) => ({
+        id: u.id,
+        code: u.code,
+        buildingName: u.building?.name ?? "Edificio",
+      }));
 
     return {
       ...base,

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 
-import type { Brand } from "@/lib/brand";
+import { type Brand, brandInitial } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/client";
 
 export function PortalShell({
@@ -26,7 +26,7 @@ export function PortalShell({
     router.refresh();
   }
 
-  const initial = (brand.name.trim()[0] ?? "P").toUpperCase();
+  const initial = brandInitial(brand);
 
   return (
     <div

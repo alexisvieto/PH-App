@@ -44,7 +44,8 @@ export async function GET(
         "Content-Disposition": `inline; filename="paz-y-salvo-${safeCode}.pdf"`,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("portal paz y salvo pdf:", err);
     return new Response("No se pudo generar el documento.", { status: 500 });
   }
 }
