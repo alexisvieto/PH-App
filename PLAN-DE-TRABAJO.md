@@ -68,7 +68,7 @@ Por cada módulo:
 - **Listo cuando:** se crea/edita un propietario, se transfiere una unidad (venta) y se ve el % alquilado.
 *(Cubre del doc: listado de propietarios, alquileres.)*
 
-### Fase 2 — Administrativo financiero ⭐ *(corazón de la transparencia)*
+### Fase 2 — Administrativo financiero ⭐ *(corazón de la transparencia)*  ✅ (lado admin, auditado + E2E)
 **Objetivo:** estados de cuenta y reportes que el residente ve solo.
 - Cuotas de mantenimiento + extraordinarias; emisión de estados de cuenta y recibos.
 - Estado de cuenta generado por la admin, **exportable a PDF con marca**. (La auto-impresión por el propietario desde su sesión pertenece al **portal del residente**, fase separada posterior.)

@@ -6,6 +6,7 @@ import { cache } from "react";
 import {
   brandFromOrg,
   type Brand,
+  DEFAULT_BRAND,
   type OrgBranding,
   ORG_BRAND_COLUMNS,
 } from "@/lib/brand";
@@ -92,3 +93,88 @@ export const getSessionContext = cache(
 export function canManage(role: OrgRole | null): boolean {
   return role === "owner" || role === "administrador";
 }
+
+// =========================================================
+// Contexto del RESIDENTE (portal). Un propietario que entró con su login
+// (people.user_id = auth.uid()) ve solo SUS unidades.
+// =========================================================
+
+export type ResidentUnit = { id: string; code: string; buildingName: string };
+
+export type ResidentContext = {
+  userId: string;
+  email: string | null;
+  fullName: string | null;
+  units: ResidentUnit[];
+  brand: Brand;
+  orgId: string | null;
+  orgName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+};
+
+type OrgBrandingWithId = OrgBranding & { id: string };
+
+export const getResidentContext = cache(
+  async (): Promise<ResidentContext | null> => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const [{ data: me }, { data: profile }] = await Promise.all([
+      supabase.from("people").select("id").eq("user_id", user.id),
+      supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+    ]);
+
+    const personIds = (me ?? []).map((p) => p.id);
+    const base = {
+      userId: user.id,
+      email: user.email ?? null,
+      fullName: profile?.full_name ?? null,
+    };
+    if (personIds.length === 0) {
+      return {
+        ...base,
+        units: [],
+        brand: DEFAULT_BRAND,
+        orgId: null,
+        orgName: null,
+        contactEmail: null,
+        contactPhone: null,
+      };
+    }
+
+    const { data: owns } = await supabase
+      .from("unit_ownerships")
+      .select(
+        `unit:units(id, code, building:buildings(name, org:organizations(id, ${ORG_BRAND_COLUMNS})))`,
+      )
+      .eq("is_active", true)
+      .in("person_id", personIds);
+
+    const units: ResidentUnit[] = [];
+    let org: OrgBrandingWithId | null = null;
+    for (const o of owns ?? []) {
+      const u = o.unit as {
+        id: string;
+        code: string;
+        building: { name: string; org: OrgBrandingWithId | null } | null;
+      } | null;
+      if (!u) continue;
+      units.push({ id: u.id, code: u.code, buildingName: u.building?.name ?? "Edificio" });
+      if (!org && u.building?.org) org = u.building.org;
+    }
+
+    return {
+      ...base,
+      units,
+      brand: brandFromOrg(org),
+      orgId: org?.id ?? null,
+      orgName: org?.name ?? null,
+      contactEmail: org?.contact_email ?? null,
+      contactPhone: org?.contact_phone ?? null,
+    };
+  },
+);

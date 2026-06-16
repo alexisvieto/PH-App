@@ -13,7 +13,7 @@ export default async function PersonasPage() {
   const supabase = await createClient();
   const { data: people } = await supabase
     .from("people")
-    .select("id, full_name, doc_type, doc_number, email, phone")
+    .select("id, full_name, doc_type, doc_number, email, phone, user_id")
     .eq("organization_id", orgId)
     .order("full_name", { ascending: true });
 
@@ -52,7 +52,14 @@ export default async function PersonasPage() {
             <tbody>
               {list.map((p) => (
                 <tr key={p.id} className="border-b border-line last:border-0">
-                  <td className="px-4 py-3 font-medium">{p.full_name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    {p.full_name}
+                    {p.user_id && (
+                      <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        acceso activo
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-muted">
                     {p.doc_type ? DOC_TYPE_LABEL[p.doc_type] : ""}{" "}
                     {p.doc_number ?? ""}

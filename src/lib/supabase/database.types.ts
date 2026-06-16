@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          body: string
+          building_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          published_at: string
+          title: string
+        }
+        Insert: {
+          body: string
+          building_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          published_at?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          building_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          published_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_announcements_building_org"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buildings: {
         Row: {
           address: string | null
@@ -730,7 +778,10 @@ export type Database = {
         Args: { org: string; roles: Database["public"]["Enums"]["org_role"][] }
         Returns: boolean
       }
+      is_building_resident: { Args: { building: string }; Returns: boolean }
       is_org_member: { Args: { org: string }; Returns: boolean }
+      is_org_resident: { Args: { org: string }; Returns: boolean }
+      is_unit_resident: { Args: { unit: string }; Returns: boolean }
       register_lease: {
         Args: {
           p_rent?: number

@@ -7,6 +7,7 @@ import {
   Building2,
   Home,
   LogOut,
+  Megaphone,
   Menu,
   Users,
   X,
@@ -25,6 +26,7 @@ const NAV = [
   { href: "/app", label: "Inicio", icon: Home, exact: true },
   { href: "/app/edificios", label: "Edificios", icon: Building2, exact: false },
   { href: "/app/personas", label: "Personas", icon: Users, exact: false },
+  { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
 ];
 
 export function AppShell({

@@ -1,22 +1,19 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { StatementPDF } from "@/components/pdf/statement-pdf";
-import { getSessionContext } from "@/lib/session";
 import { getUnitStatement } from "@/lib/statement";
 
-// @react-pdf/renderer requiere runtime Node (no Edge).
 export const runtime = "nodejs";
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ buildingId: string; unitId: string }> },
+  { params }: { params: Promise<{ unitId: string }> },
 ) {
   const { unitId } = await params;
-  const ctx = await getSessionContext();
-  if (!ctx?.activeOrg) return new Response("No autorizado", { status: 401 });
-
+  // getUnitStatement corre bajo RLS: solo devuelve la unidad si el residente
+  // (o staff) tiene acceso; null en cualquier otro caso.
   const st = await getUnitStatement(unitId);
-  if (!st) return new Response("No encontrado", { status: 404 });
+  if (!st) return new Response("No autorizado", { status: 403 });
 
   const generatedOn = new Date().toLocaleDateString("es-PA", {
     year: "numeric",

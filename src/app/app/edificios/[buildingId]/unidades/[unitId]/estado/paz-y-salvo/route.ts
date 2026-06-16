@@ -15,7 +15,7 @@ export async function GET(
   const ctx = await getSessionContext();
   if (!ctx?.activeOrg) return new Response("No autorizado", { status: 401 });
 
-  const st = await getUnitStatement(unitId, ctx.activeOrg.id);
+  const st = await getUnitStatement(unitId);
   if (!st) return new Response("No encontrado", { status: 404 });
 
   // No se emite paz y salvo si la unidad tiene saldo pendiente.
@@ -35,7 +35,7 @@ export async function GET(
   try {
     const buffer = await renderToBuffer(
       PazSalvoPDF({
-        brand: ctx.brand,
+        brand: st.brand,
         buildingName: st.buildingName,
         unitCode: st.unitCode,
         ownerName: st.ownerName,

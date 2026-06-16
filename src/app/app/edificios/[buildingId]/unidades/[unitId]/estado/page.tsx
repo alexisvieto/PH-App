@@ -16,10 +16,9 @@ export default async function EstadoCuentaPage({
 }) {
   const { buildingId, unitId } = await params;
   const ctx = await getSessionContext();
-  const orgId = ctx?.activeOrg?.id;
-  if (!orgId) return null;
+  if (!ctx?.activeOrg) return null;
 
-  const st = await getUnitStatement(unitId, orgId);
+  const st = await getUnitStatement(unitId);
   if (!st) notFound();
 
   const owes = st.balance > BALANCE_TOLERANCE;

@@ -6,7 +6,8 @@ import { type NextRequest, NextResponse } from "next/server";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const { pathname } = request.nextUrl;
-  const isProtected = pathname.startsWith("/app");
+  const isProtected =
+    pathname.startsWith("/app") || pathname.startsWith("/portal");
   const isAuthRoute = pathname === "/login";
 
   try {
@@ -43,7 +44,7 @@ export async function proxy(request: NextRequest) {
 
     if (user && isAuthRoute) {
       const url = request.nextUrl.clone();
-      url.pathname = "/app";
+      url.pathname = "/"; // el resolver decide /app o /portal
       return NextResponse.redirect(url);
     }
   } catch {

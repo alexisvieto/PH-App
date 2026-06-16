@@ -1,5 +1,11 @@
 import "server-only";
 
+import {
+  brandFromOrg,
+  type Brand,
+  type OrgBranding,
+  ORG_BRAND_COLUMNS,
+} from "@/lib/brand";
 import { CHARGE_CONCEPT_LABEL, PAYMENT_METHOD_LABEL } from "@/lib/finance";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,6 +23,7 @@ export type UnitStatement = {
   unitCode: string;
   buildingName: string;
   ownerName: string | null;
+  brand: Brand; // marca del tenant (derivada de la unidad) para los exportables
   movements: Movement[];
   totalCharges: number;
   totalPayments: number;
@@ -26,22 +33,19 @@ export type UnitStatement = {
 const cents = (n: number) => Math.round(n * 100) / 100;
 
 /**
- * Estado de cuenta de una unidad: cargos (débito) y pagos (crédito) en orden
- * cronológico con saldo corrido. RLS limita a la org del usuario.
- * Devuelve null si la unidad no existe o si falla la carga de movimientos
- * (no se muestra un estado de cuenta incompleto).
+ * Estado de cuenta de una unidad. NO recibe orgId: la RLS limita el acceso
+ * (staff por membresía, residente por titularidad), así sirve a ambos.
+ * Devuelve null si la unidad no es accesible o si falla la carga.
  */
 export async function getUnitStatement(
   unitId: string,
-  orgId: string,
 ): Promise<UnitStatement | null> {
   const supabase = await createClient();
 
   const { data: unit } = await supabase
     .from("units")
-    .select("id, code, building:buildings(name)")
+    .select(`id, code, building:buildings(name, org:organizations(${ORG_BRAND_COLUMNS}))`)
     .eq("id", unitId)
-    .eq("organization_id", orgId)
     .maybeSingle();
   if (!unit) return null;
 
@@ -64,7 +68,6 @@ export async function getUnitStatement(
       .order("created_at", { ascending: true }),
   ]);
 
-  // No mostramos un estado de cuenta mutilado si falló alguna consulta.
   if (chargesRes.error || paymentsRes.error) return null;
 
   type Raw = {
@@ -73,7 +76,7 @@ export async function getUnitStatement(
     concept: string;
     debit: number;
     credit: number;
-    ts: string; // created_at, para desempate cronológico estable
+    ts: string;
   };
   const raw: Raw[] = [];
 
@@ -99,7 +102,6 @@ export async function getUnitStatement(
     });
   }
 
-  // Orden determinista: fecha, luego cargo antes que pago, luego created_at.
   raw.sort((a, b) =>
     a.date < b.date
       ? -1
@@ -132,15 +134,21 @@ export async function getUnitStatement(
   const totalCharges = cents(raw.reduce((a, m) => a + m.debit, 0));
   const totalPayments = cents(raw.reduce((a, m) => a + m.credit, 0));
 
+  const building = unit.building as {
+    name: string;
+    org: OrgBranding | null;
+  } | null;
+
   return {
     unitId,
     unitCode: unit.code,
-    buildingName: (unit.building as { name: string } | null)?.name ?? "Edificio",
+    buildingName: building?.name ?? "Edificio",
     ownerName:
       (ownerRes.data?.person as { full_name: string } | null)?.full_name ?? null,
+    brand: brandFromOrg(building?.org ?? null),
     movements,
     totalCharges,
     totalPayments,
-    balance: running, // fuente única de verdad (coincide con el último saldo corrido)
+    balance: running,
   };
 }

@@ -26,7 +26,7 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
-        router.replace("/app");
+        router.replace("/"); // el resolver decide /app o /portal
         router.refresh();
       } else {
         const { data, error } = await supabase.auth.signUp({
@@ -36,7 +36,7 @@ export default function LoginPage() {
         });
         if (error) throw error;
         if (data.session) {
-          router.replace("/app");
+          router.replace("/");
           router.refresh();
         } else {
           toast.success(

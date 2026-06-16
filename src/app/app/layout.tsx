@@ -10,7 +10,7 @@ export default async function AppLayout({
 }) {
   const ctx = await getSessionContext();
   if (!ctx) redirect("/login");
-  if (!ctx.activeOrg) redirect("/onboarding");
+  if (!ctx.activeOrg) redirect("/"); // resolver: residente → /portal, nuevo → /onboarding
 
   const orgs = ctx.memberships.map((m) => ({
     id: m.organization_id,

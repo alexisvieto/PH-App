@@ -1,22 +1,25 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 
-import { StatementPDF } from "@/components/pdf/statement-pdf";
-import { getSessionContext } from "@/lib/session";
+import { PazSalvoPDF } from "@/components/pdf/paz-salvo-pdf";
+import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { getUnitStatement } from "@/lib/statement";
 
-// @react-pdf/renderer requiere runtime Node (no Edge).
 export const runtime = "nodejs";
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ buildingId: string; unitId: string }> },
+  { params }: { params: Promise<{ unitId: string }> },
 ) {
   const { unitId } = await params;
-  const ctx = await getSessionContext();
-  if (!ctx?.activeOrg) return new Response("No autorizado", { status: 401 });
-
   const st = await getUnitStatement(unitId);
-  if (!st) return new Response("No encontrado", { status: 404 });
+  if (!st) return new Response("No autorizado", { status: 403 });
+
+  if (st.balance > BALANCE_TOLERANCE) {
+    return new Response(
+      "Tu unidad tiene saldo pendiente; no se puede emitir paz y salvo.",
+      { status: 409 },
+    );
+  }
 
   const generatedOn = new Date().toLocaleDateString("es-PA", {
     year: "numeric",
@@ -26,13 +29,19 @@ export async function GET(
 
   try {
     const buffer = await renderToBuffer(
-      StatementPDF({ statement: st, brand: st.brand, generatedOn }),
+      PazSalvoPDF({
+        brand: st.brand,
+        buildingName: st.buildingName,
+        unitCode: st.unitCode,
+        ownerName: st.ownerName,
+        generatedOn,
+      }),
     );
     const safeCode = st.unitCode.replace(/[^a-zA-Z0-9_-]/g, "_");
     return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="estado-cuenta-${safeCode}.pdf"`,
+        "Content-Disposition": `inline; filename="paz-y-salvo-${safeCode}.pdf"`,
       },
     });
   } catch {
