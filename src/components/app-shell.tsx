@@ -4,13 +4,16 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  AlertTriangle,
   Building2,
   Home,
   LogOut,
   Megaphone,
   Menu,
   MessagesSquare,
+  Truck,
   Users,
+  Wrench,
   X,
 } from "lucide-react";
 
@@ -29,6 +32,9 @@ const NAV = [
   { href: "/app/personas", label: "Personas", icon: Users, exact: false },
   { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
   { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
+  { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
+  { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
+  { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
 ];
 
 export function AppShell({

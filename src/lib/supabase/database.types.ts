@@ -138,18 +138,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "anomaly_photos_anomaly_id_fkey"
-            columns: ["anomaly_id"]
-            isOneToOne: false
-            referencedRelation: "anomaly_reports"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "anomaly_photos_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_anomaly_photo_report"
+            columns: ["anomaly_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "anomaly_reports"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }
