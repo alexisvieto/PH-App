@@ -101,8 +101,9 @@ Por cada módulo:
 - **Listo cuando:** se registra un equipo, se programa su mantenimiento con alerta, y se notifica una anomalía con foto a un proveedor.
 *(Cubre: mantenimientos, inventario, proveedores.)*
 
-### Fase 6 — Operaciones y RRHH
+### Fase 6 — Operaciones y RRHH  🟡 (motor de nómina/liquidación multi-país + UI hecho y verificado E2E; falta XIII dedicado, planilla por período, PDFs, QR/asistencia/fichas)
 **Objetivo:** control de personal y verificación de campo.
+> **Motor de cálculo (2026-06-17):** estructura **multi-país** con constantes legales como datos versionados (paquete Panamá v1 sembrado y validado). Calculadoras de planilla y liquidación funcionando según Código de Trabajo de Panamá; selección de país y campos N/A soportados para agregar otros países (Colombia, etc.) sin tocar el motor.
 - **QR de conserjes** para verificación de limpieza de áreas + control de hora de llegada de personal.
 - Fichas técnicas de trabajadores visibles a residentes + anuncios de contrataciones/despidos.
 - Cálculo de liquidaciones según ley laboral (Panamá); incapacidades y faltas con **alertas de despido según ley**.

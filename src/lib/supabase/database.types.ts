@@ -375,6 +375,153 @@ export type Database = {
           },
         ]
       }
+      contribution_rates: {
+        Row: {
+          applies: boolean
+          base: string
+          concept: string
+          employee_pct: number
+          employer_pct: number
+          note: string | null
+          rule_set_id: string
+        }
+        Insert: {
+          applies?: boolean
+          base?: string
+          concept: string
+          employee_pct?: number
+          employer_pct?: number
+          note?: string | null
+          rule_set_id: string
+        }
+        Update: {
+          applies?: boolean
+          base?: string
+          concept?: string
+          employee_pct?: number
+          employer_pct?: number
+          note?: string | null
+          rule_set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contribution_rates_rule_set_id_fkey"
+            columns: ["rule_set_id"]
+            isOneToOne: false
+            referencedRelation: "legal_rule_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      countries: {
+        Row: {
+          code: string
+          currency: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          code: string
+          currency: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          code?: string
+          currency?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          base_salary: number
+          building_id: string | null
+          contract_type: Database["public"]["Enums"]["contract_type"]
+          country_code: string
+          created_at: string
+          created_by: string | null
+          declares_dependents: boolean
+          full_name: string
+          hire_date: string
+          id: string
+          national_id: string | null
+          organization_id: string
+          pay_frequency: Database["public"]["Enums"]["pay_frequency"]
+          position: string | null
+          risk_premium_pct: number
+          status: Database["public"]["Enums"]["employee_status"]
+          termination_date: string | null
+          updated_at: string
+          work_shift: Database["public"]["Enums"]["work_shift"]
+        }
+        Insert: {
+          base_salary: number
+          building_id?: string | null
+          contract_type?: Database["public"]["Enums"]["contract_type"]
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          declares_dependents?: boolean
+          full_name: string
+          hire_date: string
+          id?: string
+          national_id?: string | null
+          organization_id: string
+          pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
+          position?: string | null
+          risk_premium_pct?: number
+          status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
+          updated_at?: string
+          work_shift?: Database["public"]["Enums"]["work_shift"]
+        }
+        Update: {
+          base_salary?: number
+          building_id?: string | null
+          contract_type?: Database["public"]["Enums"]["contract_type"]
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          declares_dependents?: boolean
+          full_name?: string
+          hire_date?: string
+          id?: string
+          national_id?: string | null
+          organization_id?: string
+          pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
+          position?: string | null
+          risk_premium_pct?: number
+          status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
+          updated_at?: string
+          work_shift?: Database["public"]["Enums"]["work_shift"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "employees_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_employee_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       equipment: {
         Row: {
           building_id: string
@@ -651,6 +798,166 @@ export type Database = {
           },
         ]
       }
+      legal_constants: {
+        Row: {
+          applies: boolean
+          key: string
+          note: string | null
+          num_value: number | null
+          rule_set_id: string
+        }
+        Insert: {
+          applies?: boolean
+          key: string
+          note?: string | null
+          num_value?: number | null
+          rule_set_id: string
+        }
+        Update: {
+          applies?: boolean
+          key?: string
+          note?: string | null
+          num_value?: number | null
+          rule_set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_constants_rule_set_id_fkey"
+            columns: ["rule_set_id"]
+            isOneToOne: false
+            referencedRelation: "legal_rule_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_rule_sets: {
+        Row: {
+          country_code: string
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          note: string | null
+          version: number
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          note?: string | null
+          version: number
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          note?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_rule_sets_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      liquidations: {
+        Row: {
+          contract_type: Database["public"]["Enums"]["contract_type"]
+          created_at: string
+          created_by: string | null
+          cumplio_preaviso: boolean | null
+          detail: Json | null
+          employee_id: string
+          empresa_dio_preaviso: boolean | null
+          id: string
+          incentivo_pactado: number
+          indemnizacion: number
+          organization_id: string
+          penalidad: number
+          preaviso: number
+          prima_antiguedad: number
+          reference_salary: number
+          rule_set_id: string | null
+          scenario: Database["public"]["Enums"]["termination_scenario"]
+          termination_date: string
+          total: number
+          vacaciones: number
+          xiii_proporcional: number
+          years_service: number
+        }
+        Insert: {
+          contract_type: Database["public"]["Enums"]["contract_type"]
+          created_at?: string
+          created_by?: string | null
+          cumplio_preaviso?: boolean | null
+          detail?: Json | null
+          employee_id: string
+          empresa_dio_preaviso?: boolean | null
+          id?: string
+          incentivo_pactado?: number
+          indemnizacion?: number
+          organization_id: string
+          penalidad?: number
+          preaviso?: number
+          prima_antiguedad?: number
+          reference_salary?: number
+          rule_set_id?: string | null
+          scenario: Database["public"]["Enums"]["termination_scenario"]
+          termination_date: string
+          total?: number
+          vacaciones?: number
+          xiii_proporcional?: number
+          years_service?: number
+        }
+        Update: {
+          contract_type?: Database["public"]["Enums"]["contract_type"]
+          created_at?: string
+          created_by?: string | null
+          cumplio_preaviso?: boolean | null
+          detail?: Json | null
+          employee_id?: string
+          empresa_dio_preaviso?: boolean | null
+          id?: string
+          incentivo_pactado?: number
+          indemnizacion?: number
+          organization_id?: string
+          penalidad?: number
+          preaviso?: number
+          prima_antiguedad?: number
+          reference_salary?: number
+          rule_set_id?: string | null
+          scenario?: Database["public"]["Enums"]["termination_scenario"]
+          termination_date?: string
+          total?: number
+          vacaciones?: number
+          xiii_proporcional?: number
+          years_service?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_liq_employee_org"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "liquidations_rule_set_id_fkey"
+            columns: ["rule_set_id"]
+            isOneToOne: false
+            referencedRelation: "legal_rule_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_logs: {
         Row: {
           building_id: string
@@ -906,6 +1213,202 @@ export type Database = {
           },
         ]
       }
+      payroll_incidences: {
+        Row: {
+          amount: number | null
+          created_at: string
+          employee_id: string
+          hours: number | null
+          id: string
+          note: string | null
+          organization_id: string
+          payroll_period_id: string
+          type: Database["public"]["Enums"]["incidence_type"]
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          employee_id: string
+          hours?: number | null
+          id?: string
+          note?: string | null
+          organization_id: string
+          payroll_period_id: string
+          type: Database["public"]["Enums"]["incidence_type"]
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          employee_id?: string
+          hours?: number | null
+          id?: string
+          note?: string | null
+          organization_id?: string
+          payroll_period_id?: string
+          type?: Database["public"]["Enums"]["incidence_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_payinc_employee_org"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_payinc_period_org"
+            columns: ["payroll_period_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_periods"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      payroll_items: {
+        Row: {
+          base_amount: number
+          commissions_amount: number
+          created_at: string
+          css_employee: number
+          css_employer: number
+          detail: Json | null
+          employee_id: string
+          gross: number
+          id: string
+          isr: number
+          net: number
+          organization_id: string
+          other_deductions: number
+          overtime_amount: number
+          payroll_period_id: string
+          riesgos_employer: number
+          seguro_educativo_employee: number
+          seguro_educativo_employer: number
+        }
+        Insert: {
+          base_amount?: number
+          commissions_amount?: number
+          created_at?: string
+          css_employee?: number
+          css_employer?: number
+          detail?: Json | null
+          employee_id: string
+          gross?: number
+          id?: string
+          isr?: number
+          net?: number
+          organization_id: string
+          other_deductions?: number
+          overtime_amount?: number
+          payroll_period_id: string
+          riesgos_employer?: number
+          seguro_educativo_employee?: number
+          seguro_educativo_employer?: number
+        }
+        Update: {
+          base_amount?: number
+          commissions_amount?: number
+          created_at?: string
+          css_employee?: number
+          css_employer?: number
+          detail?: Json | null
+          employee_id?: string
+          gross?: number
+          id?: string
+          isr?: number
+          net?: number
+          organization_id?: string
+          other_deductions?: number
+          overtime_amount?: number
+          payroll_period_id?: string
+          riesgos_employer?: number
+          seguro_educativo_employee?: number
+          seguro_educativo_employer?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_payitem_employee_org"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_payitem_period_org"
+            columns: ["payroll_period_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_periods"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      payroll_periods: {
+        Row: {
+          building_id: string | null
+          created_at: string
+          created_by: string | null
+          frequency: Database["public"]["Enums"]["pay_frequency"]
+          id: string
+          label: string
+          organization_id: string
+          pay_date: string | null
+          period_end: string
+          period_start: string
+          rule_set_id: string | null
+          status: Database["public"]["Enums"]["payroll_status"]
+        }
+        Insert: {
+          building_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          frequency: Database["public"]["Enums"]["pay_frequency"]
+          id?: string
+          label: string
+          organization_id: string
+          pay_date?: string | null
+          period_end: string
+          period_start: string
+          rule_set_id?: string | null
+          status?: Database["public"]["Enums"]["payroll_status"]
+        }
+        Update: {
+          building_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          frequency?: Database["public"]["Enums"]["pay_frequency"]
+          id?: string
+          label?: string
+          organization_id?: string
+          pay_date?: string | null
+          period_end?: string
+          period_start?: string
+          rule_set_id?: string | null
+          status?: Database["public"]["Enums"]["payroll_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_payperiod_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "payroll_periods_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_periods_rule_set_id_fkey"
+            columns: ["rule_set_id"]
+            isOneToOne: false
+            referencedRelation: "legal_rule_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       people: {
         Row: {
           created_at: string
@@ -995,6 +1498,44 @@ export type Database = {
         }
         Relationships: []
       }
+      salary_history: {
+        Row: {
+          base_salary: number
+          created_at: string
+          effective_from: string
+          employee_id: string
+          id: string
+          note: string | null
+          organization_id: string
+        }
+        Insert: {
+          base_salary: number
+          created_at?: string
+          effective_from: string
+          employee_id: string
+          id?: string
+          note?: string | null
+          organization_id: string
+        }
+        Update: {
+          base_salary?: number
+          created_at?: string
+          effective_from?: string
+          employee_id?: string
+          id?: string
+          note?: string | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_salhist_employee_org"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           contact_name: string | null
@@ -1038,6 +1579,47 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_brackets: {
+        Row: {
+          base_fixed: number
+          id: string
+          lower_bound: number
+          ord: number
+          rate: number
+          rule_set_id: string
+          tax: string
+          upper_bound: number | null
+        }
+        Insert: {
+          base_fixed?: number
+          id?: string
+          lower_bound: number
+          ord: number
+          rate?: number
+          rule_set_id: string
+          tax?: string
+          upper_bound?: number | null
+        }
+        Update: {
+          base_fixed?: number
+          id?: string
+          lower_bound?: number
+          ord?: number
+          rate?: number
+          rule_set_id?: string
+          tax?: string
+          upper_bound?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_brackets_rule_set_id_fkey"
+            columns: ["rule_set_id"]
+            isOneToOne: false
+            referencedRelation: "legal_rule_sets"
             referencedColumns: ["id"]
           },
         ]
@@ -1456,7 +2038,9 @@ export type Database = {
       anomaly_status: "abierta" | "resuelta"
       building_type: "residencial" | "comercial" | "mixto"
       charge_concept: "mantenimiento" | "extraordinaria" | "multa" | "otro"
+      contract_type: "indefinido" | "definido"
       doc_type: "cedula" | "pasaporte" | "ruc" | "otro"
+      employee_status: "activo" | "inactivo"
       equipment_category:
         | "elevador"
         | "piscina"
@@ -1480,19 +2064,36 @@ export type Database = {
         | "reserva"
         | "otro"
       fee_method: "por_coeficiente" | "monto_fijo"
+      incidence_type:
+        | "hora_extra_diurna"
+        | "hora_extra_nocturna"
+        | "hora_extra_mixta"
+        | "dia_fiesta"
+        | "hora_extra_fiesta_domingo"
+        | "comision"
+        | "bono"
+        | "otro_ingreso"
+        | "deduccion"
       infraction_type: "llamado_atencion" | "multa"
       org_role: "owner" | "administrador" | "asistente"
       org_type: "administradora" | "self_managed"
+      pay_frequency: "quincenal" | "mensual"
       payment_method:
         | "efectivo"
         | "transferencia"
         | "cheque"
         | "tarjeta"
         | "otro"
+      payroll_status: "borrador" | "procesada" | "pagada"
+      termination_scenario:
+        | "renuncia"
+        | "mutuo_acuerdo"
+        | "despido_injustificado"
       ticket_category: "queja" | "solicitud" | "sugerencia"
       ticket_status: "abierta" | "en_proceso" | "resuelta" | "cerrada"
       unit_status: "ocupada" | "desocupada" | "en_venta" | "en_alquiler"
       unit_type: "apartamento" | "local" | "parqueo" | "deposito" | "otro"
+      work_shift: "diurna" | "mixta" | "nocturna"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1624,7 +2225,9 @@ export const Constants = {
       anomaly_status: ["abierta", "resuelta"],
       building_type: ["residencial", "comercial", "mixto"],
       charge_concept: ["mantenimiento", "extraordinaria", "multa", "otro"],
+      contract_type: ["indefinido", "definido"],
       doc_type: ["cedula", "pasaporte", "ruc", "otro"],
+      employee_status: ["activo", "inactivo"],
       equipment_category: [
         "elevador",
         "piscina",
@@ -1650,9 +2253,21 @@ export const Constants = {
         "otro",
       ],
       fee_method: ["por_coeficiente", "monto_fijo"],
+      incidence_type: [
+        "hora_extra_diurna",
+        "hora_extra_nocturna",
+        "hora_extra_mixta",
+        "dia_fiesta",
+        "hora_extra_fiesta_domingo",
+        "comision",
+        "bono",
+        "otro_ingreso",
+        "deduccion",
+      ],
       infraction_type: ["llamado_atencion", "multa"],
       org_role: ["owner", "administrador", "asistente"],
       org_type: ["administradora", "self_managed"],
+      pay_frequency: ["quincenal", "mensual"],
       payment_method: [
         "efectivo",
         "transferencia",
@@ -1660,10 +2275,17 @@ export const Constants = {
         "tarjeta",
         "otro",
       ],
+      payroll_status: ["borrador", "procesada", "pagada"],
+      termination_scenario: [
+        "renuncia",
+        "mutuo_acuerdo",
+        "despido_injustificado",
+      ],
       ticket_category: ["queja", "solicitud", "sugerencia"],
       ticket_status: ["abierta", "en_proceso", "resuelta", "cerrada"],
       unit_status: ["ocupada", "desocupada", "en_venta", "en_alquiler"],
       unit_type: ["apartamento", "local", "parqueo", "deposito", "otro"],
+      work_shift: ["diurna", "mixta", "nocturna"],
     },
   },
 } as const

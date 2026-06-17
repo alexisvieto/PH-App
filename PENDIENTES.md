@@ -7,11 +7,15 @@
 - [x] **Confirmación de correo ON** en Supabase Auth (confirmado por el dueño 2026-06-17). Es de lo que depende la seguridad del portal (auto-vínculo `people.user_id` solo tras confirmar).
 - [ ] **SMTP propio** (Resend/SendGrid/SES) en Supabase → Authentication → Emails → SMTP. El correo por defecto es solo para pruebas (rate-limited). **Necesario antes del piloto con residentes reales.** (Diferido: lo hacemos luego.)
 - [ ] **URL Configuration** en Supabase Auth: Site URL + Redirect URLs (`http://localhost:3200/**` y la de Vercel) para que los enlaces de confirmación funcionen.
-- [ ] Si el repo está conectado a **Vercel**: cargar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en Vercel (cada push a `main` despliega).
+- [x] **Vercel** conectado y live en https://ph-app-one.vercel.app/ (env vars cargadas; cada push a `main` despliega). Usuario demo: `admin@modusph.app` / `Modus2026!` (owner de "PH Vista Mar", con datos de muestra).
+- [ ] **Auth → Leaked Password Protection**: habilitar en Supabase (chequeo contra HaveIBeenPwned) — lo marcó `get_advisors`. Ajuste del dueño, recomendado antes del piloto.
 
-## 🟡 Siguiente paso inmediato — Fase 6 (Operaciones y RRHH)
-Fases **3, 4 y 5 cerradas y auditadas** (3-agentes, hallazgos aplicados). Verificadas: tsc/lint 0, build OK, smoke tests. **Falta commit/push de Fase 3+4.**
-- **Fase 6 requiere ley laboral de Panamá:** liquidaciones, incapacidades y faltas con **cálculo automático** según la ley. Antes de construir: investigar/confirmar las fórmulas (preaviso, indemnización por años de servicio, prima de antigüedad, vacaciones proporcionales, décimo tercer mes) y las causales/plazos de despido. Definir si las constantes legales van en config editable (por si cambia la ley) o hardcoded con versión.
+## 🟡 Siguiente paso inmediato — Fase 6 (RRHH / Nómina)
+Fases **3, 4 y 5 cerradas y auditadas**. Fase 3+4 pusheadas a producción.
+**Fase 6 — cimiento de datos APLICADO (2026-06-17):** motor **multi-país** con constantes legales como **datos versionados** (no hardcodeadas). Capa 1 catálogo legal global (`countries`, `legal_rule_sets`, `contribution_rates`, `tax_brackets`, `legal_constants`) + **paquete Panamá v1 sembrado** (CSS 9.75/12.25, seg. educativo 1.25/1.50, CSS XIII especial 7.25, ISR 3 tramos, 25 constantes de fórmula). Capa 2 RRHH del tenant (`employees`, `salary_history`, `payroll_periods`, `payroll_items`, `payroll_incidences`, `liquidations`), **admin-only**, FKs compuestas. RLS verificada por advisors; sanity-check ISR OK (B/.2000/mes → B/.187.50). **Sin UI ni motor todavía.**
+- **Fase 6b — motor + UI HECHO (2026-06-17):** `lib/payroll/` (loadRuleSet, computePayroll, computeLiquidation, puros). UI `/app/rrhh` (empleados + calculadora de planilla + calculadora de liquidación con persistencia). Verificado E2E con Playwright (instalado y desinstalado): planilla $2,000→neto $1,592.50; liquidación despido 7 años = $16,557.71. tsc/lint 0, build OK, advisors OK.
+- **Fase 6c — pendiente:** **XIII mes** (CSS especial 7.25%, sin seg. educativo) como cálculo dedicado; **planilla por período** (batch multi-empleado usando payroll_periods/items, hoy la planilla es calculadora de preview); **PDFs** (recibo de pago, carta de liquidación con marca); promedio real de últimos 6 meses desde el ledger para indemnización (hoy usa base/estimación); **auditoría 3-agentes** de Fase 6.
+- Decisiones tomadas: empleados = tabla independiente (no `people`); país default en empleado (`country_code`, hoy 'PA') con override; estructura multi-país desde ya, Colombia = cargar paquete.
 - Pendiente de Fase 6 (del plan): QR de conserjes (limpieza + asistencia), fichas de trabajadores visibles a residentes, anuncios de contrataciones/despidos.
 
 ## 🟢 Hallazgos de auditoría diferidos (con criterio, no urgentes)

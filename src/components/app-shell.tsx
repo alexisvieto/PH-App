@@ -15,6 +15,7 @@ import {
   MessagesSquare,
   Truck,
   Users,
+  Users2,
   Wrench,
   X,
 } from "lucide-react";
@@ -38,6 +39,7 @@ const NAV = [
   { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
   { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
+  { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },
   { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
 ];
 
