@@ -1,2 +1,30 @@
 @AGENTS.md
 @BUILD-PLAYBOOK.md
+
+# Modus PH — estado del proyecto
+
+SaaS **multi-tenant** de administración de Propiedad Horizontal (producto de **Nexera**; Ingesoft es solo un cliente, no confundir). Objetivo central: **transparencia y comunicación** con los residentes.
+
+**Stack:** Next.js 16 (App Router, middleware en `src/proxy.ts`, cómputo server-side por defecto) · React 19 · Supabase (@supabase/ssr, Postgres 17, Storage) · Tailwind v4 · @react-pdf/renderer · sonner · lucide. Puerto dev `3200`. Nombre de producto centralizado en `src/lib/brand.ts` (`PRODUCT_NAME`). Proyecto Supabase: **PH App** (`ojbwkehifrilkygkkhpa`). Repo `github.com/alexisvieto/PH-App` (rama `main`).
+
+## Dos audiencias
+- **Staff** (en `/app`): `organization_members` con roles `owner`/`administrador`/`asistente`. Helpers RLS `is_org_member`, `has_org_role`.
+- **Residentes propietarios** (en `/portal`): vía `people.user_id`. Helpers RLS `is_unit_resident`/`is_building_resident`/`is_org_resident`. Resolver de login en `src/app/page.tsx` enruta staff→/app, propietario→/portal, nuevo→/onboarding.
+
+El **tenant** = `organization` (tipo administradora | self_managed), con 1..N `buildings`. Branding por-tenant (`brand.ts`). RLS deny-by-default en todas las tablas; operaciones compuestas/atómicas vía RPC `SECURITY DEFINER` (search_path fijo, grant solo `authenticated`, auto-autorizadas). Integridad cross-tenant con **FKs compuestas** `(building_id/unit_id/…, organization_id)`. Dinero = admin-only; padrón/operación = cualquier miembro.
+
+## Construido (todo en `main`, con auditoría 3-agentes + E2E salvo donde se indique)
+- **Cimiento (Fase 1):** organizations, profiles, organization_members; padrón: buildings, units (coefficient), people, unit_ownerships (historial de ventas), unit_leases (% alquilado). RPCs atómicos `transfer_ownership`/`register_lease`/`end_lease`. Auth + app shell con marca + selector de org activa (cookie).
+- **Administrativo financiero (Fase 2):** `fee_settings` (cuota por_coeficiente|monto_fijo), `charges` (incl. multas), `payments`, `expenses`. RPC `generate_monthly_charges` (admin, idempotente). Estado de cuenta (ledger: saldo = Σcargos−Σpagos) + **PDF con marca**; gastos + reportes ingresos/gastos; **paz y salvo** (PDF si saldo≤0). `lib/statement.ts` reusado por staff y portal.
+- **Portal del Residente + Comunicados (Fase 3 parcial):** `/portal` abre con comunicados (no con la deuda); estado de cuenta read-only + PDF + paz y salvo (solo lo suyo). Tabla `announcements` (admin publica; staff+residente leen). **Acuse de visto** (`announcement_reads`): admin ve "Visto por N" + quién/cuándo. Auto-vínculo `people.user_id` por email **solo con correo confirmado** (trigger).
+- **Quejas/Solicitudes (Fase 4):** `tickets` + `ticket_messages` (hilo bidireccional). El residente abre solo para su unidad y responde (RPC atómico `create_ticket`); el staff gestiona estado.
+- **Mantenimiento + Inventario (Fase 5) — CIMIENTO DE DATOS listo (sin UI):** `equipment` (inventario equipos+herramientas, cronograma vía `next_maintenance` + trigger de recálculo, alertas próximo/vencido), `maintenance_logs` (historial), `anomaly_reports` + `anomaly_photos` (1..N), `suppliers` (catálogo). **Storage** bucket privado `ph-photos` (RLS por carpeta = org). Staff-only en v1.
+
+## Lecciones (bugs que tsc/lint NO detectan — solo runtime/E2E)
+- Archivos `"use server"` **solo exportan funciones async**; constantes/objetos de estado van en `src/lib/action-state.ts`.
+- Nada de `setState` en `useEffect`: usar `components/use-form-panel.ts` (ajuste-en-render con guard).
+- Las **FKs compuestas** vuelven **ambiguos** los embeds de PostgREST a esa tabla → usar hint `tabla!fk_name(...)` o mapear aparte (no embeber).
+- Crear usuarios de prueba por SQL: normalizar columnas de token de `auth.users` a `''` (no NULL) o GoTrue falla.
+
+## Pendientes y siguiente paso
+Ver **`PENDIENTES.md`** (contexto vivo) y **`PLAN-DE-TRABAJO.md`** (roadmap). Lo inmediato: **UI de Fase 5** (5a equipos/cronograma/historial + suppliers; 5b anomalías con fotos vía Storage + signed URLs).
