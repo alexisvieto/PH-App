@@ -26,6 +26,21 @@ export function formatMoney(
   });
 }
 
+/** Valida una fecha de calendario real en formato YYYY-MM-DD (rechaza 2026-13-45). */
+export function isValidIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const d = new Date(`${value}T00:00:00`);
+  return !Number.isNaN(d.getTime()) && value === isoDay(d);
+}
+
+/** Fecha local (no UTC) como YYYY-MM-DD. */
+export function isoDay(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 /** Porcentaje con un decimal. */
 export function formatPct(value: number | null | undefined): string {
   if (value === null || value === undefined) return "—";

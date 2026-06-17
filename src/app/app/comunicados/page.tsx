@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Eye, Megaphone } from "lucide-react";
 
 import { NewAnnouncementForm } from "@/components/forms/new-announcement-form";
+import { ANNOUNCEMENT_KIND_CLASS, ANNOUNCEMENT_KIND_LABEL } from "@/lib/announcements";
 import { formatDate } from "@/lib/format";
 import { getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -12,26 +13,31 @@ export default async function ComunicadosPage() {
   if (!orgId) return null;
 
   const supabase = await createClient();
-  const [{ data: buildings }, { data: announcements }, { data: reads }] =
-    await Promise.all([
-      supabase
-        .from("buildings")
-        .select("id, name")
-        .eq("organization_id", orgId)
-        .order("name", { ascending: true }),
-      supabase
-        .from("announcements")
-        .select("id, title, body, published_at, building_id")
-        .eq("organization_id", orgId)
-        .order("published_at", { ascending: false })
-        .limit(100),
-      supabase
-        .from("announcement_reads")
-        .select("announcement_id")
-        .eq("organization_id", orgId),
-    ]);
+  const [{ data: buildings }, { data: announcements }] = await Promise.all([
+    supabase
+      .from("buildings")
+      .select("id, name")
+      .eq("organization_id", orgId)
+      .order("name", { ascending: true }),
+    supabase
+      .from("announcements")
+      .select("id, title, body, published_at, building_id, kind")
+      .eq("organization_id", orgId)
+      .order("published_at", { ascending: false })
+      .limit(100),
+  ]);
 
   const list = announcements ?? [];
+
+  // Acuses solo de los comunicados visibles (no toda la tabla histórica).
+  const ids = list.map((a) => a.id);
+  const { data: reads } = ids.length
+    ? await supabase
+        .from("announcement_reads")
+        .select("announcement_id")
+        .eq("organization_id", orgId)
+        .in("announcement_id", ids)
+    : { data: [] };
   const buildingName = new Map((buildings ?? []).map((b) => [b.id, b.name]));
   const readCount = new Map<string, number>();
   for (const r of reads ?? [])
@@ -69,7 +75,14 @@ export default async function ComunicadosPage() {
                 className="rounded-2xl border border-line bg-surface p-4"
               >
                 <div className="flex items-baseline justify-between gap-3">
-                  <h2 className="font-medium">{a.title}</h2>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${ANNOUNCEMENT_KIND_CLASS[a.kind]}`}
+                    >
+                      {ANNOUNCEMENT_KIND_LABEL[a.kind]}
+                    </span>
+                    <h2 className="font-medium">{a.title}</h2>
+                  </div>
                   <span className="shrink-0 text-xs text-muted">
                     {formatDate(a.published_at)}
                   </span>

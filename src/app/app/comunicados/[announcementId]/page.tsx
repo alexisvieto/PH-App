@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Eye } from "lucide-react";
+import { Eye, Printer } from "lucide-react";
 
 import { formatDate } from "@/lib/format";
 import { getSessionContext } from "@/lib/session";
@@ -30,6 +30,7 @@ export default async function ComunicadoAcusePage({
       .from("announcement_reads")
       .select("user_id, read_at")
       .eq("announcement_id", announcementId)
+      .eq("organization_id", orgId)
       .order("read_at", { ascending: false }),
     supabase
       .from("people")
@@ -58,6 +59,14 @@ export default async function ComunicadoAcusePage({
       <article className="rounded-2xl border border-line bg-surface p-4">
         <p className="whitespace-pre-line text-sm text-ink/80">{ann.body}</p>
       </article>
+
+      <Link
+        href={`/app/comunicados/${ann.id}/flyer`}
+        target="_blank"
+        className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-brand transition hover:bg-gray-50"
+      >
+        <Printer className="size-4" /> Imprimir para áreas sociales
+      </Link>
 
       <div className="rounded-2xl border border-line bg-surface">
         <div className="flex items-center gap-2 border-b border-line px-5 py-3">

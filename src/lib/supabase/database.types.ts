@@ -67,6 +67,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          kind: Database["public"]["Enums"]["announcement_kind"]
           organization_id: string
           published_at: string
           title: string
@@ -77,6 +78,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          kind?: Database["public"]["Enums"]["announcement_kind"]
           organization_id: string
           published_at?: string
           title: string
@@ -87,6 +89,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          kind?: Database["public"]["Enums"]["announcement_kind"]
           organization_id?: string
           published_at?: string
           title?: string
@@ -570,6 +573,80 @@ export type Database = {
             columns: ["building_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      infractions: {
+        Row: {
+          amount: number | null
+          building_id: string
+          charge_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          infraction_date: string
+          organization_id: string
+          reason: string
+          type: Database["public"]["Enums"]["infraction_type"]
+          unit_id: string
+        }
+        Insert: {
+          amount?: number | null
+          building_id: string
+          charge_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          infraction_date?: string
+          organization_id: string
+          reason: string
+          type: Database["public"]["Enums"]["infraction_type"]
+          unit_id: string
+        }
+        Update: {
+          amount?: number | null
+          building_id?: string
+          charge_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          infraction_date?: string
+          organization_id?: string
+          reason?: string
+          type?: Database["public"]["Enums"]["infraction_type"]
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_infraction_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_infraction_charge_org"
+            columns: ["charge_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "charges"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_infraction_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_infraction_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id", "organization_id"]
           },
         ]
@@ -1314,6 +1391,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_infraction: {
+        Args: {
+          p_amount?: number
+          p_description?: string
+          p_due_date?: string
+          p_infraction_date?: string
+          p_reason: string
+          p_type: Database["public"]["Enums"]["infraction_type"]
+          p_unit_id: string
+        }
+        Returns: string
+      }
       create_organization: {
         Args: {
           p_name: string
@@ -1363,6 +1452,7 @@ export type Database = {
       }
     }
     Enums: {
+      announcement_kind: "anuncio" | "novedad"
       anomaly_status: "abierta" | "resuelta"
       building_type: "residencial" | "comercial" | "mixto"
       charge_concept: "mantenimiento" | "extraordinaria" | "multa" | "otro"
@@ -1390,6 +1480,7 @@ export type Database = {
         | "reserva"
         | "otro"
       fee_method: "por_coeficiente" | "monto_fijo"
+      infraction_type: "llamado_atencion" | "multa"
       org_role: "owner" | "administrador" | "asistente"
       org_type: "administradora" | "self_managed"
       payment_method:
@@ -1529,6 +1620,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      announcement_kind: ["anuncio", "novedad"],
       anomaly_status: ["abierta", "resuelta"],
       building_type: ["residencial", "comercial", "mixto"],
       charge_concept: ["mantenimiento", "extraordinaria", "multa", "otro"],
@@ -1558,6 +1650,7 @@ export const Constants = {
         "otro",
       ],
       fee_method: ["por_coeficiente", "monto_fijo"],
+      infraction_type: ["llamado_atencion", "multa"],
       org_role: ["owner", "administrador", "asistente"],
       org_type: ["administradora", "self_managed"],
       payment_method: [

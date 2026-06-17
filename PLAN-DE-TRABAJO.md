@@ -77,7 +77,7 @@ Por cada módulo:
 - **Listo cuando:** un propietario imprime su estado de cuenta y la JD ve el reporte de ingresos/gastos del PH.
 *(Cubre: estados de cuenta, recibos, reportes contables, paz y salvos, informes de asamblea.)*
 
-### Fase 3 — Comunicación
+### Fase 3 — Comunicación  ✅ (auditado 3-agentes)
 **Objetivo:** información a todos en tiempo real.
 - Anuncios varios + novedades administrativas (envío a todos los residentes a cualquier hora).
 - Comunicados con **acuse de recibido/visto**. Reportes diarios/semanales de novedades e incidentes a la JD.
@@ -85,14 +85,14 @@ Por cada módulo:
 - **Listo cuando:** se publica un comunicado y se ve quién lo recibió/leyó.
 *(Cubre: anuncios, novedades, reportes a JD, comunicaciones de áreas sociales.)*
 
-### Fase 4 — Quejas / Tickets + Multas
+### Fase 4 — Quejas / Tickets + Multas  ✅ (auditado 3-agentes)
 **Objetivo:** trazabilidad de incidencias y sanciones.
 - Quejas de residentes como tickets con estados y seguimiento.
 - Formatos de multas y llamados de atención por residente, con **historial**.
 - **Listo cuando:** un residente abre una queja, la admin la resuelve, y se emite una multa con su historial.
 *(Cubre: quejas, multas y llamados de atención.)*
 
-### Fase 5 — Mantenimiento + Inventario
+### Fase 5 — Mantenimiento + Inventario  ✅ (auditado 3-agentes)
 **Objetivo:** salud de los equipos del PH.
 - Alertas de mantenimiento por equipo (elevadores, piscina, gym, planta eléctrica, bombas, tanque reserva, alarmas contra incendio, A/C, computadoras).
 - Historial de mantenimiento por equipo; reportes de proveedores; cronogramas con tabla de avance/culminación enviados a JD y residentes.

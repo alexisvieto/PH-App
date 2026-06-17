@@ -6,6 +6,8 @@ import { useState } from "react";
 import {
   AlertTriangle,
   Building2,
+  FileBarChart,
+  Gavel,
   Home,
   LogOut,
   Megaphone,
@@ -32,9 +34,11 @@ const NAV = [
   { href: "/app/personas", label: "Personas", icon: Users, exact: false },
   { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
   { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
+  { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
   { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
   { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
+  { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
 ];
 
 export function AppShell({

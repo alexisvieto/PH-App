@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 import type { ActionState } from "@/lib/action-state";
 import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
+import { Constants } from "@/lib/supabase/database.types";
+import type { Database } from "@/lib/supabase/database.types";
+
+type AnnouncementKind = Database["public"]["Enums"]["announcement_kind"];
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -34,6 +38,10 @@ export async function createAnnouncement(
   if (buildingId && !UUID.test(buildingId))
     return { error: "Edificio inválido.", ok: false };
 
+  const kind = String(formData.get("kind") ?? "anuncio") as AnnouncementKind;
+  if (!(Constants.public.Enums.announcement_kind as readonly string[]).includes(kind))
+    return { error: "Tipo inválido.", ok: false };
+
   const supabase = await createClient();
   if (buildingId) {
     const { data: b } = await supabase
@@ -48,6 +56,7 @@ export async function createAnnouncement(
   const { error } = await supabase.from("announcements").insert({
     organization_id: orgId,
     building_id: buildingId,
+    kind,
     title,
     body,
     created_by: ctx.userId,

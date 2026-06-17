@@ -7,6 +7,7 @@ import { createAnnouncement } from "@/app/app/comunicados/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { useFormPanel } from "@/components/use-form-panel";
 import { EMPTY_ACTION_STATE } from "@/lib/action-state";
+import { ANNOUNCEMENT_KIND_OPTIONS } from "@/lib/announcements";
 
 const input =
   "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand bg-white";
@@ -58,17 +59,29 @@ export function NewAnnouncementForm({
           placeholder="Escribe el comunicado para los residentes…"
         />
       </label>
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium">Dirigido a</span>
-        <select name="building_id" defaultValue="" className={input}>
-          <option value="">Todos los edificios</option>
-          {buildings.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Tipo</span>
+          <select name="kind" defaultValue="anuncio" className={input}>
+            {ANNOUNCEMENT_KIND_OPTIONS.map(([v, l]) => (
+              <option key={v} value={v}>
+                {l}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Dirigido a</span>
+          <select name="building_id" defaultValue="" className={input}>
+            <option value="">Todos los edificios</option>
+            {buildings.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       {state.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
