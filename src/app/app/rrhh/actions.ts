@@ -64,6 +64,15 @@ export async function createEmployee(
   const buildingRaw = String(formData.get("building_id") ?? "").trim();
   if (buildingRaw && !UUID.test(buildingRaw)) return { error: "Edificio inválido.", ok: false };
 
+  const birthDate = String(formData.get("birth_date") ?? "").trim();
+  if (birthDate && !isValidIsoDate(birthDate)) return { error: "Fecha de nacimiento inválida.", ok: false };
+
+  const sex = String(formData.get("sex") ?? "").trim();
+  if (sex && !["masculino", "femenino", "otro"].includes(sex))
+    return { error: "Sexo inválido.", ok: false };
+
+  const txt = (key: string) => String(formData.get(key) ?? "").trim() || null;
+
   const supabase = await createClient();
   const { data: emp, error } = await supabase
     .from("employees")
@@ -71,8 +80,8 @@ export async function createEmployee(
       organization_id: orgId,
       building_id: buildingRaw || null,
       full_name: fullName,
-      national_id: String(formData.get("national_id") ?? "").trim() || null,
-      position: String(formData.get("position") ?? "").trim() || null,
+      national_id: txt("national_id"),
+      position: txt("position"),
       hire_date: hireDate,
       contract_type: contractType as Enums["contract_type"],
       work_shift: workShift as Enums["work_shift"],
@@ -80,6 +89,17 @@ export async function createEmployee(
       pay_frequency: payFrequency as Enums["pay_frequency"],
       risk_premium_pct: riskPct,
       declares_dependents: formData.get("declares_dependents") === "on",
+      birth_date: birthDate || null,
+      sex: sex || null,
+      address: txt("address"),
+      phone: txt("phone"),
+      email: txt("email"),
+      emergency_contact_name: txt("emergency_contact_name"),
+      emergency_contact_phone: txt("emergency_contact_phone"),
+      emergency_contact_relationship: txt("emergency_contact_relationship"),
+      bank_name: txt("bank_name"),
+      bank_account: txt("bank_account"),
+      social_security_no: txt("social_security_no"),
       created_by: ctx.userId,
     })
     .select("id")
@@ -150,6 +170,51 @@ export async function setEmployeeFile(
   if (error) {
     console.error("setEmployeeFile:", error.code, error.message);
     return { error: "No se pudo guardar el archivo.", ok: false };
+  }
+
+  revalidatePath(`/app/rrhh/${employeeId}`);
+  return { error: null, ok: true };
+}
+
+/** Registra una amonestación (fecha + causa + documento opcional ya subido a ph-docs). */
+export async function addEmployeeWarning(
+  employeeId: string,
+  vars: { warningDate: string; reason: string; documentPath?: string | null },
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId || !canManage(ctx?.role ?? null)) return { error: "No autorizado.", ok: false };
+  if (!UUID.test(employeeId)) return { error: "Empleado inválido.", ok: false };
+  if (!isValidIsoDate(vars.warningDate)) return { error: "Fecha inválida.", ok: false };
+  const reason = (vars.reason ?? "").trim();
+  if (!reason) return { error: "La causa es obligatoria.", ok: false };
+  if (reason.length > 500) return { error: "La causa es muy larga (máx. 500).", ok: false };
+
+  const docPath = (vars.documentPath ?? "").trim() || null;
+  if (docPath && !docPath.startsWith(`${orgId}/empleados/${employeeId}/`))
+    return { error: "Ruta de documento inválida.", ok: false };
+
+  const supabase = await createClient();
+  // El empleado debe ser de la org (RLS + filtro).
+  const { data: emp } = await supabase
+    .from("employees")
+    .select("id")
+    .eq("id", employeeId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!emp) return { error: "Empleado no encontrado.", ok: false };
+
+  const { error } = await supabase.from("employee_warnings").insert({
+    organization_id: orgId,
+    employee_id: employeeId,
+    warning_date: vars.warningDate,
+    reason,
+    document_path: docPath,
+    created_by: ctx.userId,
+  });
+  if (error) {
+    console.error("addEmployeeWarning:", error.code, error.message);
+    return { error: "No se pudo registrar la amonestación.", ok: false };
   }
 
   revalidatePath(`/app/rrhh/${employeeId}`);

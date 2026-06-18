@@ -434,9 +434,54 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_warnings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          document_path: string | null
+          employee_id: string
+          id: string
+          organization_id: string
+          reason: string
+          warning_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          document_path?: string | null
+          employee_id: string
+          id?: string
+          organization_id: string
+          reason: string
+          warning_date?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          document_path?: string | null
+          employee_id?: string
+          id?: string
+          organization_id?: string
+          reason?: string
+          warning_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_warning_employee_org"
+            columns: ["employee_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       employees: {
         Row: {
+          address: string | null
+          bank_account: string | null
+          bank_name: string | null
           base_salary: number
+          birth_date: string | null
           building_id: string | null
           contract_path: string | null
           contract_type: Database["public"]["Enums"]["contract_type"]
@@ -444,22 +489,33 @@ export type Database = {
           created_at: string
           created_by: string | null
           declares_dependents: boolean
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
           full_name: string
           hire_date: string
           id: string
           national_id: string | null
           organization_id: string
           pay_frequency: Database["public"]["Enums"]["pay_frequency"]
+          phone: string | null
           photo_path: string | null
           position: string | null
           risk_premium_pct: number
+          sex: string | null
+          social_security_no: string | null
           status: Database["public"]["Enums"]["employee_status"]
           termination_date: string | null
           updated_at: string
           work_shift: Database["public"]["Enums"]["work_shift"]
         }
         Insert: {
+          address?: string | null
+          bank_account?: string | null
+          bank_name?: string | null
           base_salary: number
+          birth_date?: string | null
           building_id?: string | null
           contract_path?: string | null
           contract_type?: Database["public"]["Enums"]["contract_type"]
@@ -467,22 +523,33 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           declares_dependents?: boolean
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           full_name: string
           hire_date: string
           id?: string
           national_id?: string | null
           organization_id: string
           pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
+          phone?: string | null
           photo_path?: string | null
           position?: string | null
           risk_premium_pct?: number
+          sex?: string | null
+          social_security_no?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
           termination_date?: string | null
           updated_at?: string
           work_shift?: Database["public"]["Enums"]["work_shift"]
         }
         Update: {
+          address?: string | null
+          bank_account?: string | null
+          bank_name?: string | null
           base_salary?: number
+          birth_date?: string | null
           building_id?: string | null
           contract_path?: string | null
           contract_type?: Database["public"]["Enums"]["contract_type"]
@@ -490,15 +557,22 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           declares_dependents?: boolean
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           full_name?: string
           hire_date?: string
           id?: string
           national_id?: string | null
           organization_id?: string
           pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
+          phone?: string | null
           photo_path?: string | null
           position?: string | null
           risk_premium_pct?: number
+          sex?: string | null
+          social_security_no?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
           termination_date?: string | null
           updated_at?: string

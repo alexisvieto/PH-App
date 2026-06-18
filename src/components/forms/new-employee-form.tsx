@@ -63,8 +63,37 @@ export function NewEmployeeForm({
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Fecha de ingreso</span>
+          <span className="mb-1 block text-sm font-medium">Fecha de inicio de labores</span>
           <input name="hire_date" type="date" required className={input} />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Fecha de nacimiento</span>
+          <input name="birth_date" type="date" className={input} />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Sexo</span>
+          <select name="sex" defaultValue="" className={input}>
+            <option value="">Sin especificar</option>
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Teléfono</span>
+          <input name="phone" className={input} placeholder="Opcional" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Correo</span>
+          <input name="email" type="email" className={input} placeholder="Opcional" />
+        </label>
+        <label className="block sm:col-span-2">
+          <span className="mb-1 block text-sm font-medium">Dirección</span>
+          <input name="address" className={input} placeholder="Opcional" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">N° de Seguro Social (CSS)</span>
+          <input name="social_security_no" className={input} placeholder="Opcional" />
         </label>
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Salario base mensual (USD)</span>
@@ -98,6 +127,31 @@ export function NewEmployeeForm({
           <span className="mb-1 block text-sm font-medium">Riesgo profesional (% patronal)</span>
           <input name="risk_premium_pct" type="number" min="0" max="15" step="0.01" defaultValue="0" className={input} />
         </label>
+
+        <p className="mt-2 text-sm font-medium text-muted sm:col-span-2">Contacto de emergencia</p>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Nombre</span>
+          <input name="emergency_contact_name" className={input} placeholder="Opcional" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Teléfono</span>
+          <input name="emergency_contact_phone" className={input} placeholder="Opcional" />
+        </label>
+        <label className="block sm:col-span-2">
+          <span className="mb-1 block text-sm font-medium">Parentesco</span>
+          <input name="emergency_contact_relationship" className={input} placeholder="Ej. Cónyuge, hijo/a" />
+        </label>
+
+        <p className="mt-2 text-sm font-medium text-muted sm:col-span-2">Datos de pago</p>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Banco</span>
+          <input name="bank_name" className={input} placeholder="Opcional" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">N° de cuenta</span>
+          <input name="bank_account" className={input} placeholder="Opcional" />
+        </label>
+
         <label className="flex items-center gap-2 sm:col-span-2">
           <input name="declares_dependents" type="checkbox" className="size-4" />
           <span className="text-sm">Declara dependientes (deducción ISR de B/.800 anuales)</span>

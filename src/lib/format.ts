@@ -33,6 +33,18 @@ export function isValidIsoDate(value: string): boolean {
   return !Number.isNaN(d.getTime()) && value === isoDay(d);
 }
 
+/** Edad en años cumplidos a partir de la fecha de nacimiento (se calcula en vivo). */
+export function ageFromBirthDate(birthDate: string | null | undefined): number | null {
+  if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
+  const b = new Date(`${birthDate}T00:00:00`);
+  if (Number.isNaN(b.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age -= 1;
+  return age < 0 ? null : age;
+}
+
 /** Fecha local (no UTC) como YYYY-MM-DD. */
 export function isoDay(d: Date): string {
   const y = d.getFullYear();
