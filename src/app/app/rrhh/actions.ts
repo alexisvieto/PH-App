@@ -104,6 +104,59 @@ export async function createEmployee(
 }
 
 // --------------------------------------------------------------------------
+// Archivos del empleado (foto / contrato) en el bucket privado ph-docs.
+// La subida la hace el cliente con su sesión (RLS por carpeta = org);
+// aquí solo se registra la ruta y se borra la anterior al reemplazar.
+// --------------------------------------------------------------------------
+export async function setEmployeeFile(
+  employeeId: string,
+  kind: "photo" | "contract",
+  path: string,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId || !canManage(ctx?.role ?? null))
+    return { error: "No autorizado.", ok: false };
+  if (!UUID.test(employeeId)) return { error: "Empleado inválido.", ok: false };
+  if (kind !== "photo" && kind !== "contract")
+    return { error: "Tipo de archivo inválido.", ok: false };
+
+  const prefix = `${orgId}/empleados/${employeeId}/`;
+  if (typeof path !== "string" || !path.startsWith(prefix))
+    return { error: "Ruta de archivo inválida.", ok: false };
+
+  const column = kind === "photo" ? "photo_path" : "contract_path";
+  const supabase = await createClient();
+  const { data: emp } = await supabase
+    .from("employees")
+    .select(`id, ${column}`)
+    .eq("id", employeeId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!emp) return { error: "Empleado no encontrado.", ok: false };
+
+  const previous = (emp as Record<string, string | null>)[column];
+  if (previous && previous !== path) {
+    await supabase.storage.from("ph-docs").remove([previous]);
+  }
+
+  const patch =
+    kind === "photo" ? { photo_path: path } : { contract_path: path };
+  const { error } = await supabase
+    .from("employees")
+    .update(patch)
+    .eq("id", employeeId)
+    .eq("organization_id", orgId);
+  if (error) {
+    console.error("setEmployeeFile:", error.code, error.message);
+    return { error: "No se pudo guardar el archivo.", ok: false };
+  }
+
+  revalidatePath(`/app/rrhh/${employeeId}`);
+  return { error: null, ok: true };
+}
+
+// --------------------------------------------------------------------------
 // Cálculo: carga empleado (RLS) + paquete legal de su país, y computa.
 // --------------------------------------------------------------------------
 type EmployeeRow = Database["public"]["Tables"]["employees"]["Row"];

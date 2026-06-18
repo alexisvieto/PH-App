@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
+import { EmployeeFiles } from "@/components/rrhh/employee-files";
 import { LiquidationCalculator } from "@/components/rrhh/liquidation-calculator";
 import { PlanillaCalculator } from "@/components/rrhh/planilla-calculator";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -34,6 +35,20 @@ export default async function EmployeeDetailPage({
     .maybeSingle();
   if (!emp) notFound();
 
+  // URLs firmadas (bucket privado ph-docs) para foto y contrato.
+  const filePaths = [emp.photo_path, emp.contract_path].filter(
+    (p): p is string => Boolean(p),
+  );
+  const signed = new Map<string, string>();
+  if (filePaths.length > 0) {
+    const { data } = await supabase.storage
+      .from("ph-docs")
+      .createSignedUrls(filePaths, 60 * 60);
+    for (const s of data ?? []) if (s.signedUrl && s.path) signed.set(s.path, s.signedUrl);
+  }
+  const photoUrl = emp.photo_path ? signed.get(emp.photo_path) ?? null : null;
+  const contractUrl = emp.contract_path ? signed.get(emp.contract_path) ?? null : null;
+
   const { data: liquidations } = await supabase
     .from("liquidations")
     .select("id, scenario, termination_date, total, created_at")
@@ -61,6 +76,13 @@ export default async function EmployeeDetailPage({
           <Field label="Dependientes" value={emp.declares_dependents ? "Sí declara" : "No"} />
         </dl>
       </div>
+
+      <EmployeeFiles
+        employeeId={emp.id}
+        orgId={orgId}
+        photoUrl={photoUrl}
+        contractUrl={contractUrl}
+      />
 
       <PlanillaCalculator employeeId={emp.id} />
 

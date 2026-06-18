@@ -438,6 +438,7 @@ export type Database = {
         Row: {
           base_salary: number
           building_id: string | null
+          contract_path: string | null
           contract_type: Database["public"]["Enums"]["contract_type"]
           country_code: string
           created_at: string
@@ -449,6 +450,7 @@ export type Database = {
           national_id: string | null
           organization_id: string
           pay_frequency: Database["public"]["Enums"]["pay_frequency"]
+          photo_path: string | null
           position: string | null
           risk_premium_pct: number
           status: Database["public"]["Enums"]["employee_status"]
@@ -459,6 +461,7 @@ export type Database = {
         Insert: {
           base_salary: number
           building_id?: string | null
+          contract_path?: string | null
           contract_type?: Database["public"]["Enums"]["contract_type"]
           country_code?: string
           created_at?: string
@@ -470,6 +473,7 @@ export type Database = {
           national_id?: string | null
           organization_id: string
           pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
+          photo_path?: string | null
           position?: string | null
           risk_premium_pct?: number
           status?: Database["public"]["Enums"]["employee_status"]
@@ -480,6 +484,7 @@ export type Database = {
         Update: {
           base_salary?: number
           building_id?: string | null
+          contract_path?: string | null
           contract_type?: Database["public"]["Enums"]["contract_type"]
           country_code?: string
           created_at?: string
@@ -491,6 +496,7 @@ export type Database = {
           national_id?: string | null
           organization_id?: string
           pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
+          photo_path?: string | null
           position?: string | null
           risk_premium_pct?: number
           status?: Database["public"]["Enums"]["employee_status"]
