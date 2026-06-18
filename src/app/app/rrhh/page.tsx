@@ -22,13 +22,21 @@ export default async function RrhhPage() {
   const [{ data: employees }, { data: buildings }] = await Promise.all([
     supabase
       .from("employees")
-      .select("id, full_name, position, base_salary, contract_type, status, hire_date")
+      .select("id, full_name, position, base_salary, contract_type, status, hire_date, photo_path")
       .eq("organization_id", orgId)
       .order("full_name")
       .limit(300),
     supabase.from("buildings").select("id, name").eq("organization_id", orgId).order("name"),
   ]);
   const list = employees ?? [];
+
+  // Avatares: URLs firmadas para todas las fotos en una sola llamada.
+  const photoPaths = list.map((e) => e.photo_path).filter((p): p is string => Boolean(p));
+  const avatar = new Map<string, string>();
+  if (photoPaths.length > 0) {
+    const { data } = await supabase.storage.from("ph-docs").createSignedUrls(photoPaths, 60 * 60);
+    for (const s of data ?? []) if (s.signedUrl && s.path) avatar.set(s.path, s.signedUrl);
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -64,10 +72,22 @@ export default async function RrhhPage() {
               {list.map((e) => (
                 <tr key={e.id} className="border-b border-line last:border-0 hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <Link href={`/app/rrhh/${e.id}`} className="font-medium text-brand hover:underline">
-                      {e.full_name}
-                    </Link>
-                    {e.position && <span className="block text-xs text-muted">{e.position}</span>}
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-medium text-muted">
+                        {e.photo_path && avatar.get(e.photo_path) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={avatar.get(e.photo_path)} alt="" className="size-full object-cover" />
+                        ) : (
+                          (e.full_name.trim()[0] ?? "?").toUpperCase()
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <Link href={`/app/rrhh/${e.id}`} className="font-medium text-brand hover:underline">
+                          {e.full_name}
+                        </Link>
+                        {e.position && <span className="block text-xs text-muted">{e.position}</span>}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-muted">{formatDate(e.hire_date)}</td>
                   <td className="px-4 py-3 text-muted">{CONTRACT_TYPE_LABEL[e.contract_type]}</td>

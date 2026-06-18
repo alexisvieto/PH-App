@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { addEmployeeWarning } from "@/app/app/rrhh/actions";
 import { formatDate } from "@/lib/format";
+import { WARNING_TYPE_LABEL, WARNING_TYPE_OPTIONS } from "@/lib/payroll/labels";
 import { createClient } from "@/lib/supabase/client";
 
 const input =
@@ -19,7 +20,7 @@ const EXT: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
-export type WarningItem = { id: string; date: string; reason: string; docUrl: string | null };
+export type WarningItem = { id: string; date: string; reason: string; type: string; docUrl: string | null };
 
 export function EmployeeWarnings({
   employeeId,
@@ -44,6 +45,7 @@ export function EmployeeWarnings({
     const f = new FormData(e.currentTarget);
     const warningDate = String(f.get("warning_date") ?? "");
     const reason = String(f.get("reason") ?? "");
+    const type = String(f.get("type") ?? "escrita");
 
     let documentPath: string | null = null;
     if (file) {
@@ -69,7 +71,7 @@ export function EmployeeWarnings({
       documentPath = path;
     }
 
-    const res = await addEmployeeWarning(employeeId, { warningDate, reason, documentPath });
+    const res = await addEmployeeWarning(employeeId, { warningDate, reason, type, documentPath });
     setBusy(false);
     if (res.ok) {
       toast.success("Amonestación registrada.");
@@ -106,6 +108,12 @@ export function EmployeeWarnings({
               <input name="warning_date" type="date" required className={input} />
             </label>
             <label className="block">
+              <span className="mb-1 block text-xs font-medium text-muted">Tipo</span>
+              <select name="type" defaultValue="escrita" className={input}>
+                {WARNING_TYPE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </label>
+            <label className="block sm:col-span-2">
               <span className="mb-1 block text-xs font-medium text-muted">Documento (opcional)</span>
               <input
                 type="file"
@@ -143,7 +151,12 @@ export function EmployeeWarnings({
           {warnings.map((w) => (
             <li key={w.id} className="flex items-start justify-between gap-3 py-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium">{formatDate(w.date)}</p>
+                <p className="text-sm font-medium">
+                  {formatDate(w.date)}
+                  <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    {WARNING_TYPE_LABEL[w.type] ?? w.type}
+                  </span>
+                </p>
                 <p className="text-sm text-ink/80">{w.reason}</p>
               </div>
               {w.docUrl && (

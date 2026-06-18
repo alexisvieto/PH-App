@@ -2,14 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
+import { EmployeeAdmin } from "@/components/rrhh/employee-admin";
 import { EmployeeFiles } from "@/components/rrhh/employee-files";
 import { EmployeeWarnings, type WarningItem } from "@/components/rrhh/employee-warnings";
 import { LiquidationCalculator } from "@/components/rrhh/liquidation-calculator";
 import { PlanillaCalculator } from "@/components/rrhh/planilla-calculator";
 import { ageFromBirthDate, formatDate, formatMoney } from "@/lib/format";
+import { maintenanceAlert } from "@/lib/maintenance";
 import {
   CONTRACT_TYPE_LABEL,
+  EMPLOYEE_STATUS_LABEL,
   PAY_FREQUENCY_LABEL,
+  TERMINATION_REASON_LABEL,
   TERMINATION_SCENARIO_LABEL,
   WORK_SHIFT_LABEL,
 } from "@/lib/payroll/labels";
@@ -36,10 +40,10 @@ export default async function EmployeeDetailPage({
     .maybeSingle();
   if (!emp) notFound();
 
-  const [{ data: warningsRaw }, { data: liquidations }] = await Promise.all([
+  const [{ data: warningsRaw }, { data: liquidations }, { data: buildings }] = await Promise.all([
     supabase
       .from("employee_warnings")
-      .select("id, warning_date, reason, document_path")
+      .select("id, warning_date, reason, type, document_path")
       .eq("employee_id", employeeId)
       .order("warning_date", { ascending: false })
       .limit(100),
@@ -49,6 +53,7 @@ export default async function EmployeeDetailPage({
       .eq("employee_id", employeeId)
       .order("created_at", { ascending: false })
       .limit(20),
+    supabase.from("buildings").select("id, name").eq("organization_id", orgId).order("name"),
   ]);
 
   // URLs firmadas (bucket privado ph-docs): foto + contrato + docs de amonestaciones (una sola llamada).
@@ -68,10 +73,12 @@ export default async function EmployeeDetailPage({
     id: w.id,
     date: w.warning_date,
     reason: w.reason,
+    type: w.type,
     docUrl: w.document_path ? signed.get(w.document_path) ?? null : null,
   }));
 
   const age = ageFromBirthDate(emp.birth_date);
+  const contractAlert = emp.contract_end_date ? maintenanceAlert(emp.contract_end_date) : null;
   const emergency = [emp.emergency_contact_name, emp.emergency_contact_phone, emp.emergency_contact_relationship]
     .filter(Boolean)
     .join(" · ");
@@ -84,8 +91,27 @@ export default async function EmployeeDetailPage({
       </Link>
 
       <div className="rounded-2xl border border-line bg-surface p-6">
-        <h1 className="text-2xl font-semibold">{emp.full_name}</h1>
-        <p className="text-sm text-muted">{emp.position ?? "Sin cargo"}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold">{emp.full_name}</h1>
+            <p className="text-sm text-muted">{emp.position ?? "Sin cargo"}</p>
+          </div>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              emp.status === "activo" ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {EMPLOYEE_STATUS_LABEL[emp.status]}
+          </span>
+        </div>
+
+        {emp.status === "inactivo" && (
+          <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-sm text-muted">
+            Baja: {emp.termination_reason ? TERMINATION_REASON_LABEL[emp.termination_reason] ?? emp.termination_reason : "—"}
+            {emp.termination_date ? ` · ${formatDate(emp.termination_date)}` : ""}
+          </p>
+        )}
+
         <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
           <Field label="Salario base" value={formatMoney(emp.base_salary)} />
           <Field label="Frecuencia" value={PAY_FREQUENCY_LABEL[emp.pay_frequency]} />
@@ -103,8 +129,17 @@ export default async function EmployeeDetailPage({
           <Field label="Pago" value={bank || "—"} />
           <Field label="Riesgo prof." value={`${emp.risk_premium_pct}%`} />
           <Field label="Dependientes" value={emp.declares_dependents ? "Sí declara" : "No"} />
+          <Field label="Vence contrato" value={formatDate(emp.contract_end_date)} />
         </dl>
+
+        {contractAlert && (contractAlert.kind === "vencido" || contractAlert.kind === "proximo") && (
+          <p className={`mt-3 inline-block rounded-lg px-3 py-2 text-sm font-medium ${contractAlert.className}`}>
+            Contrato {contractAlert.kind === "vencido" ? "vencido" : "próximo a vencer"} ({formatDate(emp.contract_end_date)})
+          </p>
+        )}
       </div>
+
+      <EmployeeAdmin employee={emp} buildings={buildings ?? []} />
 
       <EmployeeFiles
         employeeId={emp.id}

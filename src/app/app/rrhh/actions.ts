@@ -71,6 +71,10 @@ export async function createEmployee(
   if (sex && !["masculino", "femenino", "otro"].includes(sex))
     return { error: "Sexo inválido.", ok: false };
 
+  const contractEnd = String(formData.get("contract_end_date") ?? "").trim();
+  if (contractEnd && !isValidIsoDate(contractEnd))
+    return { error: "Fecha de vencimiento de contrato inválida.", ok: false };
+
   const txt = (key: string) => String(formData.get(key) ?? "").trim() || null;
 
   const supabase = await createClient();
@@ -91,6 +95,7 @@ export async function createEmployee(
       declares_dependents: formData.get("declares_dependents") === "on",
       birth_date: birthDate || null,
       sex: sex || null,
+      contract_end_date: contractEnd || null,
       address: txt("address"),
       phone: txt("phone"),
       email: txt("email"),
@@ -119,6 +124,195 @@ export async function createEmployee(
   });
   if (histErr) console.error("createEmployee salary_history:", histErr.code, histErr.message);
 
+  revalidatePath("/app/rrhh");
+  return { error: null, ok: true };
+}
+
+// --------------------------------------------------------------------------
+// Editar empleado (no toca el salario base → eso va por changeSalary).
+// --------------------------------------------------------------------------
+export async function updateEmployee(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId || !canManage(ctx?.role ?? null)) return { error: "No autorizado.", ok: false };
+
+  const employeeId = String(formData.get("employee_id") ?? "");
+  if (!UUID.test(employeeId)) return { error: "Empleado inválido.", ok: false };
+
+  const fullName = String(formData.get("full_name") ?? "").trim();
+  if (!fullName) return { error: "El nombre es obligatorio.", ok: false };
+
+  const hireDate = String(formData.get("hire_date") ?? "").trim();
+  if (!isValidIsoDate(hireDate)) return { error: "Fecha de inicio inválida.", ok: false };
+
+  const contractType = String(formData.get("contract_type") ?? "");
+  const workShift = String(formData.get("work_shift") ?? "");
+  const payFrequency = String(formData.get("pay_frequency") ?? "");
+  if (!isEnum("contract_type", contractType)) return { error: "Tipo de contrato inválido.", ok: false };
+  if (!isEnum("work_shift", workShift)) return { error: "Jornada inválida.", ok: false };
+  if (!isEnum("pay_frequency", payFrequency)) return { error: "Frecuencia inválida.", ok: false };
+
+  const riskPct = num(formData.get("risk_premium_pct"));
+  if (riskPct < 0 || riskPct > 15) return { error: "Riesgo profesional fuera de rango (0-15%).", ok: false };
+
+  const buildingRaw = String(formData.get("building_id") ?? "").trim();
+  if (buildingRaw && !UUID.test(buildingRaw)) return { error: "Edificio inválido.", ok: false };
+
+  const birthDate = String(formData.get("birth_date") ?? "").trim();
+  if (birthDate && !isValidIsoDate(birthDate)) return { error: "Fecha de nacimiento inválida.", ok: false };
+  const sex = String(formData.get("sex") ?? "").trim();
+  if (sex && !["masculino", "femenino", "otro"].includes(sex)) return { error: "Sexo inválido.", ok: false };
+  const contractEnd = String(formData.get("contract_end_date") ?? "").trim();
+  if (contractEnd && !isValidIsoDate(contractEnd)) return { error: "Fecha de vencimiento inválida.", ok: false };
+
+  const txt = (key: string) => String(formData.get(key) ?? "").trim() || null;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("employees")
+    .update({
+      building_id: buildingRaw || null,
+      full_name: fullName,
+      national_id: txt("national_id"),
+      position: txt("position"),
+      hire_date: hireDate,
+      contract_type: contractType as Enums["contract_type"],
+      work_shift: workShift as Enums["work_shift"],
+      pay_frequency: payFrequency as Enums["pay_frequency"],
+      risk_premium_pct: riskPct,
+      declares_dependents: formData.get("declares_dependents") === "on",
+      birth_date: birthDate || null,
+      sex: sex || null,
+      contract_end_date: contractEnd || null,
+      address: txt("address"),
+      phone: txt("phone"),
+      email: txt("email"),
+      emergency_contact_name: txt("emergency_contact_name"),
+      emergency_contact_phone: txt("emergency_contact_phone"),
+      emergency_contact_relationship: txt("emergency_contact_relationship"),
+      bank_name: txt("bank_name"),
+      bank_account: txt("bank_account"),
+      social_security_no: txt("social_security_no"),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", employeeId)
+    .eq("organization_id", orgId);
+  if (error) {
+    console.error("updateEmployee:", error.code, error.message);
+    return { error: "No se pudo actualizar el empleado.", ok: false };
+  }
+
+  revalidatePath(`/app/rrhh/${employeeId}`);
+  revalidatePath("/app/rrhh");
+  return { error: null, ok: true };
+}
+
+/** Cambia el salario base y registra el cambio en el historial. */
+export async function changeSalary(
+  employeeId: string,
+  vars: { newSalary: number; effectiveFrom: string; note?: string },
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId || !canManage(ctx?.role ?? null)) return { error: "No autorizado.", ok: false };
+  if (!UUID.test(employeeId)) return { error: "Empleado inválido.", ok: false };
+  if (!(vars.newSalary > 0)) return { error: "El salario debe ser mayor a 0.", ok: false };
+  if (!isValidIsoDate(vars.effectiveFrom)) return { error: "Fecha inválida.", ok: false };
+
+  const supabase = await createClient();
+  const { data: emp } = await supabase
+    .from("employees")
+    .select("id")
+    .eq("id", employeeId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!emp) return { error: "Empleado no encontrado.", ok: false };
+
+  const { error: hErr } = await supabase.from("salary_history").insert({
+    organization_id: orgId,
+    employee_id: employeeId,
+    effective_from: vars.effectiveFrom,
+    base_salary: vars.newSalary,
+    note: (vars.note ?? "").trim() || "Cambio de salario",
+  });
+  if (hErr) {
+    console.error("changeSalary history:", hErr.code, hErr.message);
+    return { error: "No se pudo registrar el cambio.", ok: false };
+  }
+  const { error } = await supabase
+    .from("employees")
+    .update({ base_salary: vars.newSalary, updated_at: new Date().toISOString() })
+    .eq("id", employeeId)
+    .eq("organization_id", orgId);
+  if (error) {
+    console.error("changeSalary:", error.code, error.message);
+    return { error: "No se pudo actualizar el salario.", ok: false };
+  }
+
+  revalidatePath(`/app/rrhh/${employeeId}`);
+  return { error: null, ok: true };
+}
+
+/** Da de baja al empleado (renuncia/despido/mutuo). */
+export async function terminateEmployee(
+  employeeId: string,
+  vars: { reason: string; date: string },
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId || !canManage(ctx?.role ?? null)) return { error: "No autorizado.", ok: false };
+  if (!UUID.test(employeeId)) return { error: "Empleado inválido.", ok: false };
+  if (!["renuncia", "despido", "mutuo_acuerdo", "otro"].includes(vars.reason))
+    return { error: "Motivo inválido.", ok: false };
+  if (!isValidIsoDate(vars.date)) return { error: "Fecha inválida.", ok: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("employees")
+    .update({
+      status: "inactivo",
+      termination_date: vars.date,
+      termination_reason: vars.reason,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", employeeId)
+    .eq("organization_id", orgId);
+  if (error) {
+    console.error("terminateEmployee:", error.code, error.message);
+    return { error: "No se pudo dar de baja.", ok: false };
+  }
+
+  revalidatePath(`/app/rrhh/${employeeId}`);
+  revalidatePath("/app/rrhh");
+  return { error: null, ok: true };
+}
+
+/** Reactiva un empleado dado de baja (corrige un error). */
+export async function reactivateEmployee(employeeId: string): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId || !canManage(ctx?.role ?? null)) return { error: "No autorizado.", ok: false };
+  if (!UUID.test(employeeId)) return { error: "Empleado inválido.", ok: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("employees")
+    .update({
+      status: "activo",
+      termination_date: null,
+      termination_reason: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", employeeId)
+    .eq("organization_id", orgId);
+  if (error) {
+    console.error("reactivateEmployee:", error.code, error.message);
+    return { error: "No se pudo reactivar.", ok: false };
+  }
+
+  revalidatePath(`/app/rrhh/${employeeId}`);
   revalidatePath("/app/rrhh");
   return { error: null, ok: true };
 }
@@ -179,13 +373,15 @@ export async function setEmployeeFile(
 /** Registra una amonestación (fecha + causa + documento opcional ya subido a ph-docs). */
 export async function addEmployeeWarning(
   employeeId: string,
-  vars: { warningDate: string; reason: string; documentPath?: string | null },
+  vars: { warningDate: string; reason: string; type: string; documentPath?: string | null },
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;
   if (!orgId || !canManage(ctx?.role ?? null)) return { error: "No autorizado.", ok: false };
   if (!UUID.test(employeeId)) return { error: "Empleado inválido.", ok: false };
   if (!isValidIsoDate(vars.warningDate)) return { error: "Fecha inválida.", ok: false };
+  if (!["verbal", "escrita", "suspension"].includes(vars.type))
+    return { error: "Tipo de amonestación inválido.", ok: false };
   const reason = (vars.reason ?? "").trim();
   if (!reason) return { error: "La causa es obligatoria.", ok: false };
   if (reason.length > 500) return { error: "La causa es muy larga (máx. 500).", ok: false };
@@ -209,6 +405,7 @@ export async function addEmployeeWarning(
     employee_id: employeeId,
     warning_date: vars.warningDate,
     reason,
+    type: vars.type,
     document_path: docPath,
     created_by: ctx.userId,
   });
@@ -386,15 +583,8 @@ export async function saveLiquidation(
     return { error: "No se pudo guardar la liquidación.", ok: false };
   }
 
-  // La liquidación es el finiquito: el empleado queda inactivo con su fecha de baja.
-  const { error: updErr } = await supabase
-    .from("employees")
-    .update({ status: "inactivo", termination_date: vars.terminationDate })
-    .eq("id", emp.id)
-    .eq("organization_id", orgId);
-  if (updErr) console.error("saveLiquidation update employee:", updErr.code, updErr.message);
-
+  // La liquidación solo registra el cálculo del finiquito; la baja del empleado
+  // es una acción explícita aparte (terminateEmployee).
   revalidatePath(`/app/rrhh/${employeeId}`);
-  revalidatePath("/app/rrhh");
   return { error: null, ok: true };
 }

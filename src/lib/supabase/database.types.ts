@@ -443,6 +443,7 @@ export type Database = {
           id: string
           organization_id: string
           reason: string
+          type: string
           warning_date: string
         }
         Insert: {
@@ -453,6 +454,7 @@ export type Database = {
           id?: string
           organization_id: string
           reason: string
+          type?: string
           warning_date?: string
         }
         Update: {
@@ -463,6 +465,7 @@ export type Database = {
           id?: string
           organization_id?: string
           reason?: string
+          type?: string
           warning_date?: string
         }
         Relationships: [
@@ -483,6 +486,7 @@ export type Database = {
           base_salary: number
           birth_date: string | null
           building_id: string | null
+          contract_end_date: string | null
           contract_path: string | null
           contract_type: Database["public"]["Enums"]["contract_type"]
           country_code: string
@@ -507,6 +511,7 @@ export type Database = {
           social_security_no: string | null
           status: Database["public"]["Enums"]["employee_status"]
           termination_date: string | null
+          termination_reason: string | null
           updated_at: string
           work_shift: Database["public"]["Enums"]["work_shift"]
         }
@@ -517,6 +522,7 @@ export type Database = {
           base_salary: number
           birth_date?: string | null
           building_id?: string | null
+          contract_end_date?: string | null
           contract_path?: string | null
           contract_type?: Database["public"]["Enums"]["contract_type"]
           country_code?: string
@@ -541,6 +547,7 @@ export type Database = {
           social_security_no?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
           termination_date?: string | null
+          termination_reason?: string | null
           updated_at?: string
           work_shift?: Database["public"]["Enums"]["work_shift"]
         }
@@ -551,6 +558,7 @@ export type Database = {
           base_salary?: number
           birth_date?: string | null
           building_id?: string | null
+          contract_end_date?: string | null
           contract_path?: string | null
           contract_type?: Database["public"]["Enums"]["contract_type"]
           country_code?: string
@@ -575,6 +583,7 @@ export type Database = {
           social_security_no?: string | null
           status?: Database["public"]["Enums"]["employee_status"]
           termination_date?: string | null
+          termination_reason?: string | null
           updated_at?: string
           work_shift?: Database["public"]["Enums"]["work_shift"]
         }

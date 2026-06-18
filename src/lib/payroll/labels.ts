@@ -29,6 +29,21 @@ export const TERMINATION_SCENARIO_LABEL: Record<Enums["termination_scenario"], s
   despido_injustificado: "Despido injustificado",
 };
 
+export const TERMINATION_REASON_LABEL: Record<string, string> = {
+  renuncia: "Renuncia",
+  despido: "Despido",
+  mutuo_acuerdo: "Mutuo acuerdo",
+  otro: "Otro",
+};
+export const TERMINATION_REASON_OPTIONS = Object.entries(TERMINATION_REASON_LABEL);
+
+export const WARNING_TYPE_LABEL: Record<string, string> = {
+  verbal: "Verbal",
+  escrita: "Escrita",
+  suspension: "Suspensión",
+};
+export const WARNING_TYPE_OPTIONS = Object.entries(WARNING_TYPE_LABEL);
+
 export const CONTRACT_TYPE_OPTIONS = Object.entries(
   CONTRACT_TYPE_LABEL,
 ) as [Enums["contract_type"], string][];
