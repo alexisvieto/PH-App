@@ -102,6 +102,7 @@ export default async function PayrollPeriodDetailPage({
                 {!isXiii && <th className="px-4 py-3 text-right font-medium">Seg. Educ.</th>}
                 {!isXiii && <th className="px-4 py-3 text-right font-medium">ISR</th>}
                 <th className="px-4 py-3 text-right font-medium">Neto</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -113,6 +114,15 @@ export default async function PayrollPeriodDetailPage({
                   {!isXiii && <td className="px-4 py-3 text-right text-muted">{formatMoney(r.seguro_educativo_employee)}</td>}
                   {!isXiii && <td className="px-4 py-3 text-right text-muted">{formatMoney(r.isr)}</td>}
                   <td className="px-4 py-3 text-right font-medium">{formatMoney(r.net)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/app/planilla/${period.id}/recibo/${r.employee_id}`}
+                      target="_blank"
+                      className="text-xs font-medium text-brand hover:underline"
+                    >
+                      Recibo
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -124,6 +134,7 @@ export default async function PayrollPeriodDetailPage({
                 {!isXiii && <td className="px-4 py-3 text-right">{formatMoney(totals.se)}</td>}
                 {!isXiii && <td className="px-4 py-3 text-right">{formatMoney(totals.isr)}</td>}
                 <td className="px-4 py-3 text-right">{formatMoney(totals.net)}</td>
+                <td className="px-4 py-3" />
               </tr>
             </tfoot>
           </table>

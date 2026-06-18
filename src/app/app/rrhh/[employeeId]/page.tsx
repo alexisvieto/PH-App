@@ -159,11 +159,20 @@ export default async function EmployeeDetailPage({
           <h2 className="border-b border-line px-5 py-3 font-semibold">Liquidaciones guardadas</h2>
           <ul className="divide-y divide-line">
             {(liquidations ?? []).map((l) => (
-              <li key={l.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <li key={l.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                 <span>
                   {TERMINATION_SCENARIO_LABEL[l.scenario]} · {formatDate(l.termination_date)}
                 </span>
-                <span className="font-medium">{formatMoney(l.total)}</span>
+                <span className="flex items-center gap-3">
+                  <span className="font-medium">{formatMoney(l.total)}</span>
+                  <Link
+                    href={`/app/rrhh/${emp.id}/liquidacion/${l.id}`}
+                    target="_blank"
+                    className="text-xs font-medium text-brand hover:underline"
+                  >
+                    Carta
+                  </Link>
+                </span>
               </li>
             ))}
           </ul>

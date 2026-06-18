@@ -11,7 +11,7 @@
 export const PRODUCT_NAME = "Modus PH";
 
 /** Crédito discreto del fabricante en exportables y landing. */
-export const VENDOR_CREDIT = "by Nexera";
+export const VENDOR_CREDIT = "by Nexera · www.nexerai.io · ventas@nexerai.io";
 
 export type Brand = {
   name: string; // nombre legal/comercial para documentos
