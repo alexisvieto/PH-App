@@ -115,6 +115,13 @@ export function PayslipPDF(d: PayslipData) {
         </View>
 
         {d.payDate && <Text style={s.note}>Fecha de pago: {d.payDate}</Text>}
+        {d.isXiii && (
+          <Text style={s.note}>
+            El décimo tercer mes no causa retención de ISR por separado: ya está incluido en la
+            proyección mensual ×13 del salario (Decreto Ejecutivo 170/1993). Única deducción: Seguro
+            Social especial 7.25% (Decreto Ley 221).
+          </Text>
+        )}
 
         <View style={s.sign}>
           <Text style={s.signBox}>Recibí conforme</Text>

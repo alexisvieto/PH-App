@@ -230,7 +230,9 @@ export type XiiiResult = {
   cssEmployer: number;
 };
 
-/** XIII mes: (salarios del cuatrimestre / 12). Deducción: CSS especial; ISR proporcional se revisa aparte. */
+/** XIII mes: (salarios del cuatrimestre / 12). Única deducción: CSS especial 7.25%
+ *  (Decreto Ley 221). NO se retiene ISR aparte sobre el XIII: ya va incluido en la
+ *  proyección mensual ×13 del salario regular (Decreto Ejecutivo 170/1993, anualización DGI). */
 export function computeXiii(
   rule: RuleSet,
   input: { baseSalary: number; monthsInQuarter: number },

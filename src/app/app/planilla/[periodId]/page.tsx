@@ -79,8 +79,9 @@ export default async function PayrollPeriodDetailPage({
         </div>
         {isXiii && (
           <p className="mt-3 text-xs text-muted">
-            XIII: deducción de CSS especial 7.25%. El ISR proporcional sobre el XIII se retiene según
-            proyección anual y debe revisarse manualmente si aplica.
+            XIII: única deducción CSS especial 7.25% (Decreto Ley 221). No se retiene ISR aparte sobre
+            el décimo: ya está incluido en la proyección mensual ×13 del salario (Decreto Ejecutivo
+            170/1993, anualización DGI).
           </p>
         )}
       </div>
