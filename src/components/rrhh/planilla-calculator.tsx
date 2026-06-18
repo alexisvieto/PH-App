@@ -34,8 +34,8 @@ export function PlanillaCalculator({ employeeId }: { employeeId: string }) {
         fiesta: n(String(f.get("ot_fiesta") ?? "")),
         fiestaDomingo: n(String(f.get("ot_fiesta_domingo") ?? "")),
       },
-      commissions: n(String(f.get("commissions") ?? "")),
-      otherIncome: n(String(f.get("other_income") ?? "")),
+      commissions: 0,
+      otherIncome: 0,
       otherDeductions: n(String(f.get("other_deductions") ?? "")),
     });
     setBusy(false);
@@ -75,14 +75,6 @@ export function PlanillaCalculator({ employeeId }: { employeeId: string }) {
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-muted">HE fiesta/domingo (h)</span>
             <input name="ot_fiesta_domingo" type="number" min="0" step="0.5" defaultValue="0" className={input} />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-muted">Comisiones</span>
-            <input name="commissions" type="number" min="0" step="0.01" defaultValue="0" className={input} />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-muted">Otros ingresos</span>
-            <input name="other_income" type="number" min="0" step="0.01" defaultValue="0" className={input} />
           </label>
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-muted">Otras deducciones</span>

@@ -7,7 +7,9 @@ import { isValidIsoDate } from "@/lib/format";
 import {
   computePeriodPayroll,
   computeXiii,
+  EMPTY_OVERTIME,
   monthsBetweenIso,
+  type OvertimeHours,
   xiiiPartidaWindow,
 } from "@/lib/payroll/engine";
 import { loadRuleSet, type RuleSet } from "@/lib/payroll/rules";
@@ -95,6 +97,76 @@ export async function createXiiiPeriod(
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+// Mapeo tipo de incidencia (DB) ↔ campo de horas extra.
+const OT_TYPES = {
+  hora_extra_diurna: "diurna",
+  hora_extra_nocturna: "nocturna",
+  hora_extra_mixta: "mixta",
+  dia_fiesta: "fiesta",
+  hora_extra_fiesta_domingo: "fiestaDomingo",
+} as const;
+type OtIncidence = keyof typeof OT_TYPES;
+const OT_INCIDENCE_TYPES = Object.keys(OT_TYPES) as OtIncidence[];
+
+export type OvertimeEntry = { employeeId: string } & OvertimeHours;
+
+/** Guarda (reemplaza) las horas extra manuales por empleado de un período ordinario. */
+export async function saveOvertimeIncidences(
+  periodId: string,
+  entries: OvertimeEntry[],
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId || !canManage(ctx?.role ?? null)) return { error: "No autorizado.", ok: false };
+  if (!UUID.test(periodId)) return { error: "Período inválido.", ok: false };
+
+  const supabase = await createClient();
+  const { data: period } = await supabase
+    .from("payroll_periods")
+    .select("id, kind, status")
+    .eq("id", periodId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!period) return { error: "Período no encontrado.", ok: false };
+  if (period.kind !== "ordinaria") return { error: "Solo aplica a planilla ordinaria.", ok: false };
+  if (period.status === "pagada") return { error: "El período ya está pagado.", ok: false };
+
+  type IncInsert = Database["public"]["Tables"]["payroll_incidences"]["Insert"];
+  const rows: IncInsert[] = [];
+  for (const e of entries) {
+    if (!UUID.test(e.employeeId)) continue;
+    for (const t of OT_INCIDENCE_TYPES) {
+      const hours = Number(e[OT_TYPES[t]]);
+      if (Number.isFinite(hours) && hours > 0) {
+        rows.push({
+          organization_id: orgId,
+          payroll_period_id: periodId,
+          employee_id: e.employeeId,
+          type: t,
+          hours: Math.round(hours * 100) / 100,
+        });
+      }
+    }
+  }
+
+  // Reemplaza las incidencias de horas extra del período.
+  await supabase
+    .from("payroll_incidences")
+    .delete()
+    .eq("payroll_period_id", periodId)
+    .in("type", OT_INCIDENCE_TYPES);
+  if (rows.length > 0) {
+    const { error } = await supabase.from("payroll_incidences").insert(rows);
+    if (error) {
+      console.error("saveOvertimeIncidences:", error.code, error.message);
+      return { error: "No se pudieron guardar las horas extra.", ok: false };
+    }
+  }
+
+  revalidatePath(`/app/planilla/${periodId}`);
+  return { error: null, ok: true };
+}
+
 /** Procesa el período: calcula los renglones de todos los empleados activos. */
 export async function processPayrollPeriod(periodId: string): Promise<ActionState> {
   const ctx = await getSessionContext();
@@ -114,11 +186,28 @@ export async function processPayrollPeriod(periodId: string): Promise<ActionStat
 
   let q = supabase
     .from("employees")
-    .select("id, base_salary, country_code, declares_dependents, risk_premium_pct, hire_date")
+    .select("id, base_salary, work_shift, country_code, declares_dependents, risk_premium_pct, hire_date")
     .eq("organization_id", orgId)
     .eq("status", "activo");
   if (period.kind === "ordinaria") q = q.eq("pay_frequency", period.frequency);
   const { data: employees } = await q;
+
+  // Horas extra manuales del período (solo ordinaria) → mapa por empleado.
+  const otByEmployee = new Map<string, OvertimeHours>();
+  if (period.kind === "ordinaria") {
+    const { data: incidences } = await supabase
+      .from("payroll_incidences")
+      .select("employee_id, type, hours")
+      .eq("payroll_period_id", periodId)
+      .in("type", OT_INCIDENCE_TYPES);
+    for (const inc of incidences ?? []) {
+      const field = OT_TYPES[inc.type as OtIncidence];
+      if (!field) continue;
+      const cur = otByEmployee.get(inc.employee_id) ?? { ...EMPTY_OVERTIME };
+      cur[field] = (cur[field] ?? 0) + Number(inc.hours ?? 0);
+      otByEmployee.set(inc.employee_id, cur);
+    }
+  }
 
   const onDate = period.pay_date ?? period.period_end;
   const ruleCache = new Map<string, RuleSet | null>();
@@ -140,16 +229,19 @@ export async function processPayrollPeriod(periodId: string): Promise<ActionStat
     if (period.kind === "ordinaria") {
       const r = computePeriodPayroll(rule, {
         baseSalary: base,
+        workShift: e.work_shift,
         frequency: period.frequency,
         declaresDependents: e.declares_dependents,
         riskPct: Number(e.risk_premium_pct),
+        overtime: otByEmployee.get(e.id),
       });
       items.push({
         organization_id: orgId,
         payroll_period_id: periodId,
         employee_id: e.id,
         gross: r.gross,
-        base_amount: r.gross,
+        base_amount: r.base,
+        overtime_amount: r.overtimeAmount,
         css_employee: r.cssEmployee,
         seguro_educativo_employee: r.seguroEducativoEmployee,
         isr: r.isr,

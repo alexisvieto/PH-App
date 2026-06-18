@@ -33,7 +33,7 @@ export async function GET(
       .maybeSingle(),
     supabase
       .from("payroll_items")
-      .select("gross, css_employee, seguro_educativo_employee, isr, other_deductions, net, css_employer, seguro_educativo_employer, riesgos_employer")
+      .select("gross, overtime_amount, css_employee, seguro_educativo_employee, isr, other_deductions, net, css_employer, seguro_educativo_employer, riesgos_employer")
       .eq("payroll_period_id", periodId)
       .eq("employee_id", employeeId)
       .eq("organization_id", orgId)
@@ -69,6 +69,7 @@ export async function GET(
         socialSecurity: emp.social_security_no,
         isXiii,
         gross: Number(item.gross),
+        overtimeAmount: Number(item.overtime_amount),
         cssEmployee: Number(item.css_employee),
         seguroEducativoEmployee: Number(item.seguro_educativo_employee),
         isr: Number(item.isr),

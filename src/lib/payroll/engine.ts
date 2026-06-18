@@ -174,7 +174,25 @@ export function monthsBetweenIso(fromIso: string, toIso: string): number {
 // PLANILLA POR PERÍODO (lote, salario base) y DÉCIMO TERCER MES (XIII)
 // ---------------------------------------------------------------------------
 
+export type OvertimeHours = {
+  diurna: number;
+  nocturna: number;
+  mixta: number;
+  fiesta: number;
+  fiestaDomingo: number;
+};
+
+export const EMPTY_OVERTIME: OvertimeHours = {
+  diurna: 0,
+  nocturna: 0,
+  mixta: 0,
+  fiesta: 0,
+  fiestaDomingo: 0,
+};
+
 export type PeriodPayrollResult = {
+  base: number; // porción de salario base del período
+  overtimeAmount: number;
   gross: number;
   cssEmployee: number;
   seguroEducativoEmployee: number;
@@ -186,18 +204,40 @@ export type PeriodPayrollResult = {
   employerCost: number;
 };
 
-/** Planilla del período (salario base prorrateado por frecuencia, sin incidencias en v1). */
+/** Planilla del período: salario base prorrateado por frecuencia + horas extra manuales por tipo. */
 export function computePeriodPayroll(
   rule: RuleSet,
   input: {
     baseSalary: number;
+    workShift: "diurna" | "mixta" | "nocturna";
     frequency: "quincenal" | "mensual";
     declaresDependents: boolean;
     riskPct: number;
+    overtime?: OvertimeHours;
   },
 ): PeriodPayrollResult {
   const periods = input.frequency === "quincenal" ? 2 : 1;
-  const gross = round2(input.baseSalary / periods);
+  const base = round2(input.baseSalary / periods);
+
+  // Hora regular = salario mensual / (semanas del mes × horas semanales de la jornada).
+  const weeklyHours = k(
+    rule,
+    `jornada_${input.workShift}_horas`,
+    input.workShift === "diurna" ? 48 : input.workShift === "mixta" ? 45 : 42,
+  );
+  const weeksPerMonth = kDiv(rule, "mes_laboral_semanas", 4.3333);
+  const hourlyRate = input.baseSalary / (weeksPerMonth * (weeklyHours || 1));
+  const ot = input.overtime ?? EMPTY_OVERTIME;
+  const overtimeAmount = round2(
+    hourlyRate *
+      (ot.diurna * k(rule, "factor_extra_diurna", 1.25) +
+        ot.nocturna * k(rule, "factor_extra_nocturna", 1.49) +
+        ot.mixta * k(rule, "factor_extra_mixta", 1.69) +
+        ot.fiesta * k(rule, "factor_dia_fiesta", 2.5) +
+        ot.fiestaDomingo * k(rule, "factor_extra_fiesta_domingo", 3.75)),
+  );
+
+  const gross = round2(base + overtimeAmount);
   const css = rule.contributions.css;
   const se = rule.contributions.seguro_educativo;
   const cssE = css?.applies ? round2((gross * css.employeePct) / 100) : 0;
@@ -210,6 +250,8 @@ export function computePeriodPayroll(
   const seEr = se?.applies ? round2((gross * se.employerPct) / 100) : 0;
   const riesgos = round2((gross * input.riskPct) / 100);
   return {
+    base,
+    overtimeAmount,
     gross,
     cssEmployee: cssE,
     seguroEducativoEmployee: seE,

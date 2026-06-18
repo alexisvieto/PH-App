@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
+import { OvertimeEditor } from "@/components/rrhh/overtime-editor";
 import { PayrollPeriodActions } from "@/components/rrhh/payroll-period-actions";
 import { formatDate, formatMoney } from "@/lib/format";
 import {
@@ -42,6 +43,68 @@ export default async function PayrollPeriodDetailPage({
   const name = new Map((employees ?? []).map((e) => [e.id, e.full_name]));
   const rows = items ?? [];
   const isXiii = period.kind === "xiii";
+
+  // Editor de horas extra: empleados elegibles + sus horas ya guardadas (solo ordinaria, no pagada).
+  const OT_INCIDENCE = [
+    "hora_extra_diurna",
+    "hora_extra_nocturna",
+    "hora_extra_mixta",
+    "dia_fiesta",
+    "hora_extra_fiesta_domingo",
+  ] as const;
+  const OT_FIELD: Record<string, "diurna" | "nocturna" | "mixta" | "fiesta" | "fiestaDomingo"> = {
+    hora_extra_diurna: "diurna",
+    hora_extra_nocturna: "nocturna",
+    hora_extra_mixta: "mixta",
+    dia_fiesta: "fiesta",
+    hora_extra_fiesta_domingo: "fiestaDomingo",
+  };
+  const showOt = !isXiii && period.status !== "pagada";
+  let otEmployees: {
+    id: string;
+    name: string;
+    diurna: number;
+    nocturna: number;
+    mixta: number;
+    fiesta: number;
+    fiestaDomingo: number;
+  }[] = [];
+  if (showOt) {
+    const [{ data: elig }, { data: incs }] = await Promise.all([
+      supabase
+        .from("employees")
+        .select("id, full_name")
+        .eq("organization_id", orgId)
+        .eq("status", "activo")
+        .eq("pay_frequency", period.frequency)
+        .order("full_name"),
+      supabase
+        .from("payroll_incidences")
+        .select("employee_id, type, hours")
+        .eq("payroll_period_id", periodId)
+        .in("type", OT_INCIDENCE),
+    ]);
+    const otMap = new Map<string, Record<string, number>>();
+    for (const inc of incs ?? []) {
+      const field = OT_FIELD[inc.type];
+      if (!field) continue;
+      const cur = otMap.get(inc.employee_id) ?? {};
+      cur[field] = (cur[field] ?? 0) + Number(inc.hours ?? 0);
+      otMap.set(inc.employee_id, cur);
+    }
+    otEmployees = (elig ?? []).map((e) => {
+      const o = otMap.get(e.id) ?? {};
+      return {
+        id: e.id,
+        name: e.full_name,
+        diurna: o.diurna ?? 0,
+        nocturna: o.nocturna ?? 0,
+        mixta: o.mixta ?? 0,
+        fiesta: o.fiesta ?? 0,
+        fiestaDomingo: o.fiestaDomingo ?? 0,
+      };
+    });
+  }
 
   const sum = (f: (r: (typeof rows)[number]) => number) => rows.reduce((a, r) => a + f(r), 0);
   const totals = {
@@ -85,6 +148,8 @@ export default async function PayrollPeriodDetailPage({
           </p>
         )}
       </div>
+
+      {showOt && <OvertimeEditor periodId={period.id} employees={otEmployees} />}
 
       {rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-muted">

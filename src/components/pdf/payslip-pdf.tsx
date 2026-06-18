@@ -16,6 +16,7 @@ export type PayslipData = {
   socialSecurity: string | null;
   isXiii: boolean;
   gross: number;
+  overtimeAmount: number;
   cssEmployee: number;
   seguroEducativoEmployee: number;
   isr: number;
@@ -85,7 +86,17 @@ export function PayslipPDF(d: PayslipData) {
 
         <View style={s.section}>
           <Text style={s.sectionTitle}>Ingresos</Text>
-          <Line label={d.isXiii ? "Décimo tercer mes (bruto)" : "Salario del período"} value={formatMoney(d.gross)} s={s} />
+          {d.isXiii ? (
+            <Line label="Décimo tercer mes (bruto)" value={formatMoney(d.gross)} s={s} />
+          ) : d.overtimeAmount > 0 ? (
+            <>
+              <Line label="Salario del período" value={formatMoney(d.gross - d.overtimeAmount)} s={s} />
+              <Line label="Horas extra" value={formatMoney(d.overtimeAmount)} s={s} />
+              <Line label="Total bruto" value={formatMoney(d.gross)} s={s} />
+            </>
+          ) : (
+            <Line label="Salario del período" value={formatMoney(d.gross)} s={s} />
+          )}
         </View>
 
         <View style={s.section}>
