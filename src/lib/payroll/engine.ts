@@ -8,6 +8,26 @@ function k(rule: RuleSet, key: string, fallback = 0): number {
   return v === null || v === undefined ? fallback : v;
 }
 
+/** Como k(), pero nunca devuelve 0 (evita división por cero si el paquete está mal configurado). */
+function kDiv(rule: RuleSet, key: string, fallback: number): number {
+  const v = k(rule, key, fallback);
+  return v === 0 ? fallback : v;
+}
+
+const DAY = 86400000;
+
+/** Meses (con fracción del mes parcial por días) entre dos fechas de calendario. */
+function monthsBetween(from: Date, to: Date): number {
+  if (to <= from) return 0;
+  let m = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+  let d = to.getDate() - from.getDate();
+  if (d < 0) {
+    m -= 1;
+    d += new Date(to.getFullYear(), to.getMonth(), 0).getDate();
+  }
+  return Math.max(0, m + d / 30.4375);
+}
+
 /** ISR anual según los tramos del paquete: baseFixed + rate*(ingreso - lower). */
 export function isrAnnual(rule: RuleSet, annualIncome: number): number {
   if (annualIncome <= 0) return 0;
@@ -25,7 +45,6 @@ export function isrAnnual(rule: RuleSet, annualIncome: number): number {
 export type PayrollInput = {
   baseSalary: number; // mensual
   workShift: "diurna" | "mixta" | "nocturna";
-  frequency: "quincenal" | "mensual";
   declaresDependents: boolean;
   riskPct: number; // riesgos profesionales patronal
   overtime: {
@@ -62,8 +81,8 @@ export function computePayroll(rule: RuleSet, input: PayrollInput): PayrollResul
     `jornada_${input.workShift}_horas`,
     input.workShift === "diurna" ? 48 : input.workShift === "mixta" ? 45 : 42,
   );
-  const weeksPerMonth = k(rule, "mes_laboral_semanas", 4.3333);
-  const hourlyRate = round2(input.baseSalary / (weeksPerMonth * weeklyHours));
+  const weeksPerMonth = kDiv(rule, "mes_laboral_semanas", 4.3333);
+  const hourlyRate = round2(input.baseSalary / (weeksPerMonth * (weeklyHours || 1)));
 
   const ot = input.overtime;
   const overtimeAmount = round2(
@@ -85,10 +104,11 @@ export function computePayroll(rule: RuleSet, input: PayrollInput): PayrollResul
   const seEmployee = se?.applies ? round2((gross * se.employeePct) / 100) : 0;
 
   // ISR: proyección anual del bruto mensual, menos deducción si declara dependientes.
+  // El divisor mensual es dato del paquete (PA = 12 retenciones al año).
   const projFactor = k(rule, "isr_proyeccion_factor", 13);
   const deduction = input.declaresDependents ? k(rule, "isr_deduccion_dependientes", 0) : 0;
   const annual = gross * projFactor - deduction;
-  const isr = round2(isrAnnual(rule, annual) / 12);
+  const isr = round2(isrAnnual(rule, annual) / kDiv(rule, "isr_periodos_mensual", 12));
 
   const cssEmployer = css?.applies ? round2((gross * css.employerPct) / 100) : 0;
   const seEmployer = se?.applies ? round2((gross * se.employerPct) / 100) : 0;
@@ -162,8 +182,6 @@ function xiiiPeriodStart(d: Date): Date {
   return new Date(y, 7, 16);
 }
 
-const DAY = 86400000;
-
 export function computeLiquidation(
   rule: RuleSet,
   input: LiquidationInput,
@@ -172,23 +190,26 @@ export function computeLiquidation(
   const term = new Date(`${input.terminationDate}T00:00:00`);
   const totalDays = Math.max(0, (term.getTime() - hire.getTime()) / DAY);
   const years = totalDays / 365.25;
-  const monthsTotal = years * 12;
+  const monthsTotal = monthsBetween(hire, term);
 
   const monthly = input.baseSalary;
   const reference = input.referenceSalary && input.referenceSalary > 0 ? input.referenceSalary : monthly;
-  const weeksPerMonth = k(rule, "mes_laboral_semanas", 4.3333);
+  const weeksPerMonth = kDiv(rule, "mes_laboral_semanas", 4.3333);
   const weeklyWage = reference / weeksPerMonth;
 
   // Derechos adquiridos (siempre, en cualquier escenario).
-  // Vacaciones: salarios desde el último corte anual / 11.
-  const monthsSinceAnniv = monthsTotal % 12;
+  // Vacaciones: salarios desde el último corte (aniversario de contratación) / 11.
+  // Se usan meses de calendario (no aritmética flotante) para evitar errores en el borde del aniversario.
+  let lastAnniv = new Date(term.getFullYear(), hire.getMonth(), hire.getDate());
+  if (lastAnniv > term) lastAnniv = new Date(term.getFullYear() - 1, hire.getMonth(), hire.getDate());
+  const monthsSinceAnniv = monthsBetween(lastAnniv, term);
   const vacacionesSalary = monthly * monthsSinceAnniv;
-  const vacaciones = round2(vacacionesSalary / k(rule, "vacaciones_divisor", 11));
+  const vacaciones = round2(vacacionesSalary / kDiv(rule, "vacaciones_divisor", 11));
 
   // XIII proporcional: salarios del cuatrimestre vigente / 12.
   const periodStart = xiiiPeriodStart(term);
-  const monthsInQuarter = Math.max(0, (term.getTime() - periodStart.getTime()) / DAY / 30.4375);
-  const xiii = round2((monthly * monthsInQuarter) / k(rule, "xiii_divisor", 12));
+  const monthsInQuarter = monthsBetween(periodStart, term);
+  const xiii = round2((monthly * monthsInQuarter) / kDiv(rule, "xiii_divisor", 12));
 
   // Prima de antigüedad (solo indefinido): 1.923% del devengado histórico.
   const historicalGross = monthly * monthsTotal;

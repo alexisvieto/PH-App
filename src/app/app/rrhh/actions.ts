@@ -89,14 +89,15 @@ export async function createEmployee(
     return { error: "No se pudo registrar el empleado.", ok: false };
   }
 
-  // Salario inicial en el historial.
-  await supabase.from("salary_history").insert({
+  // Salario inicial en el historial (no bloquea el alta, pero se reporta si falla).
+  const { error: histErr } = await supabase.from("salary_history").insert({
     organization_id: orgId,
     employee_id: emp.id,
     effective_from: hireDate,
     base_salary: baseSalary,
     note: "Salario inicial",
   });
+  if (histErr) console.error("createEmployee salary_history:", histErr.code, histErr.message);
 
   revalidatePath("/app/rrhh");
   return { error: null, ok: true };
@@ -160,7 +161,6 @@ export async function previewPayroll(
   const result = computePayroll(rule, {
     baseSalary: Number(emp.base_salary),
     workShift: emp.work_shift,
-    frequency: emp.pay_frequency,
     declaresDependents: emp.declares_dependents,
     riskPct: Number(emp.risk_premium_pct),
     overtime: vars.overtime,
@@ -240,6 +240,7 @@ export async function saveLiquidation(
   if (!loaded.ok) return { error: loaded.error, ok: false };
   const { supabase, orgId, emp, rule } = loaded;
 
+  const ctxSession = await getSessionContext();
   const r = computeLiquidation(rule, liquidationInputFromVars(emp, vars));
   const { error } = await supabase.from("liquidations").insert({
     organization_id: orgId,
@@ -260,12 +261,22 @@ export async function saveLiquidation(
     empresa_dio_preaviso: vars.empresaDioPreaviso,
     total: r.total,
     rule_set_id: rule.ruleSetId,
+    created_by: ctxSession?.userId ?? null,
   });
   if (error) {
     console.error("saveLiquidation:", error.code, error.message);
     return { error: "No se pudo guardar la liquidación.", ok: false };
   }
 
+  // La liquidación es el finiquito: el empleado queda inactivo con su fecha de baja.
+  const { error: updErr } = await supabase
+    .from("employees")
+    .update({ status: "inactivo", termination_date: vars.terminationDate })
+    .eq("id", emp.id)
+    .eq("organization_id", orgId);
+  if (updErr) console.error("saveLiquidation update employee:", updErr.code, updErr.message);
+
   revalidatePath(`/app/rrhh/${employeeId}`);
+  revalidatePath("/app/rrhh");
   return { error: null, ok: true };
 }

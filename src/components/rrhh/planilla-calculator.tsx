@@ -107,8 +107,8 @@ export function PlanillaCalculator({ employeeId }: { employeeId: string }) {
           {res.overtimeAmount > 0 && (
             <Row label="Horas extra" value={formatMoney(res.overtimeAmount)} testid="overtime" />
           )}
-          <Row label="CSS empleado (9.75%)" value={`− ${formatMoney(res.cssEmployee)}`} testid="css" />
-          <Row label="Seguro educativo (1.25%)" value={`− ${formatMoney(res.seguroEducativoEmployee)}`} testid="se" />
+          <Row label="CSS empleado" value={`− ${formatMoney(res.cssEmployee)}`} testid="css" />
+          <Row label="Seguro educativo" value={`− ${formatMoney(res.seguroEducativoEmployee)}`} testid="se" />
           <Row label="ISR" value={`− ${formatMoney(res.isr)}`} testid="isr" />
           {res.otherDeductions > 0 && (
             <Row label="Otras deducciones" value={`− ${formatMoney(res.otherDeductions)}`} testid="other" />
