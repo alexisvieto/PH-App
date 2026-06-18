@@ -1,0 +1,25 @@
+Modulo Propietarios (reemplaza Personas): Edificio>Piso>Unidad>Propietarios
+
+- units: + letter, is_rented, tenant_name, tenant_phone (floor/area_m2 ya
+  existian). unit_ownerships: + is_primary (contacto principal).
+  Nueva tabla unit_amenities (estacionamientos/depositos con ubicacion,
+  varios por unidad; RLS is_org_member; FK compuesta).
+- /app/propietarios: navegacion por edificio (selector si hay varios) y
+  piso (acordeon <details>), unidades por piso, filtro/conteo de
+  alquiladas. Detalle de unidad: propietarios (sin limite, con cedula,
+  contacto principal, fecha de adquisicion), estacionamientos/depositos
+  (con ubicacion E1/E2/E3), metraje e inquilino liviano (informativo).
+- El responsable financiero es el propietario; el inquilino no recibe
+  cuentas (solo referencia). Reusa units (misma fuente que cuotas/estado
+  de cuenta), people y unit_ownerships: sin duplicar datos.
+- Bonos/comisiones ya excluidos. Nav Personas -> Propietarios. Eliminado
+  el modulo Personas viejo (page/actions/new-person-form).
+
+Verificado E2E (Playwright, one-off): crear unidad por piso/letra,
+agregar propietario (principal), estacionamiento E2, marcar alquilada +
+inquilino, filtro de alquiladas. tsc/lint 0, build OK. Datos de prueba
+borrados.
+
+Migracion Supabase: fase1_units_letter_tenant_amenities (no en repo).
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>

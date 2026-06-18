@@ -1836,6 +1836,44 @@ export type Database = {
           },
         ]
       }
+      unit_amenities: {
+        Row: {
+          created_at: string
+          id: string
+          identifier: string | null
+          location: string | null
+          organization_id: string
+          type: Database["public"]["Enums"]["amenity_type"]
+          unit_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          identifier?: string | null
+          location?: string | null
+          organization_id: string
+          type: Database["public"]["Enums"]["amenity_type"]
+          unit_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          identifier?: string | null
+          location?: string | null
+          organization_id?: string
+          type?: Database["public"]["Enums"]["amenity_type"]
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_amenity_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       unit_leases: {
         Row: {
           building_id: string
@@ -1932,6 +1970,7 @@ export type Database = {
           ended_on: string | null
           id: string
           is_active: boolean
+          is_primary: boolean
           organization_id: string
           person_id: string
           share: number
@@ -1945,6 +1984,7 @@ export type Database = {
           ended_on?: string | null
           id?: string
           is_active?: boolean
+          is_primary?: boolean
           organization_id: string
           person_id: string
           share?: number
@@ -1958,6 +1998,7 @@ export type Database = {
           ended_on?: string | null
           id?: string
           is_active?: boolean
+          is_primary?: boolean
           organization_id?: string
           person_id?: string
           share?: number
@@ -2004,10 +2045,14 @@ export type Database = {
           created_by: string | null
           floor: string | null
           id: string
+          is_rented: boolean
+          letter: string | null
           notes: string | null
           organization_id: string
           parking_spots: number
           status: Database["public"]["Enums"]["unit_status"]
+          tenant_name: string | null
+          tenant_phone: string | null
           type: Database["public"]["Enums"]["unit_type"]
           updated_at: string
         }
@@ -2020,10 +2065,14 @@ export type Database = {
           created_by?: string | null
           floor?: string | null
           id?: string
+          is_rented?: boolean
+          letter?: string | null
           notes?: string | null
           organization_id: string
           parking_spots?: number
           status?: Database["public"]["Enums"]["unit_status"]
+          tenant_name?: string | null
+          tenant_phone?: string | null
           type?: Database["public"]["Enums"]["unit_type"]
           updated_at?: string
         }
@@ -2036,10 +2085,14 @@ export type Database = {
           created_by?: string | null
           floor?: string | null
           id?: string
+          is_rented?: boolean
+          letter?: string | null
           notes?: string | null
           organization_id?: string
           parking_spots?: number
           status?: Database["public"]["Enums"]["unit_status"]
+          tenant_name?: string | null
+          tenant_phone?: string | null
           type?: Database["public"]["Enums"]["unit_type"]
           updated_at?: string
         }
@@ -2135,6 +2188,7 @@ export type Database = {
       }
     }
     Enums: {
+      amenity_type: "estacionamiento" | "deposito"
       announcement_kind: "anuncio" | "novedad"
       anomaly_status: "abierta" | "resuelta"
       building_type: "residencial" | "comercial" | "mixto"
@@ -2323,6 +2377,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      amenity_type: ["estacionamiento", "deposito"],
       announcement_kind: ["anuncio", "novedad"],
       anomaly_status: ["abierta", "resuelta"],
       building_type: ["residencial", "comercial", "mixto"],

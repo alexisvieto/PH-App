@@ -63,9 +63,9 @@ export function UnitManager({
 function PeopleHint() {
   return (
     <p className="text-sm text-muted">
-      Primero registra personas en{" "}
-      <Link href="/app/personas" className="text-brand hover:underline">
-        Personas
+      Primero registra propietarios en{" "}
+      <Link href="/app/propietarios" className="text-brand hover:underline">
+        Propietarios
       </Link>
       .
     </p>

@@ -33,7 +33,7 @@ type OrgType = Database["public"]["Enums"]["org_type"];
 const NAV = [
   { href: "/app", label: "Inicio", icon: Home, exact: true },
   { href: "/app/edificios", label: "Edificios", icon: Building2, exact: false },
-  { href: "/app/personas", label: "Personas", icon: Users, exact: false },
+  { href: "/app/propietarios", label: "Propietarios", icon: Users, exact: false },
   { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
   { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
   { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
