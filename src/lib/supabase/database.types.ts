@@ -1438,6 +1438,7 @@ export type Database = {
           created_by: string | null
           frequency: Database["public"]["Enums"]["pay_frequency"]
           id: string
+          kind: Database["public"]["Enums"]["payroll_kind"]
           label: string
           organization_id: string
           pay_date: string | null
@@ -1452,6 +1453,7 @@ export type Database = {
           created_by?: string | null
           frequency: Database["public"]["Enums"]["pay_frequency"]
           id?: string
+          kind?: Database["public"]["Enums"]["payroll_kind"]
           label: string
           organization_id: string
           pay_date?: string | null
@@ -1466,6 +1468,7 @@ export type Database = {
           created_by?: string | null
           frequency?: Database["public"]["Enums"]["pay_frequency"]
           id?: string
+          kind?: Database["public"]["Enums"]["payroll_kind"]
           label?: string
           organization_id?: string
           pay_date?: string | null
@@ -2182,6 +2185,7 @@ export type Database = {
         | "cheque"
         | "tarjeta"
         | "otro"
+      payroll_kind: "ordinaria" | "xiii"
       payroll_status: "borrador" | "procesada" | "pagada"
       termination_scenario:
         | "renuncia"
@@ -2373,6 +2377,7 @@ export const Constants = {
         "tarjeta",
         "otro",
       ],
+      payroll_kind: ["ordinaria", "xiii"],
       payroll_status: ["borrador", "procesada", "pagada"],
       termination_scenario: [
         "renuncia",

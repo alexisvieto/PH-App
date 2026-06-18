@@ -29,6 +29,21 @@ export const TERMINATION_SCENARIO_LABEL: Record<Enums["termination_scenario"], s
   despido_injustificado: "Despido injustificado",
 };
 
+export const PAYROLL_STATUS_LABEL: Record<Enums["payroll_status"], string> = {
+  borrador: "Borrador",
+  procesada: "Procesada",
+  pagada: "Pagada",
+};
+export const PAYROLL_STATUS_CLASS: Record<Enums["payroll_status"], string> = {
+  borrador: "bg-gray-100 text-gray-600",
+  procesada: "bg-sky-50 text-sky-700",
+  pagada: "bg-emerald-50 text-emerald-700",
+};
+export const PAYROLL_KIND_LABEL: Record<Enums["payroll_kind"], string> = {
+  ordinaria: "Ordinaria",
+  xiii: "Décimo tercer mes",
+};
+
 export const TERMINATION_REASON_LABEL: Record<string, string> = {
   renuncia: "Renuncia",
   despido: "Despido",

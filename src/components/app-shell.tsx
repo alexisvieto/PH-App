@@ -13,6 +13,7 @@ import {
   Megaphone,
   Menu,
   MessagesSquare,
+  Receipt,
   Truck,
   Users,
   Users2,
@@ -40,6 +41,7 @@ const NAV = [
   { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
   { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },
+  { href: "/app/planilla", label: "Planilla", icon: Receipt, exact: false },
   { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
 ];
 

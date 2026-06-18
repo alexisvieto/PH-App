@@ -165,6 +165,90 @@ export type LiquidationResult = {
   total: number;
 };
 
+/** Meses (con fracción) entre dos fechas ISO YYYY-MM-DD; expuesto para el lote. */
+export function monthsBetweenIso(fromIso: string, toIso: string): number {
+  return monthsBetween(new Date(`${fromIso}T00:00:00`), new Date(`${toIso}T00:00:00`));
+}
+
+// ---------------------------------------------------------------------------
+// PLANILLA POR PERÍODO (lote, salario base) y DÉCIMO TERCER MES (XIII)
+// ---------------------------------------------------------------------------
+
+export type PeriodPayrollResult = {
+  gross: number;
+  cssEmployee: number;
+  seguroEducativoEmployee: number;
+  isr: number;
+  net: number;
+  cssEmployer: number;
+  seguroEducativoEmployer: number;
+  riesgosEmployer: number;
+  employerCost: number;
+};
+
+/** Planilla del período (salario base prorrateado por frecuencia, sin incidencias en v1). */
+export function computePeriodPayroll(
+  rule: RuleSet,
+  input: {
+    baseSalary: number;
+    frequency: "quincenal" | "mensual";
+    declaresDependents: boolean;
+    riskPct: number;
+  },
+): PeriodPayrollResult {
+  const periods = input.frequency === "quincenal" ? 2 : 1;
+  const gross = round2(input.baseSalary / periods);
+  const css = rule.contributions.css;
+  const se = rule.contributions.seguro_educativo;
+  const cssE = css?.applies ? round2((gross * css.employeePct) / 100) : 0;
+  const seE = se?.applies ? round2((gross * se.employeePct) / 100) : 0;
+  const projFactor = k(rule, "isr_proyeccion_factor", 13);
+  const deduction = input.declaresDependents ? k(rule, "isr_deduccion_dependientes", 0) : 0;
+  const annual = input.baseSalary * projFactor - deduction;
+  const isr = round2(isrAnnual(rule, annual) / (kDiv(rule, "isr_periodos_mensual", 12) * periods));
+  const cssEr = css?.applies ? round2((gross * css.employerPct) / 100) : 0;
+  const seEr = se?.applies ? round2((gross * se.employerPct) / 100) : 0;
+  const riesgos = round2((gross * input.riskPct) / 100);
+  return {
+    gross,
+    cssEmployee: cssE,
+    seguroEducativoEmployee: seE,
+    isr,
+    net: round2(gross - cssE - seE - isr),
+    cssEmployer: cssEr,
+    seguroEducativoEmployer: seEr,
+    riesgosEmployer: riesgos,
+    employerCost: round2(gross + cssEr + seEr + riesgos),
+  };
+}
+
+export type XiiiResult = {
+  gross: number;
+  cssEmployee: number; // CSS especial 7.25% (Decreto Ley 221)
+  isr: number;
+  net: number;
+  cssEmployer: number;
+};
+
+/** XIII mes: (salarios del cuatrimestre / 12). Deducción: CSS especial; ISR proporcional se revisa aparte. */
+export function computeXiii(
+  rule: RuleSet,
+  input: { baseSalary: number; monthsInQuarter: number },
+): XiiiResult {
+  const gross = round2((input.baseSalary * input.monthsInQuarter) / kDiv(rule, "xiii_divisor", 12));
+  const cx = rule.contributions.css_xiii;
+  const cssE = cx?.applies ? round2((gross * cx.employeePct) / 100) : 0;
+  const cssEr = cx?.applies ? round2((gross * cx.employerPct) / 100) : 0;
+  return { gross, cssEmployee: cssE, isr: 0, net: round2(gross - cssE), cssEmployer: cssEr };
+}
+
+/** Ventana de una partida del XIII (1: 16dic–15abr, 2: 16abr–15ago, 3: 16ago–15dic). */
+export function xiiiPartidaWindow(partida: 1 | 2 | 3, year: number): { start: string; end: string } {
+  if (partida === 1) return { start: `${year - 1}-12-16`, end: `${year}-04-15` };
+  if (partida === 2) return { start: `${year}-04-16`, end: `${year}-08-15` };
+  return { start: `${year}-08-16`, end: `${year}-12-15` };
+}
+
 /** Inicio del cuatrimestre del XIII mes que contiene la fecha dada. */
 function xiiiPeriodStart(d: Date): Date {
   const y = d.getFullYear();
