@@ -59,8 +59,12 @@ export type MaintenanceAlert = {
   className: string;
 };
 
-/** Clasifica el estado del próximo mantenimiento para alertas. */
-export function maintenanceAlert(nextMaintenance: string | null): MaintenanceAlert {
+/** Clasifica el estado de una fecha límite para alertas. `soonDays` define la
+ *  ventana de "próximo" (14 para mantenimiento; 30 para vencimiento de contrato). */
+export function maintenanceAlert(
+  nextMaintenance: string | null,
+  soonDays: number = MAINTENANCE_SOON_DAYS,
+): MaintenanceAlert {
   if (!nextMaintenance) {
     return { kind: "sin_programar", label: "Sin programar", className: "bg-gray-100 text-gray-500" };
   }
@@ -70,7 +74,7 @@ export function maintenanceAlert(nextMaintenance: string | null): MaintenanceAle
   const diffDays = Math.round((due.getTime() - today.getTime()) / 86400000);
   if (diffDays < 0)
     return { kind: "vencido", label: "Vencido", className: "bg-red-50 text-red-700" };
-  if (diffDays <= MAINTENANCE_SOON_DAYS)
+  if (diffDays <= soonDays)
     return { kind: "proximo", label: "Próximo", className: "bg-amber-50 text-amber-700" };
   return { kind: "ok", label: "Al día", className: "bg-emerald-50 text-emerald-700" };
 }

@@ -2062,6 +2062,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_employee_salary: {
+        Args: {
+          p_employee_id: string
+          p_from: string
+          p_note?: string
+          p_salary: number
+        }
+        Returns: undefined
+      }
       create_infraction: {
         Args: {
           p_amount?: number

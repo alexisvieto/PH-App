@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Ban, Loader2, Pencil, RotateCcw, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ export function EmployeeAdmin({
   const router = useRouter();
   const [panel, setPanel] = useState<Panel>(null);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false); // guard inmediato contra doble submit
 
   // Editar (form action). Cierre del panel por "ajuste en render con guard"
   // (no setState en efecto); el efecto solo dispara toast + refresh (sistemas externos).
@@ -58,6 +59,8 @@ export function EmployeeAdmin({
 
   async function onSalary(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     const f = new FormData(e.currentTarget);
     const res = await changeSalary(employee.id, {
@@ -65,6 +68,7 @@ export function EmployeeAdmin({
       effectiveFrom: String(f.get("effective_from") ?? ""),
       note: String(f.get("note") ?? ""),
     });
+    busyRef.current = false;
     setBusy(false);
     if (res.ok) {
       toast.success("Salario actualizado.");
@@ -75,12 +79,15 @@ export function EmployeeAdmin({
 
   async function onBaja(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     const f = new FormData(e.currentTarget);
     const res = await terminateEmployee(employee.id, {
       reason: String(f.get("reason") ?? ""),
       date: String(f.get("date") ?? ""),
     });
+    busyRef.current = false;
     setBusy(false);
     if (res.ok) {
       toast.success("Empleado dado de baja.");
@@ -90,8 +97,11 @@ export function EmployeeAdmin({
   }
 
   async function onReactivate() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     const res = await reactivateEmployee(employee.id);
+    busyRef.current = false;
     setBusy(false);
     if (res.ok) {
       toast.success("Empleado reactivado.");

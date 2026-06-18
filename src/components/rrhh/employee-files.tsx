@@ -57,6 +57,8 @@ export function EmployeeFiles({
       toast.success(kind === "photo" ? "Foto actualizada." : "Contrato actualizado.");
       router.refresh();
     } else {
+      // El registro falló: borrar el archivo recién subido para no dejar huérfanos.
+      await supabase.storage.from("ph-docs").remove([path]);
       toast.error(res.error ?? "No se pudo guardar.");
     }
   }

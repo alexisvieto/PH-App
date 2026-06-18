@@ -170,7 +170,7 @@ export async function updateEmployee(
 
   const txt = (key: string) => String(formData.get(key) ?? "").trim() || null;
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("employees")
     .update({
       building_id: buildingRaw || null,
@@ -198,11 +198,14 @@ export async function updateEmployee(
       updated_at: new Date().toISOString(),
     })
     .eq("id", employeeId)
-    .eq("organization_id", orgId);
+    .eq("organization_id", orgId)
+    .select("id")
+    .maybeSingle();
   if (error) {
     console.error("updateEmployee:", error.code, error.message);
     return { error: "No se pudo actualizar el empleado.", ok: false };
   }
+  if (!data) return { error: "Empleado no encontrado.", ok: false };
 
   revalidatePath(`/app/rrhh/${employeeId}`);
   revalidatePath("/app/rrhh");
@@ -222,33 +225,17 @@ export async function changeSalary(
   if (!isValidIsoDate(vars.effectiveFrom)) return { error: "Fecha inválida.", ok: false };
 
   const supabase = await createClient();
-  const { data: emp } = await supabase
-    .from("employees")
-    .select("id")
-    .eq("id", employeeId)
-    .eq("organization_id", orgId)
-    .maybeSingle();
-  if (!emp) return { error: "Empleado no encontrado.", ok: false };
-
-  const { error: hErr } = await supabase.from("salary_history").insert({
-    organization_id: orgId,
-    employee_id: employeeId,
-    effective_from: vars.effectiveFrom,
-    base_salary: vars.newSalary,
-    note: (vars.note ?? "").trim() || "Cambio de salario",
+  // RPC atómico: inserta historial + actualiza base en una transacción.
+  const { error } = await supabase.rpc("change_employee_salary", {
+    p_employee_id: employeeId,
+    p_salary: vars.newSalary,
+    p_from: vars.effectiveFrom,
+    p_note: (vars.note ?? "").trim() || "Cambio de salario",
   });
-  if (hErr) {
-    console.error("changeSalary history:", hErr.code, hErr.message);
-    return { error: "No se pudo registrar el cambio.", ok: false };
-  }
-  const { error } = await supabase
-    .from("employees")
-    .update({ base_salary: vars.newSalary, updated_at: new Date().toISOString() })
-    .eq("id", employeeId)
-    .eq("organization_id", orgId);
   if (error) {
     console.error("changeSalary:", error.code, error.message);
-    return { error: "No se pudo actualizar el salario.", ok: false };
+    const msg = error.code === "P0001" ? error.message : "No se pudo cambiar el salario.";
+    return { error: msg, ok: false };
   }
 
   revalidatePath(`/app/rrhh/${employeeId}`);
@@ -387,7 +374,7 @@ export async function addEmployeeWarning(
   if (reason.length > 500) return { error: "La causa es muy larga (máx. 500).", ok: false };
 
   const docPath = (vars.documentPath ?? "").trim() || null;
-  if (docPath && !docPath.startsWith(`${orgId}/empleados/${employeeId}/`))
+  if (docPath && !new RegExp(`^${orgId}/empleados/${employeeId}/amonestacion-[\\w.-]+$`).test(docPath))
     return { error: "Ruta de documento inválida.", ok: false };
 
   const supabase = await createClient();

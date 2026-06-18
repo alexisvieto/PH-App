@@ -78,7 +78,7 @@ export default async function EmployeeDetailPage({
   }));
 
   const age = ageFromBirthDate(emp.birth_date);
-  const contractAlert = emp.contract_end_date ? maintenanceAlert(emp.contract_end_date) : null;
+  const contractAlert = emp.contract_end_date ? maintenanceAlert(emp.contract_end_date, 30) : null;
   const emergency = [emp.emergency_contact_name, emp.emergency_contact_phone, emp.emergency_contact_relationship]
     .filter(Boolean)
     .join(" · ");

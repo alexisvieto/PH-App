@@ -79,6 +79,8 @@ export function EmployeeWarnings({
       setFile(null);
       router.refresh();
     } else {
+      // Falló el registro: borrar el documento recién subido (sin huérfanos).
+      if (documentPath) await createClient().storage.from("ph-docs").remove([documentPath]);
       setError(res.error);
     }
   }
