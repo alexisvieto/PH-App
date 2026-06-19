@@ -51,14 +51,14 @@ export default async function PortalPassDetail({
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
           >
             <MessageCircle className="size-4" /> Compartir por WhatsApp
           </a>
           {pass.status === "activo" && <AnularPassButton passId={pass.id} action={anularResidentPass} />}
         </div>
 
-        <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-5 text-left text-sm">
+        <dl className="mt-6 grid grid-cols-1 gap-4 border-t border-line pt-5 text-left text-sm sm:grid-cols-2">
           <Field label="Visitante" value={pass.visitor_name} />
           <Field label="Unidad" value={unit?.code ?? "—"} />
           <Field label="Tipo" value={PASS_TYPE_LABEL[pass.type]} />

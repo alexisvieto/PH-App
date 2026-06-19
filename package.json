@@ -9,8 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.0",
     "@capacitor/barcode-scanner": "^3.0.2",
     "@capacitor/core": "^8.4.1",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1",

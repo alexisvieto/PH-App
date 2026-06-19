@@ -24,6 +24,14 @@ const config: CapacitorConfig = {
     url: serverUrl,
     cleartext: false, // Vercel es https; solo poner true para dev por http en LAN
   },
+  plugins: {
+    // El splash lo ocultamos manualmente desde NativeBootstrap cuando el
+    // contenido remoto ya cargó (evita el parpadeo a blanco).
+    SplashScreen: {
+      launchAutoHide: false,
+      backgroundColor: "#0F766E",
+    },
+  },
 };
 
 export default config;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Building2,
@@ -90,6 +90,14 @@ export function AppShell({
       (!guardOnly || guardAllowed.has(item.href)),
   );
 
+  // Bloquea el scroll del contenido detrás del drawer móvil mientras está abierto.
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   async function logout() {
     await createClient().auth.signOut();
     router.replace("/login");
@@ -107,7 +115,7 @@ export function AppShell({
             key={href}
             href={href}
             onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+            className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
               active
                 ? "bg-brand-soft text-brand"
                 : "text-ink/70 hover:bg-gray-100"
@@ -147,7 +155,7 @@ export function AppShell({
       }
     >
       {/* Sidebar escritorio */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-surface p-4 md:flex">
+      <aside className="safe-top hidden w-64 shrink-0 flex-col border-r border-line bg-surface p-4 md:flex">
         {sidebarHead}
         {orgs.length > 1 && (
           <OrgSwitcher options={orgs} activeId={activeOrgId} />
@@ -163,10 +171,10 @@ export function AppShell({
             className="absolute inset-0 bg-black/30"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-64 flex-col border-r border-line bg-surface p-4">
+          <aside className="safe-top absolute left-0 top-0 flex h-full w-72 max-w-[85%] flex-col overflow-y-auto border-r border-line bg-surface p-4">
             <div className="mb-4 flex items-center justify-between">
               {sidebarHead}
-              <button onClick={() => setOpen(false)} aria-label="Cerrar">
+              <button onClick={() => setOpen(false)} aria-label="Cerrar" className="-mr-2 p-2">
                 <X className="size-5" />
               </button>
             </div>
@@ -181,14 +189,37 @@ export function AppShell({
 
       {/* Contenido */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-line bg-surface px-4 py-3 md:hidden">
-          <button onClick={() => setOpen(true)} aria-label="Menú">
+        <header className="safe-top flex items-center gap-3 border-b border-line bg-surface px-4 py-3 md:hidden">
+          <button onClick={() => setOpen(true)} aria-label="Menú" className="-ml-2 p-2">
             <Menu className="size-5" />
           </button>
           <span className="font-semibold">{orgName}</span>
         </header>
-        <main className="flex-1 p-4 md:p-8">{children}</main>
+        <main className={`flex-1 p-4 md:p-8 ${guardOnly ? "pb-28 md:pb-8" : ""}`}>{children}</main>
       </div>
+
+      {/* Navegación inferior para el guardia (móvil): pocas opciones, táctil. */}
+      {guardOnly && (
+        <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface md:hidden">
+          <div className="flex items-stretch justify-around">
+            {visibleNav.map(({ href, label, icon: Icon, exact }) => {
+              const active = exact ? pathname === href : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition ${
+                    active ? "text-brand" : "text-muted"
+                  }`}
+                >
+                  <Icon className="size-5" />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

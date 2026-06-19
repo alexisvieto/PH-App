@@ -28,4 +28,16 @@
 
 body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  /* Evita el rebote elástico del WebView (delata al "navegador" en la app nativa). */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Utilidades de "safe area" para el shell nativo (notch / barra de estado /
+   indicador de inicio). En web/PWA estos env() valen 0, así que no afectan. */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }

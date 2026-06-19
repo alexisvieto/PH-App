@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 
+import { NativeBootstrap } from "@/components/native-bootstrap";
 import { DEFAULT_BRAND, PRODUCT_NAME } from "@/lib/brand";
 import "./globals.css";
 
@@ -26,6 +27,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: DEFAULT_BRAND.primary,
+  // Permite que el contenido use toda la pantalla y que las safe areas (notch,
+  // indicador de inicio) se gestionen con env(safe-area-inset-*).
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -40,7 +44,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-canvas text-ink">
         {children}
-        <Toaster richColors position="top-right" />
+        <NativeBootstrap />
+        <Toaster richColors position="bottom-center" />
       </body>
     </html>
   );

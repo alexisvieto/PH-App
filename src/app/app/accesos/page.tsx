@@ -57,7 +57,7 @@ export default async function AccesosPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold">
             <ShieldCheck className="size-6 text-brand" /> Accesos
@@ -72,41 +72,65 @@ export default async function AccesosPage() {
         {passList.length === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-muted">Aún no hay pases. Crea el primero con “Nuevo pase”.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-line bg-gray-50 text-left text-xs uppercase text-muted">
-              <tr>
-                <th className="px-4 py-3 font-medium">Código</th>
-                <th className="px-4 py-3 font-medium">Visitante</th>
-                <th className="px-4 py-3 font-medium">Unidad</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Vigencia</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Escritorio: tabla */}
+            <table className="hidden w-full text-sm md:table">
+              <thead className="border-b border-line bg-gray-50 text-left text-xs uppercase text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Código</th>
+                  <th className="px-4 py-3 font-medium">Visitante</th>
+                  <th className="px-4 py-3 font-medium">Unidad</th>
+                  <th className="px-4 py-3 font-medium">Tipo</th>
+                  <th className="px-4 py-3 font-medium">Vigencia</th>
+                  <th className="px-4 py-3 font-medium">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {passList.map((p) => {
+                  const st = passState(p);
+                  return (
+                    <tr key={p.id} className="border-b border-line last:border-0 hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <Link href={`/app/accesos/${p.id}`} className="font-mono font-medium text-brand hover:underline">
+                          {p.code}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3">{p.visitor_name}</td>
+                      <td className="px-4 py-3 text-muted">{unitCode.get(p.unit_id) ?? "—"}</td>
+                      <td className="px-4 py-3 text-muted">{PASS_TYPE_LABEL[p.type]}</td>
+                      <td className="px-4 py-3 text-muted">
+                        {formatDate(p.valid_from)} — {formatDate(p.valid_to)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Móvil: tarjetas */}
+            <ul className="divide-y divide-line md:hidden">
               {passList.map((p) => {
                 const st = passState(p);
                 return (
-                  <tr key={p.id} className="border-b border-line last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <Link href={`/app/accesos/${p.id}`} className="font-mono font-medium text-brand hover:underline">
-                        {p.code}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">{p.visitor_name}</td>
-                    <td className="px-4 py-3 text-muted">{unitCode.get(p.unit_id) ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted">{PASS_TYPE_LABEL[p.type]}</td>
-                    <td className="px-4 py-3 text-muted">
-                      {formatDate(p.valid_from)} — {formatDate(p.valid_to)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
-                    </td>
-                  </tr>
+                  <li key={p.id}>
+                    <Link href={`/app/accesos/${p.id}`} className="flex items-center justify-between gap-3 px-4 py-3 active:bg-gray-50">
+                      <div className="min-w-0">
+                        <p className="font-mono text-base font-semibold text-brand">{p.code}</p>
+                        <p className="truncate text-sm">{p.visitor_name}</p>
+                        <p className="text-xs text-muted">
+                          {unitCode.get(p.unit_id) ?? "—"} · {PASS_TYPE_LABEL[p.type]} · {formatDate(p.valid_to)}
+                        </p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
+                    </Link>
+                  </li>
                 );
               })}
-            </tbody>
-          </table>
+            </ul>
+          </>
         )}
       </div>
 
@@ -117,7 +141,7 @@ export default async function AccesosPage() {
         ) : (
           <ul className="divide-y divide-line">
             {(logs ?? []).map((l) => (
-              <li key={l.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <li key={l.id} className="flex flex-col gap-0.5 px-5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <span>
                   <span className="font-medium">{l.visitor_name}</span>
                   <span className="text-muted"> · {unitCode.get(l.unit_id ?? "") ?? "—"}</span>

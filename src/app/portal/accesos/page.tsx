@@ -63,14 +63,14 @@ export default async function PortalAccesosPage() {
                 href={`/portal/accesos/${p.id}`}
                 className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 transition hover:border-brand/50"
               >
-                <div>
-                  <p className="font-medium">{p.visitor_name}</p>
-                  <p className="text-sm text-muted">
-                    <span className="font-mono">{p.code}</span> · {PASS_TYPE_LABEL[p.type]} ·{" "}
-                    {unitCode.get(p.unit_id) ?? ""} · {formatDate(p.valid_to)}
+                <div className="min-w-0">
+                  <p className="font-mono text-base font-semibold text-brand">{p.code}</p>
+                  <p className="truncate font-medium">{p.visitor_name}</p>
+                  <p className="text-xs text-muted">
+                    {PASS_TYPE_LABEL[p.type]} · {unitCode.get(p.unit_id) ?? ""} · {formatDate(p.valid_to)}
                   </p>
                 </div>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
               </Link>
             );
           })

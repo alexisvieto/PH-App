@@ -62,14 +62,18 @@ CAP_SERVER_URL=http://192.168.1.50:3200 npx cap sync   # ajusta IP
 
 ## Lo que ya quedó en el repo (base)
 
-- **`capacitor.config.ts`** — modo shell con `server.url` por env.
-- **`src/app/manifest.ts`** + **`public/icons/`** (`icon.svg`, `maskable.svg`) + **`src/app/icon.svg`** — manifest PWA instalable e iconos de marca. `layout.tsx` declara `themeColor` y `appleWebApp` (standalone en iOS).
+- **`capacitor.config.ts`** — modo shell con `server.url` por env + config de SplashScreen (no auto-hide; lo ocultamos cuando carga el contenido).
+- **`src/app/manifest.ts`** + **`public/icons/`** (`icon.svg`, `maskable.svg`) + **`src/app/icon.svg`** — manifest PWA instalable e iconos de marca. `layout.tsx` declara `themeColor`, `viewport-fit=cover` y `appleWebApp` (standalone en iOS).
 - **`src/lib/native.ts`** — `isNativeApp()`, hook `useIsNativeApp()` (seguro en SSR) y `scanQrCode()` (escáner QR nativo, import dinámico). En la web degrada con gracia.
-- **Garita** (`src/components/access/garita-console.tsx`) — botón **Escanear** visible solo en la app nativa; en web sigue la entrada manual del código.
+- **`src/components/native-bootstrap.tsx`** — init nativo (corre solo en la app): barra de estado con la marca, **botón atrás de Android** (navega o cierra en la raíz), teclado (resize del body) y **ocultar el splash** cuando el contenido ya cargó. Plugins: `@capacitor/splash-screen`, `status-bar`, `app`, `keyboard` (instalados).
+- **Safe areas** — utilidades `.safe-top`/`.safe-bottom` (`env(safe-area-inset-*)`) aplicadas en los headers, el sidebar y las barras inferiores. `overscroll-behavior: none` para quitar el rebote del WebView.
+- **Navegación inferior móvil** — bottom-nav en el portal (Inicio / Visitas / Quejas) y para el rol **guardia** (Inicio / Garita). Toaster en `bottom-center`. Botones/inputs a ≥44px táctiles.
+- **Garita** — botón **Escanear** QR visible solo en la app nativa; en web sigue la entrada manual del código.
 
 ## Pendiente (siguiente iteración)
 
 - Generar plataformas + assets PNG y primer build firmado (requiere cuentas + SDKs).
-- **Push notifications** (`@capacitor/push-notifications` + FCM/APNs) — avisos de pases, comunicados, quejas.
-- Manejo del **botón atrás** de Android y deep links (`appUrlOpen`).
-- Opcional: service worker para instalación PWA en navegador (Capacitor no lo necesita).
+- **Push notifications** (`@capacitor/push-notifications` + FCM/APNs) — avisos de pases, comunicados, quejas. Es la justificación nativa más fuerte ante la regla 4.2 de Apple.
+- **Fallback offline**: un `index.html` local en `webDir` para cuando no hay red (hoy el WebView muestra el error del sistema). Requiere las plataformas generadas.
+- **Deep links** (`appUrlOpen`) para que un pase compartido por WhatsApp abra la app.
+- Opcional: bloquear orientación a portrait, haptics en acciones clave, service worker para instalación PWA en navegador (Capacitor no lo necesita).

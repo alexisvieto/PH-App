@@ -64,7 +64,7 @@ export default async function GaritaPage() {
         ) : (
           <ul className="divide-y divide-line">
             {(logs ?? []).map((l) => (
-              <li key={l.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <li key={l.id} className="flex flex-col gap-0.5 px-5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <span>
                   <span className="font-medium">{l.visitor_name}</span>
                   <span className="text-muted"> · {unitCode.get(l.unit_id ?? "") ?? "—"}</span>

@@ -35,7 +35,7 @@ export function AnularPassButton({
     <button
       onClick={onClick}
       disabled={busy}
-      className="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-60"
     >
       {busy ? <Loader2 className="size-4 animate-spin" /> : <Ban className="size-4" />} Anular pase
     </button>

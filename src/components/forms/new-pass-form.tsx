@@ -10,7 +10,7 @@ import { PASS_TYPE_OPTIONS, WEEKDAYS } from "@/lib/access";
 import { isoDay } from "@/lib/format";
 
 const input =
-  "w-full rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand";
+  "w-full min-h-11 rounded-lg border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-brand";
 
 type UnitOption = { id: string; label: string };
 type PassAction = (state: ActionState, formData: FormData) => Promise<ActionState>;
@@ -31,7 +31,7 @@ export function NewPassForm({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
       >
         <Plus className="size-4" /> Nuevo pase
       </button>
@@ -78,9 +78,9 @@ export function NewPassForm({
           <>
             <div className="block sm:col-span-2">
               <span className="mb-1 block text-sm font-medium">Días permitidos</span>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {WEEKDAYS.map((d, i) => (
-                  <label key={i} className="inline-flex items-center gap-1.5 text-sm">
+                  <label key={i} className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm">
                     <input type="checkbox" name="recurring_days" value={i} className="size-4" />
                     {d}
                   </label>
@@ -104,14 +104,14 @@ export function NewPassForm({
         </label>
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Placa de vehículo</span>
-          <input name="vehicle_plate" className={input} placeholder="Opcional" />
+          <input name="vehicle_plate" autoCapitalize="characters" className={`${input} uppercase placeholder:normal-case`} placeholder="Opcional" />
         </label>
       </div>
 
       {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>}
       <div className="flex gap-2">
         <SubmitButton pendingText="Creando…">Crear pase</SubmitButton>
-        <button type="button" onClick={() => setOpen(false)} className="rounded-lg px-4 py-2 text-sm font-medium text-muted hover:text-ink">Cancelar</button>
+        <button type="button" onClick={() => setOpen(false)} className="min-h-11 rounded-lg px-4 py-2.5 text-sm font-medium text-muted hover:text-ink">Cancelar</button>
       </div>
     </form>
   );
