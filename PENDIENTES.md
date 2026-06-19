@@ -27,7 +27,7 @@ Fases **3, 4 y 5 cerradas y auditadas**. Fase 3+4 pusheadas a producción.
 ## 🟡 Fase 9 — Accesos y Seguridad (módulo pago, en progreso)
 - [x] **9a-Staff (2026-06-19):** entitlement `organization_modules` + `has_module`; rol `guardia`; `visitor_passes`/`visitor_log` + RLS gated por módulo; UI `/app/accesos` (crear pase, lista, bitácora) + detalle con QR (`qrcode`) + WhatsApp + anular. Módulo activado en la org demo. Verificado E2E + advisors.
 - [x] **9a-Garita (2026-06-19):** `/app/garita` (rol guardia + staff) — validar código, registrar entrada/salida (con foto a `ph-photos` + placa), walk-ins; la entrada valida vigencia/día/horario (hora PA) y consume uso. Nav restringido para el rol `guardia` (solo Inicio + Garita). Verificado E2E. **Pendiente:** escaneo de QR por cámara (vía Capacitor nativo; hoy entrada manual del código).
-- [ ] **9a-Portal:** el residente crea pases para su unidad desde `/portal` (QR + compartir).
+- [x] **9a-Portal (2026-06-19):** `/portal/accesos` — el residente crea pases para su(s) unidad(es) (RLS is_unit_resident), ve su lista, detalle con QR + WhatsApp + anular; tarjeta en la home del portal gated por el módulo. Acciones `createResidentPass`/`anularResidentPass` (getResidentContext). Verificado E2E con un usuario residente (residente@modusph.app, vinculado a María González / A-101 en la demo). **9a completo (Staff+Garita+Portal).**
 - [ ] **Empaquetado PWA→Capacitor** para publicar en App Store/Play (push y cámara nativos). Cuentas Apple Developer + Google Play (acción del dueño).
 - [ ] **9b/9c:** pre-autorización/citofonía, lista negra, botón de pánico; paquetería, vehículos/mascotas, reportes de seguridad a la JD. Auditoría 3-agentes al cerrar 9a.
 

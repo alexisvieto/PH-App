@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import QRCode from "qrcode";
 
+import { anularPass } from "@/app/app/accesos/actions";
 import { AnularPassButton } from "@/components/access/anular-pass-button";
 import { LOG_DIRECTION_LABEL, PASS_TYPE_LABEL, passState, WEEKDAYS } from "@/lib/access";
 import { formatDate } from "@/lib/format";
@@ -67,7 +68,7 @@ export default async function PassDetailPage({
               >
                 <MessageCircle className="size-4" /> Compartir por WhatsApp
               </a>
-              {pass.status === "activo" && <AnularPassButton passId={pass.id} />}
+              {pass.status === "activo" && <AnularPassButton passId={pass.id} action={anularPass} />}
             </div>
           </div>
         </div>

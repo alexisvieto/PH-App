@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation";
 import { Ban, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { anularPass } from "@/app/app/accesos/actions";
+import type { ActionState } from "@/lib/action-state";
 
-export function AnularPassButton({ passId }: { passId: string }) {
+export function AnularPassButton({
+  passId,
+  action,
+}: {
+  passId: string;
+  action: (id: string) => Promise<ActionState>;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
@@ -16,7 +22,7 @@ export function AnularPassButton({ passId }: { passId: string }) {
     if (busyRef.current) return;
     busyRef.current = true;
     setBusy(true);
-    const res = await anularPass(passId);
+    const res = await action(passId);
     busyRef.current = false;
     setBusy(false);
     if (res.ok) {

@@ -3,10 +3,9 @@
 import { useActionState, useState } from "react";
 import { Plus } from "lucide-react";
 
-import { createPass } from "@/app/app/accesos/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { useFormPanel } from "@/components/use-form-panel";
-import { EMPTY_ACTION_STATE } from "@/lib/action-state";
+import { type ActionState, EMPTY_ACTION_STATE } from "@/lib/action-state";
 import { PASS_TYPE_OPTIONS, WEEKDAYS } from "@/lib/access";
 import { isoDay } from "@/lib/format";
 
@@ -14,9 +13,16 @@ const input =
   "w-full rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand";
 
 type UnitOption = { id: string; label: string };
+type PassAction = (state: ActionState, formData: FormData) => Promise<ActionState>;
 
-export function NewPassForm({ units }: { units: UnitOption[] }) {
-  const [state, action] = useActionState(createPass, EMPTY_ACTION_STATE);
+export function NewPassForm({
+  units,
+  action: passAction,
+}: {
+  units: UnitOption[];
+  action: PassAction;
+}) {
+  const [state, action] = useActionState(passAction, EMPTY_ACTION_STATE);
   const [open, setOpen] = useFormPanel(state, "Pase creado.");
   const [type, setType] = useState("visita");
   const today = isoDay(new Date());

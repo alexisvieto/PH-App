@@ -6,6 +6,7 @@ import {
   Megaphone,
   MessagesSquare,
   Phone,
+  QrCode,
 } from "lucide-react";
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
@@ -25,6 +26,15 @@ export default async function PortalHome() {
     .order("published_at", { ascending: false })
     .limit(4);
   const news = announcements ?? [];
+
+  // ¿La org tiene activo el módulo de accesos? (add-on pago)
+  const { data: accesosMod } = await supabase
+    .from("organization_modules")
+    .select("module_key")
+    .eq("organization_id", res.orgId)
+    .eq("module_key", "accesos")
+    .eq("enabled", true)
+    .maybeSingle();
 
   const firstName = (res.fullName ?? "").split(" ")[0];
 
@@ -98,6 +108,28 @@ export default async function PortalHome() {
           ))}
         </div>
       </section>
+
+      {/* Accesos (módulo pago activo) */}
+      {accesosMod && (
+        <section className="space-y-3">
+          <h2 className="font-semibold">Mis visitas</h2>
+          <Link
+            href="/portal/accesos"
+            className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 transition hover:border-brand/50"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-brand-soft text-brand">
+                <QrCode className="size-4" />
+              </div>
+              <div>
+                <p className="font-medium">Pases de visita</p>
+                <p className="text-sm text-muted">Crea un QR para tus visitas</p>
+              </div>
+            </div>
+            <ChevronRight className="size-5 text-muted" />
+          </Link>
+        </section>
+      )}
 
       {/* Canal con la administración */}
       <section className="space-y-3">

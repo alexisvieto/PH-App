@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
+import { createPass } from "@/app/app/accesos/actions";
 import { NewPassForm } from "@/components/forms/new-pass-form";
 import { LOG_DIRECTION_LABEL, PASS_TYPE_LABEL, passState } from "@/lib/access";
 import { formatDate } from "@/lib/format";
@@ -63,7 +64,7 @@ export default async function AccesosPage() {
           </h1>
           <p className="text-sm text-muted">Pases de visita y bitácora de entradas.</p>
         </div>
-        <NewPassForm units={unitOptions} />
+        <NewPassForm units={unitOptions} action={createPass} />
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">
