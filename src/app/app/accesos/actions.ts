@@ -14,9 +14,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TIME = /^\d{2}:\d{2}$/;
 
 function genCode() {
-  return Array.from({ length: 8 }, () =>
-    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".charAt(Math.floor(Math.random() * 32)),
-  ).join("");
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 32 símbolos → b % 32 es uniforme
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(bytes, (b) => alphabet[b % 32]).join("");
 }
 
 export async function createPass(
@@ -202,34 +202,27 @@ export async function registerVisit(vars: {
   const supabase = await createClient();
   let buildingId: string | null = null;
   let unitId: string | null = null;
-  let visitorName = (vars.visitorName ?? "").trim();
-  let visitorDoc = (vars.visitorDoc ?? "").trim() || null;
-  let plate = (vars.vehiclePlate ?? "").trim().toUpperCase() || null;
-  let pass: PassRow | null = null;
+  const passId = vars.passId || null;
 
-  if (vars.passId) {
-    if (!UUID.test(vars.passId)) return { error: "Pase inválido.", ok: false };
-    const { data } = await supabase
+  if (passId) {
+    if (!UUID.test(passId)) return { error: "Pase inválido.", ok: false };
+    const { data: pass } = await supabase
       .from("visitor_passes")
       .select("*")
-      .eq("id", vars.passId)
+      .eq("id", passId)
       .eq("organization_id", orgId)
       .maybeSingle();
-    if (!data) return { error: "Pase no encontrado.", ok: false };
-    pass = data;
-    // En la entrada se valida la vigencia; en la salida no.
+    if (!pass) return { error: "Pase no encontrado.", ok: false };
+    // Pre-chequeo completo (incluye día/horario) para dar el motivo exacto;
+    // el RPC revalida estado/vigencia/usos de forma atómica al registrar.
     if (vars.direction === "entrada") {
       const v = canEnterNow(pass);
       if (!v.ok) return { error: v.reason ?? "Pase no válido.", ok: false };
     }
-    buildingId = pass.building_id;
-    unitId = pass.unit_id;
-    visitorName = pass.visitor_name;
-    visitorDoc = pass.visitor_doc;
-    plate = plate ?? pass.vehicle_plate;
   } else {
-    // Walk-in (sin pase)
-    if (!visitorName) return { error: "El nombre del visitante es obligatorio.", ok: false };
+    // Walk-in (sin pase): resuelve el edificio (de la unidad o del seleccionado).
+    if (!(vars.visitorName ?? "").trim())
+      return { error: "El nombre del visitante es obligatorio.", ok: false };
     if (vars.unitId && UUID.test(vars.unitId)) {
       const { data: unit } = await supabase
         .from("units")
@@ -246,30 +239,24 @@ export async function registerVisit(vars: {
     if (!buildingId) return { error: "Selecciona la unidad o el edificio.", ok: false };
   }
 
-  const { error } = await supabase.from("visitor_log").insert({
-    organization_id: orgId,
-    building_id: buildingId,
-    unit_id: unitId,
-    pass_id: vars.passId || null,
-    visitor_name: visitorName,
-    visitor_doc: visitorDoc,
-    vehicle_plate: plate,
-    direction: vars.direction as Enums["log_direction"],
-    photo_path: docPath,
-    guard_user: ctx.userId,
+  // Inserción atómica (bitácora + consumo de uso) vía RPC.
+  const { error } = await supabase.rpc("register_visit", {
+    p_org: orgId,
+    // Los tipos generados marcan estos args como string; en runtime pasamos null
+    // (válido para Postgres) en walk-in / sin foto.
+    p_pass_id: passId as string,
+    p_building: buildingId as string,
+    p_unit: unitId as string,
+    p_visitor_name: (vars.visitorName ?? "").trim(),
+    p_visitor_doc: (vars.visitorDoc ?? "").trim(),
+    p_vehicle_plate: (vars.vehiclePlate ?? "").trim().toUpperCase(),
+    p_direction: vars.direction as Enums["log_direction"],
+    p_photo_path: docPath as string,
   });
   if (error) {
     console.error("registerVisit:", error.code, error.message);
-    return { error: "No se pudo registrar.", ok: false };
-  }
-
-  // En la entrada con pase, se consume un uso.
-  if (pass && vars.direction === "entrada") {
-    await supabase
-      .from("visitor_passes")
-      .update({ uses_count: pass.uses_count + 1 })
-      .eq("id", pass.id)
-      .eq("organization_id", orgId);
+    // El RPC lanza mensajes en español aptos para el usuario.
+    return { error: error.message || "No se pudo registrar.", ok: false };
   }
 
   revalidatePath("/app/garita");

@@ -18,13 +18,14 @@ type UnitOption = { id: string; label: string };
 
 export function GaritaConsole({
   orgId,
-  buildingId,
+  buildings,
   units,
 }: {
   orgId: string;
-  buildingId: string | null;
+  buildings: UnitOption[];
   units: UnitOption[];
 }) {
+  const singleBuilding = buildings.length === 1 ? buildings[0].id : null;
   const router = useRouter();
   const busyRef = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -64,6 +65,11 @@ export function GaritaConsole({
     else setLookupErr(res.error);
   }
 
+  /** Si el registro falla tras subir la foto, borra la foto huérfana del bucket. */
+  async function cleanupPhoto(path: string | null) {
+    if (path) await createClient().storage.from("ph-photos").remove([path]);
+  }
+
   async function register(direction: "entrada" | "salida", passId?: string) {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -83,7 +89,10 @@ export function GaritaConsole({
       setCode("");
       setPhoto(null);
       router.refresh();
-    } else toast.error(res.error ?? "Error");
+    } else {
+      await cleanupPhoto(photoPath);
+      toast.error(res.error ?? "Error");
+    }
   }
 
   async function onWalkIn(e: React.FormEvent<HTMLFormElement>) {
@@ -99,7 +108,7 @@ export function GaritaConsole({
       visitorDoc: String(f.get("visitor_doc") ?? ""),
       vehiclePlate: String(f.get("vehicle_plate") ?? ""),
       unitId: String(f.get("unit_id") ?? "") || null,
-      buildingId,
+      buildingId: String(f.get("building_id") ?? "") || singleBuilding,
       direction: String(f.get("direction") ?? "entrada"),
       photoPath,
     });
@@ -110,7 +119,10 @@ export function GaritaConsole({
       setWalkOpen(false);
       setPhoto(null);
       router.refresh();
-    } else toast.error(res.error ?? "Error");
+    } else {
+      await cleanupPhoto(photoPath);
+      toast.error(res.error ?? "Error");
+    }
   }
 
   const PhotoInput = (
@@ -207,6 +219,15 @@ export function GaritaConsole({
                   {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
                 </select>
               </label>
+              {buildings.length > 1 && (
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-muted">Edificio (si es área común)</span>
+                  <select name="building_id" defaultValue="" className={input}>
+                    <option value="">Selecciona…</option>
+                    {buildings.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
+                  </select>
+                </label>
+              )}
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-muted">Placa</span>
                 <input name="vehicle_plate" className={input} placeholder="Opcional" />

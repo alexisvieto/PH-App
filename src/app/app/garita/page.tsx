@@ -44,6 +44,7 @@ export default async function GaritaPage() {
 
   const unitCode = new Map((units ?? []).map((u) => [u.id, u.code]));
   const unitOptions = (units ?? []).map((u) => ({ id: u.id, label: u.code }));
+  const buildingOptions = (buildings ?? []).map((b) => ({ id: b.id, label: b.name }));
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -54,7 +55,7 @@ export default async function GaritaPage() {
         <p className="text-sm text-muted">Validar pases y registrar entradas/salidas.</p>
       </div>
 
-      <GaritaConsole orgId={orgId} buildingId={buildings?.[0]?.id ?? null} units={unitOptions} />
+      <GaritaConsole orgId={orgId} buildings={buildingOptions} units={unitOptions} />
 
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <h2 className="border-b border-line px-5 py-3 font-semibold">Movimientos recientes</h2>

@@ -14,9 +14,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TIME = /^\d{2}:\d{2}$/;
 
 function genCode() {
-  return Array.from({ length: 8 }, () =>
-    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".charAt(Math.floor(Math.random() * 32)),
-  ).join("");
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 32 símbolos → b % 32 es uniforme
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(bytes, (b) => alphabet[b % 32]).join("");
 }
 
 /** El residente crea un pase para una de SUS unidades. */
@@ -66,6 +66,7 @@ export async function createResidentPass(
     .from("units")
     .select("building_id")
     .eq("id", unitId)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (!unit) return { error: "Unidad no encontrada.", ok: false };
 

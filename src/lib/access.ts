@@ -30,7 +30,8 @@ export function passState(p: {
   uses_count: number;
 }): { label: string; className: string } {
   if (p.status === "anulado") return { label: "Anulado", className: "bg-gray-100 text-gray-500" };
-  const today = new Date().toISOString().slice(0, 10);
+  // Fecha en hora de Panamá, igual que la validación de garita (canEnterNow).
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
   if (p.valid_to < today) return { label: "Vencido", className: "bg-gray-100 text-gray-500" };
   if (p.max_uses !== null && p.uses_count >= p.max_uses)
     return { label: "Agotado", className: "bg-gray-100 text-gray-500" };

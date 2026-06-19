@@ -2396,6 +2396,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      register_visit: {
+        Args: {
+          p_building: string
+          p_direction: Database["public"]["Enums"]["log_direction"]
+          p_org: string
+          p_pass_id: string
+          p_photo_path: string
+          p_unit: string
+          p_vehicle_plate: string
+          p_visitor_doc: string
+          p_visitor_name: string
+        }
+        Returns: undefined
+      }
       transfer_ownership: {
         Args: { p_acquired_on?: string; p_person_id: string; p_unit_id: string }
         Returns: undefined
