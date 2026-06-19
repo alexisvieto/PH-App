@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
 import { isValidIsoDate } from "@/lib/format";
-import { getSessionContext } from "@/lib/session";
+import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { Constants } from "@/lib/supabase/database.types";
 import type { Database } from "@/lib/supabase/database.types";
@@ -97,47 +97,22 @@ export async function addOwner(
   if (vars.docType && !isEnum("doc_type", vars.docType)) return { error: "Tipo de documento inválido.", ok: false };
   if (vars.acquiredOn && !isValidIsoDate(vars.acquiredOn)) return { error: "Fecha de adquisición inválida.", ok: false };
 
+  // RPC atómico: persona + titularidad (+ limpia el principal anterior) en una transacción.
   const supabase = await createClient();
-  const unit = await loadUnit(supabase, orgId, unitId);
-  if (!unit) return { error: "Unidad no encontrada.", ok: false };
-
-  const { data: person, error: pErr } = await supabase
-    .from("people")
-    .insert({
-      organization_id: orgId,
-      full_name: fullName,
-      doc_type: vars.docNumber.trim() ? (vars.docType as Enums["doc_type"]) || "cedula" : null,
-      doc_number: vars.docNumber.trim() || null,
-      email: vars.email.trim() || null,
-      phone: vars.phone.trim() || null,
-    })
-    .select("id")
-    .maybeSingle();
-  if (pErr || !person) {
-    console.error("addOwner person:", pErr?.code, pErr?.message);
-    return { error: "No se pudo registrar al propietario.", ok: false };
-  }
-
-  if (vars.isPrimary) {
-    await supabase
-      .from("unit_ownerships")
-      .update({ is_primary: false })
-      .eq("unit_id", unitId)
-      .eq("organization_id", orgId);
-  }
-  const { error } = await supabase.from("unit_ownerships").insert({
-    organization_id: orgId,
-    building_id: unit.building_id,
-    unit_id: unitId,
-    person_id: person.id,
-    is_active: true,
-    is_primary: vars.isPrimary,
-    acquired_on: vars.acquiredOn || null,
-    created_by: ctx.userId,
+  const { error } = await supabase.rpc("add_unit_owner", {
+    p_unit_id: unitId,
+    p_full_name: fullName,
+    p_doc_type: vars.docType || "cedula",
+    p_doc_number: vars.docNumber || "",
+    p_email: vars.email || "",
+    p_phone: vars.phone || "",
+    p_is_primary: vars.isPrimary,
+    p_acquired_on: vars.acquiredOn || undefined,
   });
   if (error) {
-    console.error("addOwner ownership:", error.code, error.message);
-    return { error: "No se pudo vincular al propietario.", ok: false };
+    console.error("addOwner:", error.code, error.message);
+    const msg = error.code === "P0001" ? error.message : "No se pudo agregar al propietario.";
+    return { error: msg, ok: false };
   }
   revalidatePath(`/app/propietarios/${unitId}`);
   return { error: null, ok: true };
@@ -147,29 +122,60 @@ export async function removeOwner(ownershipId: string): Promise<ActionState> {
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;
   if (!orgId) return { error: "Sin organización activa.", ok: false };
+  // Quitar un propietario es destructivo → admin (coincide con RLS de DELETE).
+  if (!canManage(ctx.role)) return { error: "Solo un administrador puede quitar propietarios.", ok: false };
   if (!UUID.test(ownershipId)) return { error: "Inválido.", ok: false };
 
   const supabase = await createClient();
   const { data: own } = await supabase
     .from("unit_ownerships")
-    .select("id, unit_id, person_id")
+    .select("id, unit_id, person_id, is_primary")
     .eq("id", ownershipId)
     .eq("organization_id", orgId)
     .maybeSingle();
   if (!own) return { error: "No encontrado.", ok: false };
 
-  await supabase.from("unit_ownerships").delete().eq("id", ownershipId).eq("organization_id", orgId);
+  const { error: delErr } = await supabase
+    .from("unit_ownerships")
+    .delete()
+    .eq("id", ownershipId)
+    .eq("organization_id", orgId);
+  if (delErr) {
+    console.error("removeOwner delete:", delErr.code, delErr.message);
+    return { error: "No se pudo quitar al propietario.", ok: false };
+  }
 
-  // Si la persona no tiene otras titularidades ni acceso al portal, se elimina del padrón.
+  // Si era el contacto principal y quedan otros, se promueve al siguiente.
+  if (own.is_primary) {
+    const { data: next } = await supabase
+      .from("unit_ownerships")
+      .select("id")
+      .eq("unit_id", own.unit_id)
+      .eq("organization_id", orgId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (next)
+      await supabase
+        .from("unit_ownerships")
+        .update({ is_primary: true })
+        .eq("id", next.id)
+        .eq("organization_id", orgId);
+  }
+
+  // Si la persona no tiene otras titularidades (en esta org) ni acceso al portal, se elimina del padrón.
   const { data: others } = await supabase
     .from("unit_ownerships")
     .select("id")
     .eq("person_id", own.person_id)
+    .eq("organization_id", orgId)
     .limit(1);
   const { data: person } = await supabase
     .from("people")
     .select("user_id")
     .eq("id", own.person_id)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if ((others ?? []).length === 0 && !person?.user_id) {
     await supabase.from("people").delete().eq("id", own.person_id).eq("organization_id", orgId);
@@ -195,7 +201,15 @@ export async function setPrimaryOwner(ownershipId: string): Promise<ActionState>
   if (!own) return { error: "No encontrado.", ok: false };
 
   await supabase.from("unit_ownerships").update({ is_primary: false }).eq("unit_id", own.unit_id).eq("organization_id", orgId);
-  await supabase.from("unit_ownerships").update({ is_primary: true }).eq("id", ownershipId).eq("organization_id", orgId);
+  const { error } = await supabase
+    .from("unit_ownerships")
+    .update({ is_primary: true })
+    .eq("id", ownershipId)
+    .eq("organization_id", orgId);
+  if (error) {
+    console.error("setPrimaryOwner:", error.code, error.message);
+    return { error: "No se pudo actualizar el contacto principal.", ok: false };
+  }
   revalidatePath(`/app/propietarios/${own.unit_id}`);
   return { error: null, ok: true };
 }
@@ -211,6 +225,8 @@ export async function saveUnitInfo(
   const orgId = ctx?.activeOrg?.id;
   if (!orgId) return { error: "Sin organización activa.", ok: false };
   if (!UUID.test(unitId)) return { error: "Unidad inválida.", ok: false };
+  if (vars.areaM2 !== null && (!Number.isFinite(vars.areaM2) || vars.areaM2 < 0))
+    return { error: "Metraje inválido.", ok: false };
 
   const supabase = await createClient();
   const { error } = await supabase

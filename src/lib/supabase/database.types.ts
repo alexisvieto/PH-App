@@ -2098,11 +2098,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "units_building_id_fkey"
-            columns: ["building_id"]
+            foreignKeyName: "fk_units_building_org"
+            columns: ["building_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "buildings"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "organization_id"]
           },
           {
             foreignKeyName: "units_organization_id_fkey"
@@ -2118,6 +2118,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_unit_owner: {
+        Args: {
+          p_acquired_on?: string
+          p_doc_number: string
+          p_doc_type: string
+          p_email: string
+          p_full_name: string
+          p_is_primary: boolean
+          p_phone: string
+          p_unit_id: string
+        }
+        Returns: string
+      }
       change_employee_salary: {
         Args: {
           p_employee_id: string
