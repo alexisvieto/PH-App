@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   AlertTriangle,
   Building2,
+  DoorOpen,
   FileBarChart,
   Gavel,
   ShieldCheck,
@@ -47,6 +48,7 @@ const NAV: NavItem[] = [
   { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
   { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
   { href: "/app/accesos", label: "Accesos", icon: ShieldCheck, exact: false, module: "accesos" },
+  { href: "/app/garita", label: "Garita", icon: DoorOpen, exact: false, module: "accesos" },
   { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
   { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
@@ -79,7 +81,14 @@ export function AppShell({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const visibleNav = NAV.filter((item) => !item.module || modules.includes(item.module));
+  // El guardia solo ve Inicio + Garita (rol acotado).
+  const guardOnly = role === "guardia";
+  const guardAllowed = new Set(["/app", "/app/garita"]);
+  const visibleNav = NAV.filter(
+    (item) =>
+      (!item.module || modules.includes(item.module)) &&
+      (!guardOnly || guardAllowed.has(item.href)),
+  );
 
   async function logout() {
     await createClient().auth.signOut();
