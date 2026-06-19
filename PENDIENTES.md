@@ -1,6 +1,6 @@
 # Pendientes — Modus PH
 
-> Contexto vivo para retomar. Última actualización: 2026-06-17.
+> Contexto vivo para retomar. Última actualización: 2026-06-19.
 > Ver `CLAUDE.md` (estado de lo construido) y `PLAN-DE-TRABAJO.md` (roadmap).
 
 ## 🔴 Operativo (acción del dueño, fuera del código)
@@ -29,7 +29,8 @@ Fases **3, 4 y 5 cerradas y auditadas**. Fase 3+4 pusheadas a producción.
 - [x] **9a-Garita (2026-06-19):** `/app/garita` (rol guardia + staff) — validar código, registrar entrada/salida (con foto a `ph-photos` + placa), walk-ins; la entrada valida vigencia/día/horario (hora PA) y consume uso. Nav restringido para el rol `guardia` (solo Inicio + Garita). Verificado E2E. **Pendiente:** escaneo de QR por cámara (vía Capacitor nativo; hoy entrada manual del código).
 - [x] **9a-Portal (2026-06-19):** `/portal/accesos` — el residente crea pases para su(s) unidad(es) (RLS is_unit_resident), ve su lista, detalle con QR + WhatsApp + anular; tarjeta en la home del portal gated por el módulo. Acciones `createResidentPass`/`anularResidentPass` (getResidentContext). Verificado E2E con un usuario residente (residente@modusph.app, vinculado a María González / A-101 en la demo). **9a completo (Staff+Garita+Portal).**
 - [ ] **Empaquetado PWA→Capacitor** para publicar en App Store/Play (push y cámara nativos). Cuentas Apple Developer + Google Play (acción del dueño).
-- [ ] **9b/9c:** pre-autorización/citofonía, lista negra, botón de pánico; paquetería, vehículos/mascotas, reportes de seguridad a la JD. Auditoría 3-agentes al cerrar 9a.
+- [x] **9a — auditoría 3-agentes HECHA (2026-06-19, commit 058c1a1, pusheado).** Seguridad APROBADA (0 críticos/altos; gating del módulo pago, aislamiento multi-tenant y de residente bien enforced). Aplicados: **RPC atómico `register_visit`** (FOR UPDATE — elimina la race del `uses_count`/doble-uso); `passState` en hora de Panamá; walk-in con selector de edificio (multi-edificio); cleanup de foto huérfana; `genCode` con `crypto`; portal filtra unidad por `organization_id`. Decisión de producto: al desactivar el add-on se mantiene el gate completo (la data se preserva y se restaura al reactivar). Verificado tsc/lint/build + smoke SQL del RPC + advisors sin ERROR.
+- [ ] **9b/9c:** pre-autorización/citofonía, lista negra, botón de pánico; paquetería, vehículos/mascotas, reportes de seguridad a la JD.
 
 ## 🟢 Hallazgos de auditoría diferidos (con criterio, no urgentes)
 - [ ] **Propietarios (auditoría 2026-06-18) — aplicado:** se eliminó `uq_ownership_active` (permitía solo 1 propietario activo → bloqueaba copropietarios); FK compuesta en `units.building_id` (seguridad cross-tenant); índice único parcial `uq_primary_owner_per_unit` (un solo contacto principal); RPC atómico `add_unit_owner`; `removeOwner` admin-gated + re-promueve principal + verifica errores; validación de metraje. **Diferido:** revisar `transfer_ownership` (al vender, hoy desactiva TODAS las titularidades — correcto para venta total, pero revisar si se quiere vender una cuota); unificar la creación de unidades (Edificios vs Propietarios crean en `units` con campos distintos); `is_rented`/`tenant_*` en units vs `unit_leases` (dos niveles: flag liviano vs lease formal — `unit_leases` es autoritativo para cobros); deprecar `units.parking_spots` (legacy) en favor de `unit_amenities`; agregar `building_id` a `unit_amenities` (consistencia); spinner/disabled en botones de amenity-manager/owner-manager (UX menor).
