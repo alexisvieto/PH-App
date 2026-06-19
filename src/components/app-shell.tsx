@@ -8,6 +8,7 @@ import {
   Building2,
   FileBarChart,
   Gavel,
+  ShieldCheck,
   Home,
   LogOut,
   Megaphone,
@@ -30,13 +31,22 @@ import type { Database } from "@/lib/supabase/database.types";
 type OrgRole = Database["public"]["Enums"]["org_role"];
 type OrgType = Database["public"]["Enums"]["org_type"];
 
-const NAV = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof Home;
+  exact: boolean;
+  module?: string; // si está, el item solo se muestra con ese módulo pago activo
+};
+
+const NAV: NavItem[] = [
   { href: "/app", label: "Inicio", icon: Home, exact: true },
   { href: "/app/edificios", label: "Edificios", icon: Building2, exact: false },
   { href: "/app/propietarios", label: "Propietarios", icon: Users, exact: false },
   { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
   { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
   { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
+  { href: "/app/accesos", label: "Accesos", icon: ShieldCheck, exact: false, module: "accesos" },
   { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
   { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
@@ -53,6 +63,7 @@ export function AppShell({
   userEmail,
   orgs,
   activeOrgId,
+  modules = [],
   children,
 }: {
   brand: Brand;
@@ -62,11 +73,13 @@ export function AppShell({
   userEmail: string | null;
   orgs: OrgOption[];
   activeOrgId: string;
+  modules?: string[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const visibleNav = NAV.filter((item) => !item.module || modules.includes(item.module));
 
   async function logout() {
     await createClient().auth.signOut();
@@ -78,7 +91,7 @@ export function AppShell({
 
   const nav = (
     <nav className="flex flex-col gap-1">
-      {NAV.map(({ href, label, icon: Icon, exact }) => {
+      {visibleNav.map(({ href, label, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link

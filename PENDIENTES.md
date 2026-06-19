@@ -24,6 +24,13 @@ Fases **3, 4 y 5 cerradas y auditadas**. Fase 3+4 pusheadas a producción.
 - Decisiones tomadas: empleados = tabla independiente (no `people`); país default en empleado (`country_code`, hoy 'PA') con override; estructura multi-país desde ya, Colombia = cargar paquete.
 - Pendiente de Fase 6 (del plan): QR de conserjes (limpieza + asistencia), fichas de trabajadores visibles a residentes, anuncios de contrataciones/despidos.
 
+## 🟡 Fase 9 — Accesos y Seguridad (módulo pago, en progreso)
+- [x] **9a-Staff (2026-06-19):** entitlement `organization_modules` + `has_module`; rol `guardia`; `visitor_passes`/`visitor_log` + RLS gated por módulo; UI `/app/accesos` (crear pase, lista, bitácora) + detalle con QR (`qrcode`) + WhatsApp + anular. Módulo activado en la org demo. Verificado E2E + advisors.
+- [ ] **9a-Garita:** app del guardia — validar código/QR, registrar entrada/salida con foto (Storage) y placa, walk-ins; modo offline (cuando se empaquete).
+- [ ] **9a-Portal:** el residente crea pases para su unidad desde `/portal` (QR + compartir).
+- [ ] **Empaquetado PWA→Capacitor** para publicar en App Store/Play (push y cámara nativos). Cuentas Apple Developer + Google Play (acción del dueño).
+- [ ] **9b/9c:** pre-autorización/citofonía, lista negra, botón de pánico; paquetería, vehículos/mascotas, reportes de seguridad a la JD. Auditoría 3-agentes al cerrar 9a.
+
 ## 🟢 Hallazgos de auditoría diferidos (con criterio, no urgentes)
 - [ ] **Propietarios (auditoría 2026-06-18) — aplicado:** se eliminó `uq_ownership_active` (permitía solo 1 propietario activo → bloqueaba copropietarios); FK compuesta en `units.building_id` (seguridad cross-tenant); índice único parcial `uq_primary_owner_per_unit` (un solo contacto principal); RPC atómico `add_unit_owner`; `removeOwner` admin-gated + re-promueve principal + verifica errores; validación de metraje. **Diferido:** revisar `transfer_ownership` (al vender, hoy desactiva TODAS las titularidades — correcto para venta total, pero revisar si se quiere vender una cuota); unificar la creación de unidades (Edificios vs Propietarios crean en `units` con campos distintos); `is_rented`/`tenant_*` en units vs `unit_leases` (dos niveles: flag liviano vs lease formal — `unit_leases` es autoritativo para cobros); deprecar `units.parking_spots` (legacy) en favor de `unit_amenities`; agregar `building_id` a `unit_amenities` (consistencia); spinner/disabled en botones de amenity-manager/owner-manager (UX menor).
 - [ ] **Fase 2:** migrar `expenses.supplier` (texto) → `supplier_id` (FK a `suppliers`), para unificar el catálogo de proveedores. (No se hizo para no tocar Fase 2 ya desplegada.)

@@ -11,6 +11,7 @@ export const ORG_ROLE_LABEL: Record<Enums["org_role"], string> = {
   owner: "Propietario de la cuenta",
   administrador: "Administrador",
   asistente: "Asistente",
+  guardia: "Guardia",
 };
 
 export const BUILDING_TYPE_LABEL: Record<Enums["building_type"], string> = {

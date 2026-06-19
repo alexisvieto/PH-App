@@ -1164,6 +1164,35 @@ export type Database = {
           },
         ]
       }
+      organization_modules: {
+        Row: {
+          activated_at: string
+          enabled: boolean
+          module_key: string
+          organization_id: string
+        }
+        Insert: {
+          activated_at?: string
+          enabled?: boolean
+          module_key: string
+          organization_id: string
+        }
+        Update: {
+          activated_at?: string
+          enabled?: boolean
+          module_key?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_modules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
@@ -2113,6 +2142,177 @@ export type Database = {
           },
         ]
       }
+      visitor_log: {
+        Row: {
+          authorized_by_user: string | null
+          building_id: string
+          direction: Database["public"]["Enums"]["log_direction"]
+          guard_user: string | null
+          id: string
+          notes: string | null
+          occurred_at: string
+          organization_id: string
+          pass_id: string | null
+          photo_path: string | null
+          unit_id: string | null
+          vehicle_plate: string | null
+          visitor_doc: string | null
+          visitor_name: string
+        }
+        Insert: {
+          authorized_by_user?: string | null
+          building_id: string
+          direction: Database["public"]["Enums"]["log_direction"]
+          guard_user?: string | null
+          id?: string
+          notes?: string | null
+          occurred_at?: string
+          organization_id: string
+          pass_id?: string | null
+          photo_path?: string | null
+          unit_id?: string | null
+          vehicle_plate?: string | null
+          visitor_doc?: string | null
+          visitor_name: string
+        }
+        Update: {
+          authorized_by_user?: string | null
+          building_id?: string
+          direction?: Database["public"]["Enums"]["log_direction"]
+          guard_user?: string | null
+          id?: string
+          notes?: string | null
+          occurred_at?: string
+          organization_id?: string
+          pass_id?: string | null
+          photo_path?: string | null
+          unit_id?: string | null
+          vehicle_plate?: string | null
+          visitor_doc?: string | null
+          visitor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_log_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_log_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_log_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "visitor_log_pass_id_fkey"
+            columns: ["pass_id"]
+            isOneToOne: false
+            referencedRelation: "visitor_passes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visitor_passes: {
+        Row: {
+          building_id: string
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          max_uses: number | null
+          notes: string | null
+          organization_id: string
+          recurring_days: number[] | null
+          status: Database["public"]["Enums"]["pass_status"]
+          time_from: string | null
+          time_to: string | null
+          type: Database["public"]["Enums"]["visitor_pass_type"]
+          unit_id: string
+          uses_count: number
+          valid_from: string
+          valid_to: string
+          vehicle_plate: string | null
+          visitor_doc: string | null
+          visitor_name: string
+        }
+        Insert: {
+          building_id: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          max_uses?: number | null
+          notes?: string | null
+          organization_id: string
+          recurring_days?: number[] | null
+          status?: Database["public"]["Enums"]["pass_status"]
+          time_from?: string | null
+          time_to?: string | null
+          type?: Database["public"]["Enums"]["visitor_pass_type"]
+          unit_id: string
+          uses_count?: number
+          valid_from?: string
+          valid_to?: string
+          vehicle_plate?: string | null
+          visitor_doc?: string | null
+          visitor_name: string
+        }
+        Update: {
+          building_id?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          max_uses?: number | null
+          notes?: string | null
+          organization_id?: string
+          recurring_days?: number[] | null
+          status?: Database["public"]["Enums"]["pass_status"]
+          time_from?: string | null
+          time_to?: string | null
+          type?: Database["public"]["Enums"]["visitor_pass_type"]
+          unit_id?: string
+          uses_count?: number
+          valid_from?: string
+          valid_to?: string
+          vehicle_plate?: string | null
+          visitor_doc?: string | null
+          visitor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_pass_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_pass_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_pass_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2174,6 +2374,7 @@ export type Database = {
         Args: { p_building_id: string; p_due_date?: string; p_period: string }
         Returns: number
       }
+      has_module: { Args: { org: string; p_module: string }; Returns: boolean }
       has_org_role: {
         Args: { org: string; roles: Database["public"]["Enums"]["org_role"][] }
         Returns: boolean
@@ -2243,8 +2444,10 @@ export type Database = {
         | "otro_ingreso"
         | "deduccion"
       infraction_type: "llamado_atencion" | "multa"
-      org_role: "owner" | "administrador" | "asistente"
+      log_direction: "entrada" | "salida"
+      org_role: "owner" | "administrador" | "asistente" | "guardia"
       org_type: "administradora" | "self_managed"
+      pass_status: "activo" | "anulado"
       pay_frequency: "quincenal" | "mensual"
       payment_method:
         | "efectivo"
@@ -2262,6 +2465,13 @@ export type Database = {
       ticket_status: "abierta" | "en_proceso" | "resuelta" | "cerrada"
       unit_status: "ocupada" | "desocupada" | "en_venta" | "en_alquiler"
       unit_type: "apartamento" | "local" | "parqueo" | "deposito" | "otro"
+      visitor_pass_type:
+        | "visita"
+        | "evento"
+        | "recurrente"
+        | "domestico"
+        | "proveedor"
+        | "delivery"
       work_shift: "diurna" | "mixta" | "nocturna"
     }
     CompositeTypes: {
@@ -2435,8 +2645,10 @@ export const Constants = {
         "deduccion",
       ],
       infraction_type: ["llamado_atencion", "multa"],
-      org_role: ["owner", "administrador", "asistente"],
+      log_direction: ["entrada", "salida"],
+      org_role: ["owner", "administrador", "asistente", "guardia"],
       org_type: ["administradora", "self_managed"],
+      pass_status: ["activo", "anulado"],
       pay_frequency: ["quincenal", "mensual"],
       payment_method: [
         "efectivo",
@@ -2456,6 +2668,14 @@ export const Constants = {
       ticket_status: ["abierta", "en_proceso", "resuelta", "cerrada"],
       unit_status: ["ocupada", "desocupada", "en_venta", "en_alquiler"],
       unit_type: ["apartamento", "local", "parqueo", "deposito", "otro"],
+      visitor_pass_type: [
+        "visita",
+        "evento",
+        "recurrente",
+        "domestico",
+        "proveedor",
+        "delivery",
+      ],
       work_shift: ["diurna", "mixta", "nocturna"],
     },
   },

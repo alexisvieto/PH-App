@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/app-shell";
 import { getSessionContext } from "@/lib/session";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({
   children,
@@ -17,6 +18,15 @@ export default async function AppLayout({
     name: m.org?.name ?? "Organización",
   }));
 
+  // Módulos pagos activos de la org (para mostrar/ocultar su navegación).
+  const supabase = await createClient();
+  const { data: mods } = await supabase
+    .from("organization_modules")
+    .select("module_key")
+    .eq("organization_id", ctx.activeOrg.id)
+    .eq("enabled", true);
+  const modules = (mods ?? []).map((m) => m.module_key);
+
   return (
     <AppShell
       brand={ctx.brand}
@@ -26,6 +36,7 @@ export default async function AppLayout({
       userEmail={ctx.email}
       orgs={orgs}
       activeOrgId={ctx.activeOrg.id}
+      modules={modules}
     >
       {children}
     </AppShell>
