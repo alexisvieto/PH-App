@@ -2,12 +2,13 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, DoorOpen, Loader2, LogOut, Search, UserPlus } from "lucide-react";
+import { Camera, DoorOpen, Loader2, LogOut, ScanLine, Search, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { lookupPass, registerVisit, type PassLookup } from "@/app/app/accesos/actions";
 import { PASS_TYPE_LABEL } from "@/lib/access";
 import { formatDate } from "@/lib/format";
+import { useIsNativeApp, scanQrCode } from "@/lib/native";
 import { createClient } from "@/lib/supabase/client";
 
 const input =
@@ -27,6 +28,7 @@ export function GaritaConsole({
 }) {
   const singleBuilding = buildings.length === 1 ? buildings[0].id : null;
   const router = useRouter();
+  const isNative = useIsNativeApp();
   const busyRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState("");
@@ -51,18 +53,31 @@ export function GaritaConsole({
     return path;
   }
 
-  async function onLookup(e: React.FormEvent) {
-    e.preventDefault();
+  async function doLookup(value: string) {
     if (busyRef.current) return;
     busyRef.current = true;
     setBusy(true);
     setLookupErr(null);
     setFound(null);
-    const res = await lookupPass(code);
+    const res = await lookupPass(value);
     busyRef.current = false;
     setBusy(false);
     if (res.ok) setFound(res);
     else setLookupErr(res.error);
+  }
+
+  async function onLookup(e: React.FormEvent) {
+    e.preventDefault();
+    await doLookup(code);
+  }
+
+  // En la app nativa: escanea el QR con la cámara y valida de una vez.
+  async function onScan() {
+    if (busyRef.current) return;
+    const scanned = await scanQrCode();
+    if (!scanned) return;
+    setCode(scanned.toUpperCase());
+    await doLookup(scanned);
   }
 
   /** Si el registro falla tras subir la foto, borra la foto huérfana del bucket. */
@@ -154,6 +169,16 @@ export function GaritaConsole({
           <button type="submit" disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60">
             {busy ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />} Buscar
           </button>
+          {isNative && (
+            <button
+              type="button"
+              onClick={onScan}
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm font-medium text-brand transition hover:bg-gray-50 disabled:opacity-60"
+            >
+              <ScanLine className="size-4" /> Escanear
+            </button>
+          )}
         </div>
         {lookupErr && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{lookupErr}</p>}
 

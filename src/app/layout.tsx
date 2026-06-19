@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 
-import { PRODUCT_NAME } from "@/lib/brand";
+import { DEFAULT_BRAND, PRODUCT_NAME } from "@/lib/brand";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,8 +16,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: PRODUCT_NAME,
   title: PRODUCT_NAME,
   description: `${PRODUCT_NAME} — administración de propiedad horizontal`,
+  // App instalable / standalone (PWA y wrapper Capacitor en iOS).
+  appleWebApp: { capable: true, statusBarStyle: "default", title: PRODUCT_NAME },
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: DEFAULT_BRAND.primary,
 };
 
 export default function RootLayout({
