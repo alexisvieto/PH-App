@@ -95,6 +95,29 @@ export function canManage(role: OrgRole | null): boolean {
 }
 
 // =========================================================
+// Admin de PLATAFORMA (Nexera). Privilegio cross-tenant para el panel /admin
+// (hoy: publicidad de la red). Distinto de cualquier rol de organización.
+// =========================================================
+export type PlatformAdmin = { userId: string; email: string | null };
+
+export const getPlatformAdmin = cache(
+  async (): Promise<PlatformAdmin | null> => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!data) return null;
+    return { userId: user.id, email: user.email ?? null };
+  },
+);
+
+// =========================================================
 // Contexto del RESIDENTE (portal). Un propietario que entró con su login
 // (people.user_id = auth.uid()) ve solo SUS unidades.
 // =========================================================

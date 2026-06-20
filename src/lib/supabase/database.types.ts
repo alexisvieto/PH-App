@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaign_targets: {
+        Row: {
+          campaign_id: string
+          organization_id: string
+        }
+        Insert: {
+          campaign_id: string
+          organization_id: string
+        }
+        Update: {
+          campaign_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaign_targets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_campaign_targets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_campaigns: {
+        Row: {
+          advertiser_name: string
+          clicks_count: number
+          created_at: string
+          created_by: string | null
+          ends_on: string | null
+          id: string
+          image_path: string | null
+          is_global: boolean
+          link_url: string | null
+          priority: number
+          starts_on: string | null
+          status: Database["public"]["Enums"]["ad_status"]
+          title: string
+        }
+        Insert: {
+          advertiser_name: string
+          clicks_count?: number
+          created_at?: string
+          created_by?: string | null
+          ends_on?: string | null
+          id?: string
+          image_path?: string | null
+          is_global?: boolean
+          link_url?: string | null
+          priority?: number
+          starts_on?: string | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          title: string
+        }
+        Update: {
+          advertiser_name?: string
+          clicks_count?: number
+          created_at?: string
+          created_by?: string | null
+          ends_on?: string | null
+          id?: string
+          image_path?: string | null
+          is_global?: boolean
+          link_url?: string | null
+          priority?: number
+          starts_on?: string | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          title?: string
+        }
+        Relationships: []
+      }
       announcement_reads: {
         Row: {
           announcement_id: string
@@ -1586,6 +1664,21 @@ export type Database = {
           },
         ]
       }
+      platform_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2382,11 +2475,13 @@ export type Database = {
       is_building_resident: { Args: { building: string }; Returns: boolean }
       is_org_member: { Args: { org: string }; Returns: boolean }
       is_org_resident: { Args: { org: string }; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
       is_unit_resident: { Args: { unit: string }; Returns: boolean }
       link_people_to_user: {
         Args: { p_email: string; p_user: string }
         Returns: undefined
       }
+      register_ad_click: { Args: { p_campaign: string }; Returns: undefined }
       register_lease: {
         Args: {
           p_rent?: number
@@ -2416,6 +2511,7 @@ export type Database = {
       }
     }
     Enums: {
+      ad_status: "active" | "paused"
       amenity_type: "estacionamiento" | "deposito"
       announcement_kind: "anuncio" | "novedad"
       anomaly_status: "abierta" | "resuelta"
@@ -2614,6 +2710,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ad_status: ["active", "paused"],
       amenity_type: ["estacionamiento", "deposito"],
       announcement_kind: ["anuncio", "novedad"],
       anomaly_status: ["abierta", "resuelta"],

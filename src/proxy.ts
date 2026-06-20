@@ -7,7 +7,9 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const { pathname } = request.nextUrl;
   const isProtected =
-    pathname.startsWith("/app") || pathname.startsWith("/portal");
+    pathname.startsWith("/app") ||
+    pathname.startsWith("/portal") ||
+    pathname.startsWith("/admin");
   const isAuthRoute = pathname === "/login";
 
   try {

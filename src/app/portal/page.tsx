@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
+import { AdBanner, type PortalAd } from "@/components/portal/ad-banner";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -35,6 +36,37 @@ export default async function PortalHome() {
     .eq("module_key", "accesos")
     .eq("enabled", true)
     .maybeSingle();
+
+  // Publicidad (red Nexera): campañas activas, en vigencia, globales o
+  // dirigidas a esta organización.
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
+  const [{ data: adRows }, { data: adTargets }] = await Promise.all([
+    supabase
+      .from("ad_campaigns")
+      .select("id, advertiser_name, title, image_path, link_url, is_global, starts_on, ends_on")
+      .eq("status", "active")
+      .order("priority", { ascending: false })
+      .limit(20),
+    supabase.from("ad_campaign_targets").select("campaign_id").eq("organization_id", res.orgId),
+  ]);
+  const targetedAds = new Set((adTargets ?? []).map((t) => t.campaign_id));
+  const ads: PortalAd[] = (adRows ?? [])
+    .filter(
+      (a) =>
+        (a.is_global || targetedAds.has(a.id)) &&
+        (!a.starts_on || a.starts_on <= today) &&
+        (!a.ends_on || a.ends_on >= today),
+    )
+    .slice(0, 3)
+    .map((a) => ({
+      id: a.id,
+      advertiserName: a.advertiser_name,
+      title: a.title,
+      imageUrl: a.image_path
+        ? supabase.storage.from("ph-ads").getPublicUrl(a.image_path).data.publicUrl
+        : null,
+      linkUrl: a.link_url,
+    }));
 
   const firstName = (res.fullName ?? "").split(" ")[0];
 
@@ -83,6 +115,9 @@ export default async function PortalHome() {
           </div>
         )}
       </section>
+
+      {/* Publicidad (red Nexera) */}
+      <AdBanner ads={ads} />
 
       {/* Estado de cuenta = un botón más (sin mostrar el saldo aquí) */}
       <section className="space-y-3">
