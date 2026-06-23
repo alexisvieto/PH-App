@@ -6,10 +6,11 @@ import { type NextRequest, NextResponse } from "next/server";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const { pathname } = request.nextUrl;
-  const isProtected =
-    pathname.startsWith("/app") ||
-    pathname.startsWith("/portal") ||
-    pathname.startsWith("/admin");
+  // Comparación por segmento (no por prefijo de string): startsWith("/app")
+  // también casaría "/apple-icon" y mandaría el ícono PWA al login.
+  const isProtected = ["/app", "/portal", "/admin"].some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
   const isAuthRoute = pathname === "/login";
 
   try {
