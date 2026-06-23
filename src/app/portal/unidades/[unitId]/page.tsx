@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Download } from "lucide-react";
+import { CheckCircle2, Download, FileCheck2 } from "lucide-react";
 
 import { StatementMovements } from "@/components/portal/statement-movements";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
@@ -17,62 +17,79 @@ export default async function PortalEstado({
   if (!st) notFound();
 
   const owes = st.balance > BALANCE_TOLERANCE;
+  // El hero comunica el estado por color: marca (al día) o cálido (pendiente).
+  const heroBg = owes
+    ? "linear-gradient(135deg, #f43f5e 0%, #f97316 100%)"
+    : `linear-gradient(135deg, ${st.brand.primary} 0%, ${st.brand.accent} 100%)`;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <Link href="/portal" className="text-sm text-muted hover:text-ink">
-            ← Inicio
-          </Link>
-          <h1 className="mt-1 text-2xl font-semibold">Estado de cuenta</h1>
-          <p className="text-sm text-muted">
+      <Link href="/portal" className="text-sm text-muted hover:text-ink">
+        ← Inicio
+      </Link>
+
+      {/* Hero: el saldo como protagonista, con color según el estado */}
+      <section
+        className="relative overflow-hidden rounded-3xl p-6 text-white shadow-sm"
+        style={{ background: heroBg }}
+      >
+        <div className="pointer-events-none absolute -right-10 -top-12 size-44 rounded-full bg-white/15 blur-2xl" />
+        <div className="relative">
+          <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+            {owes ? "Saldo pendiente" : "Tu saldo"}
+          </p>
+          {owes ? (
+            <p className="mt-1 text-4xl font-bold tabular-nums">
+              {formatMoney(st.balance)}
+            </p>
+          ) : (
+            <p className="mt-1 flex items-center gap-2 text-2xl font-bold">
+              <CheckCircle2 className="size-7" /> Estás al día
+            </p>
+          )}
+          <p className="mt-2 text-sm text-white/85">
             {st.buildingName} · Unidad {st.unitCode}
           </p>
         </div>
+      </section>
+
+      {/* Acciones */}
+      <div className="flex flex-wrap gap-2">
         <a
           href={`/portal/unidades/${unitId}/pdf`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm font-medium transition hover:border-brand hover:text-brand"
+          className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
         >
-          <Download className="size-4" /> PDF
+          <Download className="size-4" /> Estado de cuenta (PDF)
         </a>
+        {!owes && (
+          <a
+            href={`/portal/unidades/${unitId}/paz-y-salvo`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            <FileCheck2 className="size-4" /> Mi paz y salvo
+          </a>
+        )}
       </div>
 
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
-          <p className="text-base font-semibold tabular-nums leading-tight sm:text-xl">
+      {/* Totales (el saldo ya va en el hero) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-line bg-surface p-4">
+          <p className="text-lg font-semibold tabular-nums leading-tight sm:text-xl">
             {formatMoney(st.totalCharges)}
           </p>
-          <p className="text-xs text-muted">Cargos</p>
+          <p className="text-xs text-muted">Total de cargos</p>
         </div>
-        <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
-          <p className="text-base font-semibold tabular-nums leading-tight sm:text-xl">
+        <div className="rounded-2xl border border-line bg-surface p-4">
+          <p className="text-lg font-semibold tabular-nums leading-tight text-emerald-600 sm:text-xl">
             {formatMoney(st.totalPayments)}
           </p>
-          <p className="text-xs text-muted">Pagos</p>
-        </div>
-        <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
-          <p
-            className={`text-base font-semibold tabular-nums leading-tight sm:text-xl ${owes ? "text-red-600" : "text-emerald-600"}`}
-          >
-            {formatMoney(st.balance)}
-          </p>
-          <p className="text-xs text-muted">{owes ? "Pendiente" : "Al día"}</p>
+          <p className="text-xs text-muted">Total de pagos</p>
         </div>
       </div>
-
-      {!owes && (
-        <a
-          href={`/portal/unidades/${unitId}/paz-y-salvo`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-        >
-          <Download className="size-4" /> Descargar mi paz y salvo
-        </a>
-      )}
 
       {st.movements.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-line bg-surface p-6 text-center text-sm text-muted">
