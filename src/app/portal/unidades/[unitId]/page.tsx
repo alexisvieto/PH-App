@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, Download, FileCheck2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
+import { SharePdfButton } from "@/components/portal/share-pdf-button";
 import { StatementMovements } from "@/components/portal/statement-movements";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -53,25 +54,22 @@ export default async function PortalEstado({
         </div>
       </section>
 
-      {/* Acciones */}
+      {/* Acciones: comparten/guardan el PDF con la bandeja nativa del sistema */}
       <div className="flex flex-wrap gap-2">
-        <a
-          href={`/portal/unidades/${unitId}/pdf`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
-        >
-          <Download className="size-4" /> Estado de cuenta (PDF)
-        </a>
+        <SharePdfButton
+          url={`/portal/unidades/${unitId}/pdf`}
+          filename={`estado-cuenta-${st.unitCode}.pdf`}
+          title={`Estado de cuenta · Unidad ${st.unitCode}`}
+          label="Compartir estado de cuenta"
+        />
         {!owes && (
-          <a
-            href={`/portal/unidades/${unitId}/paz-y-salvo`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-          >
-            <FileCheck2 className="size-4" /> Mi paz y salvo
-          </a>
+          <SharePdfButton
+            url={`/portal/unidades/${unitId}/paz-y-salvo`}
+            filename={`paz-y-salvo-${st.unitCode}.pdf`}
+            title={`Paz y salvo · Unidad ${st.unitCode}`}
+            label="Compartir paz y salvo"
+            variant="solid"
+          />
         )}
       </div>
 
