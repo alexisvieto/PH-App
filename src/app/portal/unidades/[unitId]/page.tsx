@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 
+import { StatementMovements } from "@/components/portal/statement-movements";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/format";
 import { getUnitStatement } from "@/lib/statement";
@@ -73,44 +74,50 @@ export default async function PortalEstado({
         </a>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-        <table className="w-full text-sm">
-          <thead className="border-b border-line bg-gray-50 text-left text-xs uppercase text-muted">
-            <tr>
-              <th className="px-4 py-3 font-medium">Fecha</th>
-              <th className="px-4 py-3 font-medium">Detalle</th>
-              <th className="px-4 py-3 text-right font-medium">Cargo</th>
-              <th className="px-4 py-3 text-right font-medium">Pago</th>
-              <th className="px-4 py-3 text-right font-medium">Saldo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {st.movements.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Sin movimientos todavía.
-                </td>
-              </tr>
-            ) : (
-              st.movements.map((m, i) => (
-                <tr key={i} className="border-b border-line last:border-0">
-                  <td className="px-4 py-3 text-muted">{formatDate(m.date)}</td>
-                  <td className="px-4 py-3">{m.concept}</td>
-                  <td className="px-4 py-3 text-right">
-                    {m.debit ? formatMoney(m.debit) : ""}
-                  </td>
-                  <td className="px-4 py-3 text-right text-emerald-700">
-                    {m.credit ? formatMoney(m.credit) : ""}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium">
-                    {formatMoney(m.balance)}
-                  </td>
+      {st.movements.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-line bg-surface p-6 text-center text-sm text-muted">
+          Sin movimientos todavía.
+        </p>
+      ) : (
+        <>
+          {/* Escritorio: tabla */}
+          <div className="hidden overflow-hidden rounded-2xl border border-line bg-surface md:block">
+            <table className="w-full text-sm">
+              <thead className="border-b border-line bg-gray-50 text-left text-xs uppercase text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Fecha</th>
+                  <th className="px-4 py-3 font-medium">Detalle</th>
+                  <th className="px-4 py-3 text-right font-medium">Cargo</th>
+                  <th className="px-4 py-3 text-right font-medium">Pago</th>
+                  <th className="px-4 py-3 text-right font-medium">Saldo</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {st.movements.map((m, i) => (
+                  <tr key={i} className="border-b border-line last:border-0">
+                    <td className="px-4 py-3 text-muted">{formatDate(m.date)}</td>
+                    <td className="px-4 py-3">{m.concept}</td>
+                    <td className="px-4 py-3 text-right">
+                      {m.debit ? formatMoney(m.debit) : ""}
+                    </td>
+                    <td className="px-4 py-3 text-right text-emerald-700">
+                      {m.credit ? formatMoney(m.credit) : ""}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium">
+                      {formatMoney(m.balance)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Móvil: tarjetas apiladas por mes (años pasados, acordeón anual) */}
+          <div className="md:hidden">
+            <StatementMovements movements={st.movements} />
+          </div>
+        </>
+      )}
     </div>
   );
 }
