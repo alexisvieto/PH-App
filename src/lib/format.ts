@@ -22,6 +22,9 @@ export function formatMoney(
   return n.toLocaleString("es-PA", {
     style: "currency",
     currency,
+    // Símbolo corto ($75.00) en vez del código ISO ("USD 75.00", que es feo y
+    // tan ancho que desbordaba las tarjetas del estado de cuenta en móvil).
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 2,
   });
 }
