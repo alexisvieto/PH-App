@@ -1,7 +1,9 @@
 import Link from "next/link";
 import {
-  ChevronRight,
+  ArrowRight,
+  CheckCircle2,
   FileText,
+  type LucideIcon,
   Mail,
   Megaphone,
   MessagesSquare,
@@ -11,8 +13,10 @@ import {
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
 import { AdBanner, type PortalAd } from "@/components/portal/ad-banner";
-import { formatDate } from "@/lib/format";
+import { BALANCE_TOLERANCE } from "@/lib/finance";
+import { formatDate, formatMoney } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
+import { getUnitStatement } from "@/lib/statement";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PortalHome() {
@@ -70,15 +74,104 @@ export default async function PortalHome() {
 
   const firstName = (res.fullName ?? "").split(" ")[0];
 
+  // Saldo para el hero: suma de las unidades del residente (RLS limita acceso).
+  const statements = await Promise.all(res.units.map((u) => getUnitStatement(u.id)));
+  const totalBalance = Math.round(
+    statements.reduce((sum, s) => sum + (s?.balance ?? 0), 0) * 100,
+  ) / 100;
+  const owes = totalBalance > BALANCE_TOLERANCE;
+  // El botón del hero lleva al estado de cuenta solo si hay una unidad; con
+  // varias, los tiles de abajo dan acceso unidad por unidad.
+  const statementHref =
+    res.units.length === 1 ? `/portal/unidades/${res.units[0].id}` : null;
+
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">
-        Hola{firstName ? `, ${firstName}` : ""} 👋
-      </h1>
+    <div className="space-y-7">
+      {/* Hero: saludo + estado de cuenta a todo color (marca del tenant) */}
+      <section
+        className="relative overflow-hidden rounded-3xl p-6 text-white shadow-sm"
+        style={{
+          background: `linear-gradient(135deg, ${res.brand.primary} 0%, ${res.brand.accent} 100%)`,
+        }}
+      >
+        {/* destello decorativo */}
+        <div className="pointer-events-none absolute -right-10 -top-12 size-44 rounded-full bg-white/15 blur-2xl" />
+        <div className="relative">
+          <h1 className="text-2xl font-semibold">
+            Hola{firstName ? `, ${firstName}` : ""} 👋
+          </h1>
+          <p className="mt-0.5 text-sm text-white/80">
+            {res.orgName ?? res.brand.name}
+          </p>
+
+          <div className="mt-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-white/70">
+                {owes ? "Saldo pendiente" : "Tu cuenta"}
+              </p>
+              {owes ? (
+                <p className="mt-1 text-3xl font-bold tabular-nums">
+                  {formatMoney(totalBalance)}
+                </p>
+              ) : (
+                <p className="mt-1 flex items-center gap-1.5 text-xl font-semibold">
+                  <CheckCircle2 className="size-6" /> Estás al día
+                </p>
+              )}
+            </div>
+            {statementHref && (
+              <Link
+                href={statementHref}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-white/90"
+                style={{ color: res.brand.primary }}
+              >
+                Ver estado <ArrowRight className="size-4" />
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
 
       <MarkAnnouncementsRead ids={news.map((a) => a.id)} />
 
-      {/* Comunicados primero: el portal es comunicativo */}
+      {/* Accesos rápidos: tarjetas con ícono (mobile-first, táctil) */}
+      <div className="grid grid-cols-2 gap-3">
+        {res.units.map((u) => (
+          <ActionTile
+            key={u.id}
+            href={`/portal/unidades/${u.id}`}
+            icon={FileText}
+            color="emerald"
+            label="Estado de cuenta"
+            sub={res.units.length > 1 ? `Unidad ${u.code}` : "Saldo y pagos"}
+          />
+        ))}
+        {accesosMod && (
+          <ActionTile
+            href="/portal/accesos"
+            icon={QrCode}
+            color="indigo"
+            label="Mis visitas"
+            sub="Pases con QR"
+          />
+        )}
+        <ActionTile
+          href="/portal/quejas"
+          icon={MessagesSquare}
+          color="amber"
+          label="Quejas"
+          sub="Escríbele a la admin"
+        />
+        <ActionTile
+          href="/portal/comunicados"
+          icon={Megaphone}
+          color="sky"
+          label="Comunicados"
+          sub="Avisos del edificio"
+        />
+      </div>
+
+      {/* Comunicados recientes */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Megaphone className="size-5 text-brand" />
@@ -119,73 +212,6 @@ export default async function PortalHome() {
       {/* Publicidad (red Nexera) */}
       <AdBanner ads={ads} />
 
-      {/* Estado de cuenta = un botón más (sin mostrar el saldo aquí) */}
-      <section className="space-y-3">
-        <h2 className="font-semibold">Mi estado de cuenta</h2>
-        <div className="space-y-2">
-          {res.units.map((u) => (
-            <Link
-              key={u.id}
-              href={`/portal/unidades/${u.id}`}
-              className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 transition hover:border-brand/50"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-brand-soft text-brand">
-                  <FileText className="size-4" />
-                </div>
-                <div>
-                  <p className="font-medium">Unidad {u.code}</p>
-                  <p className="text-sm text-muted">{u.buildingName}</p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted" />
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Accesos (módulo pago activo) */}
-      {accesosMod && (
-        <section className="space-y-3">
-          <h2 className="font-semibold">Mis visitas</h2>
-          <Link
-            href="/portal/accesos"
-            className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 transition hover:border-brand/50"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-brand-soft text-brand">
-                <QrCode className="size-4" />
-              </div>
-              <div>
-                <p className="font-medium">Pases de visita</p>
-                <p className="text-sm text-muted">Crea un QR para tus visitas</p>
-              </div>
-            </div>
-            <ChevronRight className="size-5 text-muted" />
-          </Link>
-        </section>
-      )}
-
-      {/* Canal con la administración */}
-      <section className="space-y-3">
-        <h2 className="font-semibold">Atención</h2>
-        <Link
-          href="/portal/quejas"
-          className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 transition hover:border-brand/50"
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-brand-soft text-brand">
-              <MessagesSquare className="size-4" />
-            </div>
-            <div>
-              <p className="font-medium">Quejas y solicitudes</p>
-              <p className="text-sm text-muted">Escríbele a la administración</p>
-            </div>
-          </div>
-          <ChevronRight className="size-5 text-muted" />
-        </Link>
-      </section>
-
       {/* Contacto con la administración */}
       {(res.contactEmail || res.contactPhone) && (
         <section className="rounded-2xl border border-line bg-surface p-4 text-sm">
@@ -211,5 +237,44 @@ export default async function PortalHome() {
         </section>
       )}
     </div>
+  );
+}
+
+// Paleta plana por función (estilo "flat design", íconos sólidos sin sombra).
+const TILE_COLORS: Record<string, string> = {
+  emerald: "bg-emerald-500",
+  indigo: "bg-indigo-500",
+  amber: "bg-amber-500",
+  sky: "bg-sky-500",
+};
+
+function ActionTile({
+  href,
+  icon: Icon,
+  color,
+  label,
+  sub,
+}: {
+  href: string;
+  icon: LucideIcon;
+  color: string;
+  label: string;
+  sub: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 transition-colors duration-200 hover:border-brand/50"
+    >
+      <span
+        className={`flex size-11 items-center justify-center rounded-xl text-white ${TILE_COLORS[color] ?? "bg-brand"}`}
+      >
+        <Icon className="size-5" />
+      </span>
+      <span>
+        <span className="block font-medium leading-tight">{label}</span>
+        <span className="mt-0.5 block text-xs text-muted">{sub}</span>
+      </span>
+    </Link>
   );
 }
