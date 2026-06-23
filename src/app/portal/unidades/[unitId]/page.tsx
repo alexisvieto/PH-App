@@ -39,18 +39,22 @@ export default async function PortalEstado({
         </a>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-line bg-surface p-4">
-          <p className="text-xl font-semibold">{formatMoney(st.totalCharges)}</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+          <p className="text-base font-semibold tabular-nums leading-tight sm:text-xl">
+            {formatMoney(st.totalCharges)}
+          </p>
           <p className="text-xs text-muted">Cargos</p>
         </div>
-        <div className="rounded-2xl border border-line bg-surface p-4">
-          <p className="text-xl font-semibold">{formatMoney(st.totalPayments)}</p>
+        <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+          <p className="text-base font-semibold tabular-nums leading-tight sm:text-xl">
+            {formatMoney(st.totalPayments)}
+          </p>
           <p className="text-xs text-muted">Pagos</p>
         </div>
-        <div className="rounded-2xl border border-line bg-surface p-4">
+        <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
           <p
-            className={`text-xl font-semibold ${owes ? "text-red-600" : "text-emerald-600"}`}
+            className={`text-base font-semibold tabular-nums leading-tight sm:text-xl ${owes ? "text-red-600" : "text-emerald-600"}`}
           >
             {formatMoney(st.balance)}
           </p>

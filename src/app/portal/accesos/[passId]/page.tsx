@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MessageCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import QRCode from "qrcode";
 
 import { anularResidentPass } from "@/app/portal/accesos/actions";
 import { AnularPassButton } from "@/components/access/anular-pass-button";
+import { SharePassButton } from "@/components/access/share-pass-button";
 import { PASS_TYPE_LABEL, passState, WEEKDAYS } from "@/lib/access";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
@@ -47,14 +48,7 @@ export default async function PortalPassDetail({
         <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
 
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
-          >
-            <MessageCircle className="size-4" /> Compartir por WhatsApp
-          </a>
+          <SharePassButton qrDataUrl={qrDataUrl} code={pass.code} shareText={msg} waLink={waLink} />
           {pass.status === "activo" && <AnularPassButton passId={pass.id} action={anularResidentPass} />}
         </div>
 
