@@ -4,7 +4,7 @@ import { QrCode } from "lucide-react";
 
 import { createResidentPass } from "@/app/portal/accesos/actions";
 import { NewPassForm } from "@/components/forms/new-pass-form";
-import { PASS_TYPE_LABEL, passState } from "@/lib/access";
+import { isPassActive, PASS_TYPE_LABEL, passState } from "@/lib/access";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -34,7 +34,9 @@ export default async function PortalAccesosPage() {
 
   const unitCode = new Map(res.units.map((u) => [u.id, u.code]));
   const unitOptions = res.units.map((u) => ({ id: u.id, label: u.code }));
-  const list = passes ?? [];
+  // El propietario solo ve sus pases activos; los vencidos/agotados/anulados
+  // desaparecen de su vista (el registro queda del lado del administrador).
+  const list = (passes ?? []).filter(isPassActive);
 
   return (
     <div className="space-y-6">
@@ -52,7 +54,7 @@ export default async function PortalAccesosPage() {
       <div className="space-y-3">
         {list.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-line bg-surface p-6 text-center text-sm text-muted">
-            Aún no has creado pases.
+            No tienes pases activos. Crea uno para tu próxima visita.
           </p>
         ) : (
           list.map((p) => {

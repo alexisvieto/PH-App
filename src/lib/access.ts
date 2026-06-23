@@ -22,13 +22,24 @@ export const LOG_DIRECTION_LABEL: Record<Enums["log_direction"], string> = {
 
 export const WEEKDAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
-/** Estado efectivo de un pase (combina status guardado con vigencia/usos). */
-export function passState(p: {
+type PassLike = {
   status: string;
   valid_to: string;
   max_uses: number | null;
   uses_count: number;
-}): { label: string; className: string } {
+};
+
+/** ¿El pase sigue activo (no anulado, vigente y con usos)? Hora de Panamá. */
+export function isPassActive(p: PassLike): boolean {
+  if (p.status === "anulado") return false;
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
+  if (p.valid_to < today) return false;
+  if (p.max_uses !== null && p.uses_count >= p.max_uses) return false;
+  return true;
+}
+
+/** Estado efectivo de un pase (combina status guardado con vigencia/usos). */
+export function passState(p: PassLike): { label: string; className: string } {
   if (p.status === "anulado") return { label: "Anulado", className: "bg-gray-100 text-gray-500" };
   // Fecha en hora de Panamá, igual que la validación de garita (canEnterNow).
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
