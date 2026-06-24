@@ -68,6 +68,7 @@ export default async function PortalHome() {
     const { count } = await supabase
       .from("intercom_requests")
       .select("id", { count: "exact", head: true })
+      .eq("organization_id", res.orgId)
       .in("unit_id", unitIds)
       .eq("status", "pendiente");
     pendingIntercom = count ?? 0;

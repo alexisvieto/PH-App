@@ -34,14 +34,15 @@ export function PanicButton({
   const [busy, setBusy] = useState(false);
 
   // Tiempo real: cuando el guardia atiende, el residente lo ve al instante.
+  const activeId = active?.id ?? null;
   useEffect(() => {
-    if (!active) return;
+    if (!activeId) return;
     const supabase = createClient();
     const ch = supabase
-      .channel(`panic-${active.id}`)
+      .channel(`panic-${activeId}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "panic_alerts", filter: `id=eq.${active.id}` },
+        { event: "UPDATE", schema: "public", table: "panic_alerts", filter: `id=eq.${activeId}` },
         (payload) => {
           const a = payload.new as { status: Status; kind: Kind | null };
           if (a.status === "resuelta" || a.status === "cancelada") {
@@ -56,24 +57,33 @@ export function PanicButton({
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [active, router]);
+  }, [activeId, router]);
 
   // Sondeo de respaldo (3s): garantiza que el residente vea la atención aunque
   // el evento de Realtime no llegue. Crítico para un botón de pánico.
+  // Cadena de setTimeout (no setInterval) para no solapar peticiones lentas.
   useEffect(() => {
-    if (!active) return;
-    const id = active.id;
-    const t = setInterval(async () => {
-      const { status } = await getPanicStatus(id);
+    const id = activeId;
+    if (!id) return;
+    let cancelled = false;
+    let t: ReturnType<typeof setTimeout>;
+    async function poll() {
+      const { status } = await getPanicStatus(id!);
+      if (cancelled) return;
       if (!status || status === "resuelta" || status === "cancelada") {
         setActive(null);
         router.refresh();
       } else {
         setActive((p) => (p && p.status !== status ? { ...p, status } : p));
+        t = setTimeout(poll, 3000);
       }
-    }, 3000);
-    return () => clearInterval(t);
-  }, [active, router]);
+    }
+    t = setTimeout(poll, 3000);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [activeId, router]);
 
   async function fire() {
     if (busy || active) return;

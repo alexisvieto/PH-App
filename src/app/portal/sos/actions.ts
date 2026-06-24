@@ -22,6 +22,21 @@ export async function triggerResidentPanic(unitId: string): Promise<PanicTrigger
     return { ok: false, error: "Unidad inválida." };
 
   const supabase = await createClient();
+
+  // Una sola alerta en curso por residente: si ya hay una activa/atendida,
+  // la reusamos (anti-spam, incluso si llaman la action directamente).
+  const { data: existing } = await supabase
+    .from("panic_alerts")
+    .select("id")
+    .eq("organization_id", res.orgId)
+    .eq("triggered_by", res.userId)
+    .eq("source", "residente")
+    .in("status", ["activa", "atendida"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existing) return { ok: true, alertId: existing.id };
+
   const { data: unit } = await supabase
     .from("units")
     .select("building_id")
@@ -49,7 +64,7 @@ export async function triggerResidentPanic(unitId: string): Promise<PanicTrigger
       contact_phone: me?.phone ?? null,
     })
     .select("id")
-    .single();
+    .maybeSingle();
   if (error || !alert) {
     console.error("triggerResidentPanic:", error?.code, error?.message);
     return { ok: false, error: "No se pudo enviar el SOS." };

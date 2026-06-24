@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** Botón que solo dispara si se mantiene presionado (anti-falsa-alarma). */
 export function HoldButton({
@@ -19,6 +19,12 @@ export function HoldButton({
   const [progress, setProgress] = useState(0); // 0..1
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const firedRef = useRef(false);
+  // onFire en un ref: si el padre re-renderiza durante el hold (p. ej. cambia
+  // la unidad seleccionada), disparamos la versión vigente, no la capturada.
+  const onFireRef = useRef(onFire);
+  useEffect(() => {
+    onFireRef.current = onFire;
+  });
 
   function clear() {
     if (timer.current) {
@@ -26,6 +32,9 @@ export function HoldButton({
       timer.current = null;
     }
   }
+
+  // Si el componente se desmonta mientras se mantiene presionado, corta el timer.
+  useEffect(() => () => clear(), []);
 
   function start() {
     if (disabled || timer.current) return;
@@ -39,7 +48,7 @@ export function HoldButton({
         firedRef.current = true;
         clear();
         setProgress(0);
-        onFire();
+        onFireRef.current();
       }
     }, step);
   }

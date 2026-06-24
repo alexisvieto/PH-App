@@ -37,7 +37,7 @@ export async function triggerGuardPanic(note?: string): Promise<PanicTrigger> {
       contact_phone: me?.phone ?? null,
     })
     .select("id")
-    .single();
+    .maybeSingle();
   if (error || !alert) {
     console.error("triggerGuardPanic:", error?.code, error?.message);
     return { ok: false, error: "No se pudo enviar el SOS." };
@@ -54,6 +54,10 @@ async function setStatus(alertId: string, to: "atendida" | "resuelta") {
   if (!UUID.test(alertId)) return { ok: false, error: "Alerta inválida." };
 
   const supabase = await createClient();
+  // Solo transiciones válidas: atender solo desde activa; resolver desde
+  // activa o atendida (evita revertir una alerta ya cerrada).
+  const validFrom: ("activa" | "atendida")[] =
+    to === "atendida" ? ["activa"] : ["activa", "atendida"];
   const stamp =
     to === "atendida"
       ? { status: to, acknowledged_by: ctx.userId, acknowledged_at: new Date().toISOString() }
@@ -62,7 +66,8 @@ async function setStatus(alertId: string, to: "atendida" | "resuelta") {
     .from("panic_alerts")
     .update(stamp)
     .eq("id", alertId)
-    .eq("organization_id", orgId);
+    .eq("organization_id", orgId)
+    .in("status", validFrom);
   if (error) return { ok: false, error: "No se pudo actualizar." };
   revalidatePath("/app/garita");
   revalidatePath("/app/emergencias");

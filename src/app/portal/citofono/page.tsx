@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PhoneCall } from "lucide-react";
 
 import { IntercomInbox } from "@/components/access/intercom-inbox";
@@ -9,11 +10,21 @@ export default async function PortalCitofonoPage() {
   const res = await getResidentContext();
   if (!res?.orgId) return null;
 
-  const unitIds = res.units.map((u) => u.id);
   const supabase = await createClient();
+  const { data: mod } = await supabase
+    .from("organization_modules")
+    .select("module_key")
+    .eq("organization_id", res.orgId)
+    .eq("module_key", "accesos")
+    .eq("enabled", true)
+    .maybeSingle();
+  if (!mod) notFound();
+
+  const unitIds = res.units.map((u) => u.id);
   const { data: reqs } = await supabase
     .from("intercom_requests")
     .select("id, unit_id, visitor_name, status, created_at, responded_at")
+    .eq("organization_id", res.orgId)
     .in("unit_id", unitIds.length ? unitIds : ["00000000-0000-0000-0000-000000000000"])
     .order("created_at", { ascending: false })
     .limit(30);

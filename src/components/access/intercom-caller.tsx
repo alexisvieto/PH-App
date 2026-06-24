@@ -33,14 +33,18 @@ export function IntercomCaller({ units }: { units: { id: string; label: string }
   const [call, setCall] = useState<Call | null>(null);
 
   // Tiempo real: escucha la respuesta del residente sobre esta solicitud.
+  // Dependemos del id + "pendiente" (no del objeto) para no re-suscribir en
+  // cada cambio de estado y perder el evento durante la reconexión.
+  const callId = call?.id ?? null;
+  const pending = call?.status === "pendiente";
   useEffect(() => {
-    if (!call || call.status !== "pendiente") return;
+    if (!callId || !pending) return;
     const supabase = createClient();
     const ch = supabase
-      .channel(`ic-${call.id}`)
+      .channel(`ic-${callId}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "intercom_requests", filter: `id=eq.${call.id}` },
+        { event: "UPDATE", schema: "public", table: "intercom_requests", filter: `id=eq.${callId}` },
         (payload) => {
           const s = (payload.new as { status: Status }).status;
           setCall((c) => (c ? { ...c, status: s } : c));
@@ -50,7 +54,7 @@ export function IntercomCaller({ units }: { units: { id: string; label: string }
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [call]);
+  }, [callId, pending]);
 
   async function startCall() {
     if (busyRef.current) return;

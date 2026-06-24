@@ -75,7 +75,7 @@ export async function createIntercom(
       photo_path: docPath,
     })
     .select("id")
-    .single();
+    .maybeSingle();
   if (error || !req) {
     console.error("createIntercom:", error?.code, error?.message);
     return { ok: false, error: "No se pudo iniciar la llamada." };

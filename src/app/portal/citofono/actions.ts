@@ -28,6 +28,7 @@ export async function respondIntercom(
       responded_at: new Date().toISOString(),
     })
     .eq("id", requestId)
+    .eq("organization_id", res.orgId)
     .eq("status", "pendiente");
   if (error) {
     console.error("respondIntercom:", error.code, error.message);
