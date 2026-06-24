@@ -2,11 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
+import { PayWithYappy } from "@/components/portal/pay-with-yappy";
 import { SharePdfButton } from "@/components/portal/share-pdf-button";
 import { StatementMovements } from "@/components/portal/statement-movements";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/format";
+import { getResidentContext } from "@/lib/session";
 import { getUnitStatement } from "@/lib/statement";
+import { getYappyConfig } from "@/lib/yappy";
 
 export default async function PortalEstado({
   params,
@@ -18,6 +21,9 @@ export default async function PortalEstado({
   if (!st) notFound();
 
   const owes = st.balance > BALANCE_TOLERANCE;
+  // ¿El PH tiene pagos en línea (Yappy) activos? Para mostrar el botón de pago.
+  const res = await getResidentContext();
+  const yappy = res?.orgId ? await getYappyConfig(res.orgId) : null;
   // El hero comunica el estado por color: marca (al día) o cálido (pendiente).
   const heroBg = owes
     ? "linear-gradient(135deg, #f43f5e 0%, #f97316 100%)"
@@ -54,8 +60,9 @@ export default async function PortalEstado({
         </div>
       </section>
 
-      {/* Acciones: comparten/guardan el PDF con la bandeja nativa del sistema */}
+      {/* Acciones: pagar (si aplica) y compartir/guardar el PDF */}
       <div className="flex flex-wrap gap-2">
+        {owes && yappy?.enabled && <PayWithYappy unitId={unitId} amount={st.balance} />}
         <SharePdfButton
           url={`/portal/unidades/${unitId}/pdf`}
           filename={`estado-cuenta-${st.unitCode}.pdf`}

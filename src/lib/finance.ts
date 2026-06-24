@@ -17,6 +17,7 @@ export const PAYMENT_METHOD_LABEL: Record<Enums["payment_method"], string> = {
   transferencia: "Transferencia",
   cheque: "Cheque",
   tarjeta: "Tarjeta",
+  yappy: "Yappy",
   otro: "Otro",
 };
 

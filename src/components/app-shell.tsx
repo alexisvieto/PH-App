@@ -18,6 +18,7 @@ import {
   MessagesSquare,
   Package,
   Receipt,
+  Settings,
   Truck,
   Users,
   Users2,
@@ -59,6 +60,7 @@ const NAV: NavItem[] = [
   { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },
   { href: "/app/planilla", label: "Planilla", icon: Receipt, exact: false },
   { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
+  { href: "/app/configuracion", label: "Configuración", icon: Settings, exact: false },
 ];
 
 export function AppShell({

@@ -1356,6 +1356,47 @@ export type Database = {
           },
         ]
       }
+      org_payment_settings: {
+        Row: {
+          enabled: boolean
+          merchant_id: string | null
+          organization_id: string
+          provider: string
+          sandbox: boolean
+          secret_name: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          merchant_id?: string | null
+          organization_id: string
+          provider?: string
+          sandbox?: boolean
+          secret_name?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          merchant_id?: string | null
+          organization_id?: string
+          provider?: string
+          sandbox?: boolean
+          secret_name?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_payment_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -1550,6 +1591,77 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      payment_orders: {
+        Row: {
+          amount: number
+          building_id: string
+          confirmation_number: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          order_ref: string
+          organization_id: string
+          payment_id: string | null
+          status: Database["public"]["Enums"]["payment_order_status"]
+          unit_id: string
+        }
+        Insert: {
+          amount: number
+          building_id: string
+          confirmation_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_ref: string
+          organization_id: string
+          payment_id?: string | null
+          status?: Database["public"]["Enums"]["payment_order_status"]
+          unit_id: string
+        }
+        Update: {
+          amount?: number
+          building_id?: string
+          confirmation_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_ref?: string
+          organization_id?: string
+          payment_id?: string | null
+          status?: Database["public"]["Enums"]["payment_order_status"]
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_po_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_po_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_po_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "payment_orders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2655,6 +2767,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      confirm_yappy_payment: {
+        Args: {
+          p_confirmation: string
+          p_hash: string
+          p_order_ref: string
+          p_status: string
+        }
+        Returns: string
+      }
       create_infraction: {
         Args: {
           p_amount?: number
@@ -2729,6 +2850,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_yappy_config: {
+        Args: {
+          p_enabled: boolean
+          p_merchant_id: string
+          p_org: string
+          p_sandbox: boolean
+          p_secret: string
+        }
+        Returns: undefined
+      }
       transfer_ownership: {
         Args: { p_acquired_on?: string; p_person_id: string; p_unit_id: string }
         Returns: undefined
@@ -2790,6 +2921,13 @@ export type Database = {
         | "cheque"
         | "tarjeta"
         | "otro"
+        | "yappy"
+      payment_order_status:
+        | "creada"
+        | "ejecutada"
+        | "rechazada"
+        | "cancelada"
+        | "expirada"
       payroll_kind: "ordinaria" | "xiii"
       payroll_status: "borrador" | "procesada" | "pagada"
       reservation_status: "pendiente" | "aprobada" | "rechazada" | "cancelada"
@@ -2994,6 +3132,14 @@ export const Constants = {
         "cheque",
         "tarjeta",
         "otro",
+        "yappy",
+      ],
+      payment_order_status: [
+        "creada",
+        "ejecutada",
+        "rechazada",
+        "cancelada",
+        "expirada",
       ],
       payroll_kind: ["ordinaria", "xiii"],
       payroll_status: ["borrador", "procesada", "pagada"],
