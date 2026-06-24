@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/app-shell";
@@ -12,6 +13,17 @@ export default async function AppLayout({
   const ctx = await getSessionContext();
   if (!ctx) redirect("/login");
   if (!ctx.activeOrg) redirect("/"); // resolver: residente → /portal, nuevo → /onboarding
+
+  // El guardia solo puede estar en su inicio + garita + paquetería (server-side,
+  // no solo nav). Si entra por URL a otra ruta de /app, lo regresamos.
+  if (ctx.role === "guardia") {
+    const pathname = (await headers()).get("x-pathname") ?? "";
+    const allowed =
+      pathname === "/app" ||
+      pathname.startsWith("/app/garita") ||
+      pathname.startsWith("/app/paqueteria");
+    if (!allowed) redirect("/app");
+  }
 
   const orgs = ctx.memberships.map((m) => ({
     id: m.organization_id,

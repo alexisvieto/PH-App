@@ -4,8 +4,11 @@ import { type NextRequest, NextResponse } from "next/server";
 // Next.js 16: convención `proxy` (reemplaza a `middleware`).
 // Refresca la sesión y protege las rutas bajo /app.
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
   const { pathname } = request.nextUrl;
+  // Expone el path a los server components (el layout de /app lo usa para
+  // acotar al guardia a sus rutas).
+  request.headers.set("x-pathname", pathname);
+  let response = NextResponse.next({ request });
   // Comparación por segmento (no por prefijo de string): startsWith("/app")
   // también casaría "/apple-icon" y mandaría el ícono PWA al login.
   const isProtected = ["/app", "/portal", "/admin"].some(
