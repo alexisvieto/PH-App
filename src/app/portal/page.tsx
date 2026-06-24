@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  CalendarDays,
   CheckCircle2,
   FileText,
   type LucideIcon,
@@ -40,6 +41,14 @@ export default async function PortalHome() {
     .eq("module_key", "accesos")
     .eq("enabled", true)
     .maybeSingle();
+
+  // ¿Hay áreas comunes activas para reservar? (define si mostramos el acceso)
+  const { count: areasCount } = await supabase
+    .from("common_areas")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", res.orgId)
+    .eq("active", true);
+  const hasReservas = (areasCount ?? 0) > 0;
 
   // Publicidad (red Nexera): campañas activas, en vigencia, globales o
   // dirigidas a esta organización.
@@ -155,6 +164,15 @@ export default async function PortalHome() {
             sub="Pases con QR"
           />
         )}
+        {hasReservas && (
+          <ActionTile
+            href="/portal/reservas"
+            icon={CalendarDays}
+            color="violet"
+            label="Reservas"
+            sub="Áreas comunes"
+          />
+        )}
         <ActionTile
           href="/portal/quejas"
           icon={MessagesSquare}
@@ -246,6 +264,7 @@ const TILE_COLORS: Record<string, string> = {
   indigo: "bg-indigo-500",
   amber: "bg-amber-500",
   sky: "bg-sky-500",
+  violet: "bg-violet-500",
 };
 
 function ActionTile({

@@ -319,6 +319,92 @@ export type Database = {
           },
         ]
       }
+      area_reservations: {
+        Row: {
+          area_id: string
+          building_id: string
+          created_at: string
+          end_time: string
+          guests: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          reservation_date: string
+          reserved_by: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["reservation_status"]
+          unit_id: string
+        }
+        Insert: {
+          area_id: string
+          building_id: string
+          created_at?: string
+          end_time: string
+          guests?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          reservation_date: string
+          reserved_by?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          unit_id: string
+        }
+        Update: {
+          area_id?: string
+          building_id?: string
+          created_at?: string
+          end_time?: string
+          guests?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          reservation_date?: string
+          reserved_by?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_resv_area_org"
+            columns: ["area_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "common_areas"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_resv_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_resv_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_resv_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       buildings: {
         Row: {
           address: string | null
@@ -450,6 +536,69 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      common_areas: {
+        Row: {
+          active: boolean
+          advance_days: number
+          building_id: string
+          capacity: number | null
+          close_time: string
+          created_at: string
+          description: string | null
+          id: string
+          max_minutes: number | null
+          name: string
+          open_time: string
+          organization_id: string
+          requires_approval: boolean
+        }
+        Insert: {
+          active?: boolean
+          advance_days?: number
+          building_id: string
+          capacity?: number | null
+          close_time?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_minutes?: number | null
+          name: string
+          open_time?: string
+          organization_id: string
+          requires_approval?: boolean
+        }
+        Update: {
+          active?: boolean
+          advance_days?: number
+          building_id?: string
+          capacity?: number | null
+          close_time?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_minutes?: number | null
+          name?: string
+          open_time?: string
+          organization_id?: string
+          requires_approval?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_area_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_area_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2548,6 +2697,7 @@ export type Database = {
       is_building_resident: { Args: { building: string }; Returns: boolean }
       is_org_member: { Args: { org: string }; Returns: boolean }
       is_org_resident: { Args: { org: string }; Returns: boolean }
+      is_org_staff: { Args: { org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_unit_resident: { Args: { unit: string }; Returns: boolean }
       link_people_to_user: {
@@ -2642,6 +2792,7 @@ export type Database = {
         | "otro"
       payroll_kind: "ordinaria" | "xiii"
       payroll_status: "borrador" | "procesada" | "pagada"
+      reservation_status: "pendiente" | "aprobada" | "rechazada" | "cancelada"
       termination_scenario:
         | "renuncia"
         | "mutuo_acuerdo"
@@ -2846,6 +2997,7 @@ export const Constants = {
       ],
       payroll_kind: ["ordinaria", "xiii"],
       payroll_status: ["borrador", "procesada", "pagada"],
+      reservation_status: ["pendiente", "aprobada", "rechazada", "cancelada"],
       termination_scenario: [
         "renuncia",
         "mutuo_acuerdo",
