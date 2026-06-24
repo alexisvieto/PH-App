@@ -2,7 +2,19 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, DoorOpen, Loader2, LogOut, ScanLine, Search, UserPlus } from "lucide-react";
+import {
+  Camera,
+  CheckCircle2,
+  DoorOpen,
+  Loader2,
+  LogOut,
+  Package,
+  ScanLine,
+  Search,
+  UserPlus,
+  X,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { lookupPass, registerVisit, type PassLookup } from "@/app/app/accesos/actions";
@@ -12,7 +24,7 @@ import { useIsNativeApp, scanQrCode } from "@/lib/native";
 import { createClient } from "@/lib/supabase/client";
 
 const input =
-  "w-full min-h-11 rounded-lg border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-brand";
+  "w-full min-h-12 rounded-xl border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-brand";
 const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 type Found = Extract<PassLookup, { ok: true }>;
 type UnitOption = { id: string; label: string };
@@ -141,7 +153,7 @@ export function GaritaConsole({
   }
 
   const PhotoInput = (
-    <label className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-brand transition hover:bg-gray-50 sm:w-auto">
+    <label className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-line px-3 py-2.5 text-sm font-medium text-brand transition hover:bg-gray-50 sm:w-auto">
       <Camera className="size-4" /> {photo ? "Foto lista ✓" : "Tomar foto"}
       <input
         type="file"
@@ -154,85 +166,159 @@ export function GaritaConsole({
   );
 
   return (
-    <div className="space-y-6">
-      {/* Validar pase por código */}
-      <form onSubmit={onLookup} className="rounded-2xl border border-line bg-surface p-5">
-        <h2 className="mb-3 font-semibold">Validar pase</h2>
-        <div className="space-y-2">
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="Código del pase (QR)"
-            autoCapitalize="characters"
-            autoComplete="off"
-            inputMode="text"
-            className={`${input} text-center font-mono text-lg tracking-widest`}
-            autoFocus
-          />
-          <div className="flex flex-wrap gap-2">
-            <button type="submit" disabled={busy} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60 sm:flex-none">
-              {busy ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />} Buscar
-            </button>
-            {isNative && (
-              <button
-                type="button"
-                onClick={onScan}
-                disabled={busy}
-                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-brand transition hover:bg-gray-50 disabled:opacity-60 sm:flex-none"
-              >
-                <ScanLine className="size-4" /> Escanear
-              </button>
-            )}
+    <div className="space-y-5">
+      {/* HÉROE: validar pase (la acción más frecuente del guardia) */}
+      <form onSubmit={onLookup} className="rounded-3xl border border-line bg-surface p-5 shadow-sm">
+        <div className="mb-4 flex items-center gap-2.5">
+          <span className="flex size-10 items-center justify-center rounded-2xl bg-brand-soft text-brand">
+            <ScanLine className="size-5" />
+          </span>
+          <div>
+            <h2 className="text-lg font-semibold leading-tight">Validar pase</h2>
+            <p className="text-xs text-muted">Escanea o escribe el código del visitante</p>
           </div>
         </div>
-        {lookupErr && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{lookupErr}</p>}
+
+        <input
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="CÓDIGO"
+          autoCapitalize="characters"
+          autoComplete="off"
+          inputMode="text"
+          className={`${input} h-14 text-center font-mono text-2xl font-semibold tracking-[0.3em] placeholder:tracking-widest placeholder:text-gray-300`}
+          autoFocus
+        />
+        <div className="mt-2 flex gap-2">
+          {isNative && (
+            <button
+              type="button"
+              onClick={onScan}
+              disabled={busy}
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            >
+              <ScanLine className="size-5" /> Escanear QR
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={busy}
+            className={`inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-semibold transition disabled:opacity-60 ${
+              isNative
+                ? "border border-line text-ink hover:bg-gray-50"
+                : "bg-brand text-white hover:opacity-90"
+            }`}
+          >
+            {busy ? <Loader2 className="size-5 animate-spin" /> : <Search className="size-5" />} Buscar
+          </button>
+        </div>
+
+        {lookupErr && (
+          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-white">
+            <XCircle className="size-5 shrink-0" />
+            <p className="font-medium">{lookupErr}</p>
+          </div>
+        )}
 
         {found && (
-          <div className="mt-4 rounded-xl border border-line p-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="font-semibold">{found.pass.visitor_name}</p>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${found.canEnter ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-                {found.canEnter ? "Puede ingresar" : found.reason}
-              </span>
+          <div className="mt-4 space-y-3">
+            {/* Veredicto: grande y de color, legible de un vistazo */}
+            <div
+              className={`rounded-2xl px-4 py-4 text-center text-white ${
+                found.canEnter ? "bg-emerald-600" : "bg-red-600"
+              }`}
+            >
+              <p className="flex items-center justify-center gap-2 text-2xl font-bold">
+                {found.canEnter ? (
+                  <CheckCircle2 className="size-7" />
+                ) : (
+                  <XCircle className="size-7" />
+                )}
+                {found.canEnter ? "Puede ingresar" : "No puede ingresar"}
+              </p>
+              {!found.canEnter && <p className="mt-0.5 text-sm text-white">{found.reason}</p>}
             </div>
-            <p className="mt-1 text-sm text-muted">
-              {PASS_TYPE_LABEL[found.pass.type]} · Unidad {found.unitCode ?? "—"} · Vence {formatDate(found.pass.valid_to)}
-              {found.pass.vehicle_plate ? ` · Placa ${found.pass.vehicle_plate}` : ""}
-              {found.pass.max_uses !== null ? ` · Usos ${found.pass.uses_count}/${found.pass.max_uses}` : ""}
-            </p>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-              {PhotoInput}
-              <button
-                onClick={() => register("entrada", found.pass.id)}
-                disabled={busy || !found.canEnter}
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60 sm:w-auto"
-              >
-                <DoorOpen className="size-4" /> Registrar entrada
-              </button>
-              <button
-                onClick={() => register("salida", found.pass.id)}
-                disabled={busy}
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-gray-50 disabled:opacity-60 sm:w-auto"
-              >
-                <LogOut className="size-4" /> Registrar salida
-              </button>
+
+            <div className="rounded-2xl border border-line p-4">
+              <p className="text-lg font-semibold">{found.pass.visitor_name}</p>
+              <p className="mt-1 text-sm text-muted">
+                {PASS_TYPE_LABEL[found.pass.type]} · Unidad {found.unitCode ?? "—"} · Vence{" "}
+                {formatDate(found.pass.valid_to)}
+                {found.pass.vehicle_plate ? ` · Placa ${found.pass.vehicle_plate}` : ""}
+                {found.pass.max_uses !== null ? ` · Usos ${found.pass.uses_count}/${found.pass.max_uses}` : ""}
+              </p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                {PhotoInput}
+                <button
+                  onClick={() => register("entrada", found.pass.id)}
+                  disabled={busy || !found.canEnter}
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition hover:opacity-90 disabled:opacity-60 sm:w-auto sm:flex-1"
+                >
+                  <DoorOpen className="size-5" /> Entrada
+                </button>
+                <button
+                  onClick={() => register("salida", found.pass.id)}
+                  disabled={busy}
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-3 text-base font-semibold text-ink transition hover:bg-gray-50 disabled:opacity-60 sm:w-auto sm:flex-1"
+                >
+                  <LogOut className="size-5" /> Salida
+                </button>
+              </div>
             </div>
           </div>
         )}
       </form>
 
-      {/* Visita sin pase */}
-      <div className="rounded-2xl border border-line bg-surface p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Visita sin pase</h2>
-          {!walkOpen && (
-            <button onClick={() => setWalkOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-brand transition hover:bg-gray-50">
-              <UserPlus className="size-4" /> Registrar
+      {/* Accesos directos: visita sin pase + paquetería */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => setWalkOpen((v) => !v)}
+          aria-pressed={walkOpen}
+          className={`flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border bg-surface p-4 text-center transition hover:border-brand ${
+            walkOpen ? "border-brand ring-1 ring-brand" : "border-line"
+          }`}
+        >
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+            <UserPlus className="size-6" />
+          </span>
+          <span className="font-semibold leading-tight">Visita sin pase</span>
+        </button>
+
+        {/* Paquetería: look de caja de cartón (kraft + cinta). Backend pendiente. */}
+        <button
+          type="button"
+          onClick={() => toast.info("Paquetería estará disponible muy pronto.")}
+          className="relative flex min-h-28 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl p-4 text-center shadow-sm transition hover:brightness-[0.97]"
+          style={{ background: "linear-gradient(135deg, #dcbd92 0%, #c79a63 100%)" }}
+        >
+          {/* cinta de embalaje */}
+          <span className="pointer-events-none absolute inset-x-0 top-1/2 h-6 -translate-y-1/2 bg-[#e7d3b0]/70" />
+          <span className="relative flex size-12 items-center justify-center rounded-2xl bg-[#fff7ea] text-[#8a5a25] shadow-sm">
+            <Package className="size-6" />
+          </span>
+          <span className="relative font-semibold leading-tight text-[#4a3420]">Paquetería</span>
+          <span className="absolute right-2 top-2 rounded-full bg-[#4a3420]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#4a3420]">
+            Pronto
+          </span>
+        </button>
+      </div>
+
+      {/* Formulario de visita sin pase (se despliega bajo los accesos) */}
+      {walkOpen && (
+        <div className="rounded-3xl border border-line bg-surface p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold">Visita sin pase</h2>
+            <button
+              type="button"
+              onClick={() => setWalkOpen(false)}
+              className="flex size-9 items-center justify-center rounded-full text-muted transition hover:bg-gray-100 hover:text-ink"
+              aria-label="Cerrar"
+            >
+              <X className="size-5" />
             </button>
-          )}
-        </div>
-        {walkOpen && (
-          <form onSubmit={onWalkIn} className="mt-4 space-y-3">
+          </div>
+          <form onSubmit={onWalkIn} className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-muted">Visitante</span>
@@ -246,7 +332,11 @@ export function GaritaConsole({
                 <span className="mb-1 block text-xs font-medium text-muted">Unidad que visita</span>
                 <select name="unit_id" defaultValue="" className={input}>
                   <option value="">Sin unidad (común)</option>
-                  {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
+                  {units.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.label}
+                    </option>
+                  ))}
                 </select>
               </label>
               {buildings.length > 1 && (
@@ -254,13 +344,22 @@ export function GaritaConsole({
                   <span className="mb-1 block text-xs font-medium text-muted">Edificio (si es área común)</span>
                   <select name="building_id" defaultValue="" className={input}>
                     <option value="">Selecciona…</option>
-                    {buildings.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
+                    {buildings.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.label}
+                      </option>
+                    ))}
                   </select>
                 </label>
               )}
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-muted">Placa</span>
-                <input name="vehicle_plate" autoCapitalize="characters" className={`${input} uppercase placeholder:normal-case`} placeholder="Opcional" />
+                <input
+                  name="vehicle_plate"
+                  autoCapitalize="characters"
+                  className={`${input} uppercase placeholder:normal-case`}
+                  placeholder="Opcional"
+                />
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-muted">Dirección</span>
@@ -272,14 +371,17 @@ export function GaritaConsole({
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               {PhotoInput}
-              <button type="submit" disabled={busy} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60 sm:w-auto">
-                {busy && <Loader2 className="size-4 animate-spin" />} Guardar
+              <button
+                type="submit"
+                disabled={busy}
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white transition hover:opacity-90 disabled:opacity-60 sm:w-auto"
+              >
+                {busy && <Loader2 className="size-5 animate-spin" />} Guardar
               </button>
-              <button type="button" onClick={() => setWalkOpen(false)} className="min-h-11 w-full rounded-lg px-4 py-2.5 text-sm font-medium text-muted hover:text-ink sm:w-auto">Cancelar</button>
             </div>
           </form>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
