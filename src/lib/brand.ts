@@ -4,11 +4,11 @@
 //
 // IMPORTANTE: el NOMBRE DEL PRODUCTO vive SOLO aquí (PRODUCT_NAME).
 // Cambiar la marca comercial mañana = editar esta constante.
-// Nunca hardcodear "Modus PH" en componentes, rutas ni tablas.
+// Nunca hardcodear "Atrio PH" en componentes, rutas ni tablas.
 // =========================================================
 
-/** Nombre comercial del producto (nombre de trabajo, fácil de cambiar). */
-export const PRODUCT_NAME = "Modus PH";
+/** Nombre comercial del producto (centralizado; cambiar la marca = editar aquí). */
+export const PRODUCT_NAME = "Atrio PH";
 
 /** Crédito discreto del fabricante en exportables y landing. */
 export const VENDOR_CREDIT = "by Nexera · www.nexerai.io · ventas@nexerai.io";
