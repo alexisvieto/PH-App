@@ -19,6 +19,7 @@ import {
   Package,
   Receipt,
   Settings,
+  Siren,
   Truck,
   Users,
   Users2,
@@ -27,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 
+import { PanicListener } from "@/components/access/panic-listener";
 import { OrgSwitcher, type OrgOption } from "@/components/org-switcher";
 import type { Brand } from "@/lib/brand";
 import { ORG_ROLE_LABEL, ORG_TYPE_LABEL } from "@/lib/padron";
@@ -56,6 +58,7 @@ const NAV: NavItem[] = [
   { href: "/app/accesos", label: "Accesos", icon: ShieldCheck, exact: false, module: "accesos" },
   { href: "/app/garita", label: "Garita", icon: DoorOpen, exact: false, module: "accesos" },
   { href: "/app/paqueteria", label: "Paquetería", icon: Package, exact: false, module: "accesos" },
+  { href: "/app/emergencias", label: "Emergencias", icon: Siren, exact: false, module: "accesos" },
   { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
   { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
@@ -162,6 +165,9 @@ export function AppShell({
         } as React.CSSProperties
       }
     >
+      {/* SOS en vivo: avisa al staff en cualquier parte de la app */}
+      {modules.includes("accesos") && <PanicListener orgId={activeOrgId} />}
+
       {/* Sidebar escritorio */}
       <aside className="safe-top hidden w-64 shrink-0 flex-col border-r border-line bg-surface p-4 md:flex">
         {sidebarHead}

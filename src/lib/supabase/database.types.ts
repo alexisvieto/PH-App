@@ -1661,6 +1661,85 @@ export type Database = {
           },
         ]
       }
+      panic_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          building_id: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["panic_kind"] | null
+          note: string | null
+          organization_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          source: Database["public"]["Enums"]["panic_source"]
+          status: Database["public"]["Enums"]["panic_status"]
+          triggered_by: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          building_id?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["panic_kind"] | null
+          note?: string | null
+          organization_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source: Database["public"]["Enums"]["panic_source"]
+          status?: Database["public"]["Enums"]["panic_status"]
+          triggered_by?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          building_id?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["panic_kind"] | null
+          note?: string | null
+          organization_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: Database["public"]["Enums"]["panic_source"]
+          status?: Database["public"]["Enums"]["panic_status"]
+          triggered_by?: string | null
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_panic_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_panic_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_panic_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       payment_orders: {
         Row: {
           amount: number
@@ -3156,6 +3235,9 @@ export type Database = {
       org_role: "owner" | "administrador" | "asistente" | "guardia"
       org_type: "administradora" | "self_managed"
       package_status: "en_garita" | "entregado"
+      panic_kind: "medica" | "seguridad" | "incendio" | "otro"
+      panic_source: "residente" | "guardia"
+      panic_status: "activa" | "atendida" | "resuelta" | "cancelada"
       pass_status: "activo" | "anulado"
       pay_frequency: "quincenal" | "mensual"
       payment_method:
@@ -3370,6 +3452,9 @@ export const Constants = {
       org_role: ["owner", "administrador", "asistente", "guardia"],
       org_type: ["administradora", "self_managed"],
       package_status: ["en_garita", "entregado"],
+      panic_kind: ["medica", "seguridad", "incendio", "otro"],
+      panic_source: ["residente", "guardia"],
+      panic_status: ["activa", "atendida", "resuelta", "cancelada"],
       pass_status: ["activo", "anulado"],
       pay_frequency: ["quincenal", "mensual"],
       payment_method: [

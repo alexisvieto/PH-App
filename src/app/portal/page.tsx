@@ -11,6 +11,7 @@ import {
   Phone,
   PhoneCall,
   QrCode,
+  Siren,
   Vote,
 } from "lucide-react";
 
@@ -164,6 +165,24 @@ export default async function PortalHome() {
       </section>
 
       <MarkAnnouncementsRead ids={news.map((a) => a.id)} />
+
+      {/* Botón de pánico (SOS) — siempre a la mano si el módulo está activo */}
+      {accesosMod && (
+        <Link
+          href="/portal/sos"
+          className="flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 transition hover:bg-red-100"
+        >
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white">
+            <Siren className="size-5" />
+          </span>
+          <span>
+            <span className="block font-semibold text-red-700">Emergencia · SOS</span>
+            <span className="mt-0.5 block text-xs text-red-600/80">
+              Alerta inmediata a la garita
+            </span>
+          </span>
+        </Link>
+      )}
 
       {/* Accesos rápidos: tarjetas con ícono (mobile-first, táctil) */}
       <div className="grid grid-cols-2 gap-3">

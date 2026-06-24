@@ -3,6 +3,7 @@ import { ShieldCheck } from "lucide-react";
 
 import { GaritaConsole } from "@/components/access/garita-console";
 import { IntercomCaller } from "@/components/access/intercom-caller";
+import { PanicAlerts } from "@/components/access/panic-alerts";
 import { LOG_DIRECTION_LABEL } from "@/lib/access";
 import { getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +33,7 @@ export default async function GaritaPage() {
     .maybeSingle();
   if (!mod) notFound();
 
-  const [{ data: buildings }, { data: units }, { data: logs }] = await Promise.all([
+  const [{ data: buildings }, { data: units }, { data: logs }, { data: panic }] = await Promise.all([
     supabase.from("buildings").select("id, name").eq("organization_id", orgId).order("name"),
     supabase.from("units").select("id, code").eq("organization_id", orgId).order("code"),
     supabase
@@ -41,6 +42,13 @@ export default async function GaritaPage() {
       .eq("organization_id", orgId)
       .order("occurred_at", { ascending: false })
       .limit(15),
+    supabase
+      .from("panic_alerts")
+      .select("id, unit_id, contact_name, contact_phone, kind, status")
+      .eq("organization_id", orgId)
+      .eq("source", "residente")
+      .in("status", ["activa", "atendida"])
+      .order("created_at", { ascending: false }),
   ]);
 
   const unitCode = new Map((units ?? []).map((u) => [u.id, u.code]));
@@ -55,6 +63,8 @@ export default async function GaritaPage() {
         </h1>
         <p className="text-sm text-muted">Validar pases y registrar entradas/salidas.</p>
       </div>
+
+      <PanicAlerts orgId={orgId} units={unitOptions} alerts={panic ?? []} />
 
       <GaritaConsole orgId={orgId} buildings={buildingOptions} units={unitOptions} />
 
