@@ -1,0 +1,60 @@
+import "server-only";
+
+import { renderToBuffer } from "@react-pdf/renderer";
+
+import { ActaVotacionPDF, type ActaData } from "@/components/pdf/acta-votacion-pdf";
+import type { Brand } from "@/lib/brand";
+import { createClient } from "@/lib/supabase/server";
+import { loadVotationResults, tallyFrom } from "@/lib/votations-server";
+
+function dtShort(ts: string | null) {
+  return ts
+    ? new Date(ts).toLocaleString("es-PA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Panama" })
+    : "—";
+}
+
+type RenderResult = { buffer: Buffer; filename: string } | { error: "not_found" | "not_closed" };
+
+/**
+ * Genera el acta en PDF de una votación CERRADA. Corre bajo la sesión del
+ * usuario (RLS); la marca se pasa desde el contexto del llamador (staff o
+ * residente, porque el residente no puede leer la tabla de organizaciones).
+ */
+export async function renderActaPdf(votationId: string, brand: Brand): Promise<RenderResult> {
+  const supabase = await createClient();
+  const { data: v } = await supabase.from("votations").select("*").eq("id", votationId).maybeSingle();
+  if (!v) return { error: "not_found" };
+  if (v.status !== "cerrada") return { error: "not_closed" };
+
+  const [{ data: building }, results] = await Promise.all([
+    supabase.from("buildings").select("name").eq("id", v.building_id).maybeSingle(),
+    loadVotationResults(votationId),
+  ]);
+  if (!results) return { error: "not_found" };
+
+  const t = tallyFrom(results, Number(v.quorum_pct), Number(v.approval_pct), v.kind);
+  const optionLabel = new Map(results.options.map((o) => [o.id, o.label]));
+
+  const data: ActaData = {
+    title: v.title,
+    description: v.description,
+    buildingName: building?.name ?? "Edificio",
+    kindLabel: v.kind === "si_no" ? "Sí / No" : "Opción múltiple",
+    opensAt: dtShort(v.opens_at),
+    closesAt: dtShort(v.closes_at),
+    quorumPct: Number(v.quorum_pct),
+    approvalPct: Number(v.approval_pct),
+    generatedOn: new Date().toLocaleDateString("es-PA", { year: "numeric", month: "long", day: "numeric" }),
+    tally: t,
+    votes: results.votes.map((x) => ({
+      unit_code: x.unit_code,
+      choice: x.is_abstention ? "Abstención" : optionLabel.get(x.option_id ?? "") ?? "—",
+      coef: Number(x.weight).toFixed(4),
+      voted_at: dtShort(x.voted_at),
+    })),
+  };
+
+  const buffer = await renderToBuffer(ActaVotacionPDF({ data, brand }));
+  const safe = v.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40) || "votacion";
+  return { buffer, filename: `acta-${safe}.pdf` };
+}

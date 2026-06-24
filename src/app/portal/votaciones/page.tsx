@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Vote } from "lucide-react";
 
+import { SharePdfButton } from "@/components/portal/share-pdf-button";
 import { ABSTAIN, VotePanel } from "@/components/votaciones/vote-panel";
 import { VotationResults } from "@/components/votaciones/votation-results";
-import { VOTATION_STATUS_LABEL, VOTATION_STATUS_STYLE, tally } from "@/lib/votations";
+import { VOTATION_STATUS_LABEL, VOTATION_STATUS_STYLE } from "@/lib/votations";
+import { loadVotationResults, tallyFrom } from "@/lib/votations-server";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,31 +13,18 @@ export default async function PortalVotacionesPage() {
   const res = await getResidentContext();
   if (!res?.orgId) return null;
 
-  const myUnitIds = new Set(res.units.map((u) => u.id));
+  const myUnitCodes = new Set(res.units.map((u) => u.code));
   const supabase = await createClient();
   const { data: votations } = await supabase
     .from("votations")
-    .select("id, title, description, kind, status, building_id, quorum_pct, approval_pct")
+    .select("id, title, description, kind, status, quorum_pct, approval_pct")
     .eq("organization_id", res.orgId)
     .in("status", ["abierta", "cerrada"])
     .order("created_at", { ascending: false })
     .limit(50);
 
-  const ids = (votations ?? []).map((v) => v.id);
-  const [{ data: options }, { data: votes }, { data: units }] = await Promise.all([
-    ids.length
-      ? supabase.from("votation_options").select("id, label, sort_order, votation_id").in("votation_id", ids).order("sort_order")
-      : Promise.resolve({ data: [] as { id: string; label: string; sort_order: number; votation_id: string }[] }),
-    ids.length
-      ? supabase.from("votation_votes").select("votation_id, unit_id, option_id, is_abstention, weight").in("votation_id", ids)
-      : Promise.resolve({ data: [] as { votation_id: string; unit_id: string; option_id: string | null; is_abstention: boolean; weight: number }[] }),
-    supabase.from("units").select("building_id, coefficient").eq("organization_id", res.orgId),
-  ]);
-
-  const totalByBuilding = new Map<string, number>();
-  for (const u of units ?? []) {
-    totalByBuilding.set(u.building_id, (totalByBuilding.get(u.building_id) ?? 0) + Number(u.coefficient ?? 0));
-  }
+  const list = votations ?? [];
+  const results = await Promise.all(list.map((v) => loadVotationResults(v.id)));
 
   return (
     <div className="space-y-6">
@@ -49,17 +38,16 @@ export default async function PortalVotacionesPage() {
         <p className="text-sm text-muted">Decisiones de la comunidad, ponderadas por coeficiente.</p>
       </div>
 
-      {(votations ?? []).length === 0 ? (
+      {list.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-line bg-surface p-8 text-center text-sm text-muted">
           No hay votaciones por ahora.
         </p>
       ) : (
         <div className="space-y-4">
-          {(votations ?? []).map((v) => {
-            const opts = (options ?? []).filter((o) => o.votation_id === v.id);
-            const vts = (votes ?? []).filter((x) => x.votation_id === v.id);
-            const t = tally(opts, vts, totalByBuilding.get(v.building_id) ?? 0, Number(v.quorum_pct), Number(v.approval_pct), v.kind);
-            const mine = vts.find((x) => myUnitIds.has(x.unit_id));
+          {list.map((v, idx) => {
+            const r = results[idx];
+            const t = r ? tallyFrom(r, Number(v.quorum_pct), Number(v.approval_pct), v.kind) : null;
+            const mine = r?.votes.find((x) => myUnitCodes.has(x.unit_code));
             const myChoice = mine ? (mine.is_abstention ? ABSTAIN : mine.option_id) : null;
 
             return (
@@ -75,10 +63,19 @@ export default async function PortalVotacionesPage() {
                 </div>
 
                 {v.status === "abierta" && (
-                  <VotePanel votationId={v.id} options={opts.map((o) => ({ id: o.id, label: o.label }))} myChoice={myChoice} />
+                  <VotePanel votationId={v.id} options={(r?.options ?? []).map((o) => ({ id: o.id, label: o.label }))} myChoice={myChoice} />
                 )}
 
-                <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={v.status === "cerrada"} />
+                {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={v.status === "cerrada"} />}
+
+                {v.status === "cerrada" && (
+                  <SharePdfButton
+                    url={`/portal/votaciones/${v.id}/acta`}
+                    filename={`acta-votacion.pdf`}
+                    title={`Acta · ${v.title}`}
+                    label="Descargar acta (PDF)"
+                  />
+                )}
               </article>
             );
           })}

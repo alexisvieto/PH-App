@@ -2984,6 +2984,7 @@ export type Database = {
         Args: { p_building_id: string; p_due_date?: string; p_period: string }
         Returns: number
       }
+      get_votation_results: { Args: { p_votation: string }; Returns: Json }
       has_module: { Args: { org: string; p_module: string }; Returns: boolean }
       has_org_role: {
         Args: { org: string; roles: Database["public"]["Enums"]["org_role"][] }
