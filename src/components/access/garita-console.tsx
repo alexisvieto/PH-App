@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Camera,
@@ -285,10 +286,9 @@ export function GaritaConsole({
           <span className="font-semibold leading-tight">Visita sin pase</span>
         </button>
 
-        {/* Paquetería: look de caja de cartón (kraft + cinta). Backend pendiente. */}
-        <button
-          type="button"
-          onClick={() => toast.info("Paquetería estará disponible muy pronto.")}
+        {/* Paquetería: look de caja de cartón (kraft + cinta). */}
+        <Link
+          href="/app/paqueteria"
           className="relative flex min-h-28 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl p-4 text-center shadow-sm transition hover:brightness-[0.97]"
           style={{ background: "linear-gradient(135deg, #dcbd92 0%, #c79a63 100%)" }}
         >
@@ -298,10 +298,7 @@ export function GaritaConsole({
             <Package className="size-6" />
           </span>
           <span className="relative font-semibold leading-tight text-[#4a3420]">Paquetería</span>
-          <span className="absolute right-2 top-2 rounded-full bg-[#4a3420]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#4a3420]">
-            Pronto
-          </span>
-        </button>
+        </Link>
       </div>
 
       {/* Formulario de visita sin pase (se despliega bajo los accesos) */}

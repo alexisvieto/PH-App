@@ -15,6 +15,7 @@ import {
   Megaphone,
   Menu,
   MessagesSquare,
+  Package,
   Receipt,
   Truck,
   Users,
@@ -49,6 +50,7 @@ const NAV: NavItem[] = [
   { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
   { href: "/app/accesos", label: "Accesos", icon: ShieldCheck, exact: false, module: "accesos" },
   { href: "/app/garita", label: "Garita", icon: DoorOpen, exact: false, module: "accesos" },
+  { href: "/app/paqueteria", label: "Paquetería", icon: Package, exact: false, module: "accesos" },
   { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
   { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
@@ -83,7 +85,7 @@ export function AppShell({
   const [open, setOpen] = useState(false);
   // El guardia solo ve Inicio + Garita (rol acotado).
   const guardOnly = role === "guardia";
-  const guardAllowed = new Set(["/app", "/app/garita"]);
+  const guardAllowed = new Set(["/app", "/app/garita", "/app/paqueteria"]);
   const visibleNav = NAV.filter(
     (item) =>
       (!item.module || modules.includes(item.module)) &&

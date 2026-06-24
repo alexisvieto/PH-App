@@ -20,6 +20,11 @@ export const LOG_DIRECTION_LABEL: Record<Enums["log_direction"], string> = {
   salida: "Salida",
 };
 
+export const PACKAGE_STATUS_LABEL: Record<Enums["package_status"], string> = {
+  en_garita: "En garita",
+  entregado: "Entregado",
+};
+
 export const WEEKDAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 type PassLike = {

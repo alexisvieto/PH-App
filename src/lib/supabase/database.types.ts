@@ -1331,6 +1331,79 @@ export type Database = {
         }
         Relationships: []
       }
+      packages: {
+        Row: {
+          building_id: string
+          courier: string | null
+          created_at: string
+          delivered_at: string | null
+          delivered_by: string | null
+          delivered_to: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          photo_path: string | null
+          received_at: string
+          received_by: string | null
+          status: Database["public"]["Enums"]["package_status"]
+          unit_id: string
+        }
+        Insert: {
+          building_id: string
+          courier?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivered_by?: string | null
+          delivered_to?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          photo_path?: string | null
+          received_at?: string
+          received_by?: string | null
+          status?: Database["public"]["Enums"]["package_status"]
+          unit_id: string
+        }
+        Update: {
+          building_id?: string
+          courier?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivered_by?: string | null
+          delivered_to?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          photo_path?: string | null
+          received_at?: string
+          received_by?: string | null
+          status?: Database["public"]["Enums"]["package_status"]
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_pkg_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_pkg_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_pkg_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -2481,6 +2554,7 @@ export type Database = {
         Args: { p_email: string; p_user: string }
         Returns: undefined
       }
+      purge_old_access_records: { Args: never; Returns: undefined }
       register_ad_click: { Args: { p_campaign: string }; Returns: undefined }
       register_lease: {
         Args: {
@@ -2557,6 +2631,7 @@ export type Database = {
       log_direction: "entrada" | "salida"
       org_role: "owner" | "administrador" | "asistente" | "guardia"
       org_type: "administradora" | "self_managed"
+      package_status: "en_garita" | "entregado"
       pass_status: "activo" | "anulado"
       pay_frequency: "quincenal" | "mensual"
       payment_method:
@@ -2759,6 +2834,7 @@ export const Constants = {
       log_direction: ["entrada", "salida"],
       org_role: ["owner", "administrador", "asistente", "guardia"],
       org_type: ["administradora", "self_managed"],
+      package_status: ["en_garita", "entregado"],
       pass_status: ["activo", "anulado"],
       pay_frequency: ["quincenal", "mensual"],
       payment_method: [

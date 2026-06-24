@@ -25,12 +25,25 @@ export default async function PortalLayout({
     .eq("enabled", true)
     .maybeSingle();
 
+  // Aviso de paquetes en garita (campanita): paquetes pendientes de sus unidades.
+  let pendingPackages = 0;
+  const unitIds = res.units.map((u) => u.id);
+  if (accesosMod && unitIds.length > 0) {
+    const { count } = await supabase
+      .from("packages")
+      .select("id", { count: "exact", head: true })
+      .in("unit_id", unitIds)
+      .eq("status", "en_garita");
+    pendingPackages = count ?? 0;
+  }
+
   return (
     <PortalShell
       brand={res.brand}
       orgName={res.orgName ?? res.brand.name}
       userEmail={res.email}
       accesosActive={!!accesosMod}
+      pendingPackages={pendingPackages}
     >
       {children}
     </PortalShell>

@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, LogOut, MessagesSquare, QrCode } from "lucide-react";
+import { Bell, Home, LogOut, MessagesSquare, QrCode } from "lucide-react";
 
 import { type Brand, brandInitial } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/client";
@@ -14,12 +14,14 @@ export function PortalShell({
   orgName,
   userEmail,
   accesosActive = false,
+  pendingPackages = 0,
   children,
 }: {
   brand: Brand;
   orgName: string;
   userEmail: string | null;
   accesosActive?: boolean;
+  pendingPackages?: number;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -63,13 +65,27 @@ export function PortalShell({
             </span>
             <span className="font-semibold">{orgName}</span>
           </Link>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-1.5">
             <span className="hidden text-xs text-muted sm:inline">{userEmail}</span>
+            {accesosActive && (
+              <Link
+                href="/portal/paquetes"
+                aria-label={`Paquetes${pendingPackages > 0 ? ` (${pendingPackages} en garita)` : ""}`}
+                className="relative flex size-11 items-center justify-center rounded-full text-muted transition hover:bg-gray-100 hover:text-ink"
+              >
+                <Bell className="size-5" />
+                {pendingPackages > 0 && (
+                  <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white">
+                    {pendingPackages > 9 ? "9+" : pendingPackages}
+                  </span>
+                )}
+              </Link>
+            )}
             <button
               onClick={logout}
               className="flex min-h-11 items-center gap-1.5 px-1 text-sm text-muted transition hover:text-ink"
             >
-              <LogOut className="size-4" /> Salir
+              <LogOut className="size-4" /> <span className="hidden sm:inline">Salir</span>
             </button>
           </div>
         </div>
