@@ -10,6 +10,7 @@ import {
   MessagesSquare,
   Phone,
   QrCode,
+  Vote,
 } from "lucide-react";
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
@@ -49,6 +50,14 @@ export default async function PortalHome() {
     .eq("organization_id", res.orgId)
     .eq("active", true);
   const hasReservas = (areasCount ?? 0) > 0;
+
+  // ¿Hay una votación abierta? (para mostrar el acceso en el inicio)
+  const { count: openVotes } = await supabase
+    .from("votations")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", res.orgId)
+    .eq("status", "abierta");
+  const hasVotacion = (openVotes ?? 0) > 0;
 
   // Publicidad (red Nexera): campañas activas, en vigencia, globales o
   // dirigidas a esta organización.
@@ -173,6 +182,15 @@ export default async function PortalHome() {
             sub="Áreas comunes"
           />
         )}
+        {hasVotacion && (
+          <ActionTile
+            href="/portal/votaciones"
+            icon={Vote}
+            color="rose"
+            label="Votaciones"
+            sub="Hay una votación abierta"
+          />
+        )}
         <ActionTile
           href="/portal/quejas"
           icon={MessagesSquare}
@@ -265,6 +283,7 @@ const TILE_COLORS: Record<string, string> = {
   amber: "bg-amber-500",
   sky: "bg-sky-500",
   violet: "bg-violet-500",
+  rose: "bg-rose-500",
 };
 
 function ActionTile({

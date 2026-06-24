@@ -22,6 +22,7 @@ import {
   Truck,
   Users,
   Users2,
+  Vote,
   Wrench,
   X,
 } from "lucide-react";
@@ -49,6 +50,7 @@ const NAV: NavItem[] = [
   { href: "/app/propietarios", label: "Propietarios", icon: Users, exact: false },
   { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
   { href: "/app/reservas", label: "Reservas", icon: CalendarDays, exact: false },
+  { href: "/app/votaciones", label: "Votaciones", icon: Vote, exact: false },
   { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
   { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
   { href: "/app/accesos", label: "Accesos", icon: ShieldCheck, exact: false, module: "accesos" },

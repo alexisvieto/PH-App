@@ -2740,6 +2740,176 @@ export type Database = {
           },
         ]
       }
+      votation_options: {
+        Row: {
+          id: string
+          label: string
+          organization_id: string
+          sort_order: number
+          votation_id: string
+        }
+        Insert: {
+          id?: string
+          label: string
+          organization_id: string
+          sort_order?: number
+          votation_id: string
+        }
+        Update: {
+          id?: string
+          label?: string
+          organization_id?: string
+          sort_order?: number
+          votation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_vo_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_vo_votation_org"
+            columns: ["votation_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "votations"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      votation_votes: {
+        Row: {
+          id: string
+          is_abstention: boolean
+          option_id: string | null
+          organization_id: string
+          unit_id: string
+          votation_id: string
+          voted_at: string
+          voter_id: string | null
+          weight: number
+        }
+        Insert: {
+          id?: string
+          is_abstention?: boolean
+          option_id?: string | null
+          organization_id: string
+          unit_id: string
+          votation_id: string
+          voted_at?: string
+          voter_id?: string | null
+          weight: number
+        }
+        Update: {
+          id?: string
+          is_abstention?: boolean
+          option_id?: string | null
+          organization_id?: string
+          unit_id?: string
+          votation_id?: string
+          voted_at?: string
+          voter_id?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_vv_option_org"
+            columns: ["option_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "votation_options"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_vv_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_vv_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_vv_votation_org"
+            columns: ["votation_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "votations"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      votations: {
+        Row: {
+          approval_pct: number
+          building_id: string
+          closes_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          kind: Database["public"]["Enums"]["votation_kind"]
+          opens_at: string | null
+          organization_id: string
+          quorum_pct: number
+          secret: boolean
+          status: Database["public"]["Enums"]["votation_status"]
+          title: string
+        }
+        Insert: {
+          approval_pct?: number
+          building_id: string
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["votation_kind"]
+          opens_at?: string | null
+          organization_id: string
+          quorum_pct?: number
+          secret?: boolean
+          status?: Database["public"]["Enums"]["votation_status"]
+          title: string
+        }
+        Update: {
+          approval_pct?: number
+          building_id?: string
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["votation_kind"]
+          opens_at?: string | null
+          organization_id?: string
+          quorum_pct?: number
+          secret?: boolean
+          status?: Database["public"]["Enums"]["votation_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_vot_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_vot_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2757,6 +2927,10 @@ export type Database = {
           p_unit_id: string
         }
         Returns: string
+      }
+      cast_vote: {
+        Args: { p_abstention: boolean; p_option: string; p_votation: string }
+        Returns: undefined
       }
       change_employee_salary: {
         Args: {
@@ -2946,6 +3120,8 @@ export type Database = {
         | "domestico"
         | "proveedor"
         | "delivery"
+      votation_kind: "si_no" | "multiple"
+      votation_status: "borrador" | "abierta" | "cerrada"
       work_shift: "diurna" | "mixta" | "nocturna"
     }
     CompositeTypes: {
@@ -3161,6 +3337,8 @@ export const Constants = {
         "proveedor",
         "delivery",
       ],
+      votation_kind: ["si_no", "multiple"],
+      votation_status: ["borrador", "abierta", "cerrada"],
       work_shift: ["diurna", "mixta", "nocturna"],
     },
   },
