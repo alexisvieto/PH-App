@@ -1114,6 +1114,73 @@ export type Database = {
           },
         ]
       }
+      intercom_requests: {
+        Row: {
+          building_id: string
+          created_at: string
+          guard_id: string | null
+          id: string
+          organization_id: string
+          photo_path: string | null
+          responded_at: string | null
+          responded_by: string | null
+          response_note: string | null
+          status: Database["public"]["Enums"]["intercom_status"]
+          unit_id: string
+          visitor_name: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          guard_id?: string | null
+          id?: string
+          organization_id: string
+          photo_path?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          response_note?: string | null
+          status?: Database["public"]["Enums"]["intercom_status"]
+          unit_id: string
+          visitor_name: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          guard_id?: string | null
+          id?: string
+          organization_id?: string
+          photo_path?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          response_note?: string | null
+          status?: Database["public"]["Enums"]["intercom_status"]
+          unit_id?: string
+          visitor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_ic_building_org"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "fk_ic_org"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ic_unit_org"
+            columns: ["unit_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       legal_constants: {
         Row: {
           applies: boolean
@@ -3084,6 +3151,7 @@ export type Database = {
         | "otro_ingreso"
         | "deduccion"
       infraction_type: "llamado_atencion" | "multa"
+      intercom_status: "pendiente" | "autorizada" | "rechazada" | "cancelada"
       log_direction: "entrada" | "salida"
       org_role: "owner" | "administrador" | "asistente" | "guardia"
       org_type: "administradora" | "self_managed"
@@ -3297,6 +3365,7 @@ export const Constants = {
         "deduccion",
       ],
       infraction_type: ["llamado_atencion", "multa"],
+      intercom_status: ["pendiente", "autorizada", "rechazada", "cancelada"],
       log_direction: ["entrada", "salida"],
       org_role: ["owner", "administrador", "asistente", "guardia"],
       org_type: ["administradora", "self_managed"],

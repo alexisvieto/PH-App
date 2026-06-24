@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
 import { GaritaConsole } from "@/components/access/garita-console";
+import { IntercomCaller } from "@/components/access/intercom-caller";
 import { LOG_DIRECTION_LABEL } from "@/lib/access";
 import { getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -56,6 +57,8 @@ export default async function GaritaPage() {
       </div>
 
       <GaritaConsole orgId={orgId} buildings={buildingOptions} units={unitOptions} />
+
+      <IntercomCaller units={unitOptions} />
 
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <h2 className="border-b border-line px-5 py-3 font-semibold">Movimientos recientes</h2>

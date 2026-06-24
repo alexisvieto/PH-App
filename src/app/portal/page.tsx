@@ -9,6 +9,7 @@ import {
   Megaphone,
   MessagesSquare,
   Phone,
+  PhoneCall,
   QrCode,
   Vote,
 } from "lucide-react";
@@ -58,6 +59,18 @@ export default async function PortalHome() {
     .eq("organization_id", res.orgId)
     .eq("status", "abierta");
   const hasVotacion = (openVotes ?? 0) > 0;
+
+  // ¿Hay una visita esperando en garita (citófono)? — urgente.
+  const unitIds = res.units.map((u) => u.id);
+  let pendingIntercom = 0;
+  if (accesosMod && unitIds.length > 0) {
+    const { count } = await supabase
+      .from("intercom_requests")
+      .select("id", { count: "exact", head: true })
+      .in("unit_id", unitIds)
+      .eq("status", "pendiente");
+    pendingIntercom = count ?? 0;
+  }
 
   // Publicidad (red Nexera): campañas activas, en vigencia, globales o
   // dirigidas a esta organización.
@@ -154,6 +167,15 @@ export default async function PortalHome() {
 
       {/* Accesos rápidos: tarjetas con ícono (mobile-first, táctil) */}
       <div className="grid grid-cols-2 gap-3">
+        {pendingIntercom > 0 && (
+          <ActionTile
+            href="/portal/citofono"
+            icon={PhoneCall}
+            color="red"
+            label="Visita en garita"
+            sub="Toca para autorizar"
+          />
+        )}
         {res.units.map((u) => (
           <ActionTile
             key={u.id}
@@ -284,6 +306,7 @@ const TILE_COLORS: Record<string, string> = {
   sky: "bg-sky-500",
   violet: "bg-violet-500",
   rose: "bg-rose-500",
+  red: "bg-red-500",
 };
 
 function ActionTile({
