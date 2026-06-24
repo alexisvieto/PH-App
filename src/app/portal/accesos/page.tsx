@@ -28,7 +28,7 @@ export default async function PortalAccesosPage() {
   const { data: passes } = await supabase
     .from("visitor_passes")
     .select("id, code, visitor_name, type, valid_from, valid_to, status, max_uses, uses_count, unit_id")
-    .in("unit_id", unitIds)
+    .in("unit_id", unitIds.length ? unitIds : ["00000000-0000-0000-0000-000000000000"])
     .order("created_at", { ascending: false })
     .limit(100);
 

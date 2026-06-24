@@ -51,6 +51,7 @@ export async function registerPackage(vars: {
   }
 
   revalidatePath("/app/paqueteria");
+  revalidatePath("/portal", "layout"); // refresca la campanita y la lista del residente
   return { error: null, ok: true };
 }
 
@@ -69,7 +70,9 @@ export async function deliverPackage(
   if (!UUID.test(packageId)) return { error: "Paquete inválido.", ok: false };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // `.eq("status","en_garita")` evita la doble entrega; el `.select()` permite
+  // distinguir "0 filas" (ya entregado / no existe) de una entrega real.
+  const { data, error } = await supabase
     .from("packages")
     .update({
       status: "entregado",
@@ -79,12 +82,16 @@ export async function deliverPackage(
     })
     .eq("id", packageId)
     .eq("organization_id", orgId)
-    .eq("status", "en_garita");
+    .eq("status", "en_garita")
+    .select("id")
+    .maybeSingle();
   if (error) {
     console.error("deliverPackage:", error.code, error.message);
     return { error: "No se pudo marcar como entregado.", ok: false };
   }
+  if (!data) return { error: "Este paquete ya fue entregado.", ok: false };
 
   revalidatePath("/app/paqueteria");
+  revalidatePath("/portal", "layout"); // baja la campanita del residente
   return { error: null, ok: true };
 }

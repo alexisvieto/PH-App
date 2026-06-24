@@ -197,10 +197,12 @@ export function PaqueteriaConsole({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold">Unidad {p.unitCode}</p>
-                    <p className="mt-0.5 text-sm text-muted">
-                      {dateTime(p.received_at)}
-                      {p.courier ? ` · ${p.courier}` : ""}
-                      {p.has_photo ? " · 📷" : ""}
+                    <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted">
+                      <span>
+                        {dateTime(p.received_at)}
+                        {p.courier ? ` · ${p.courier}` : ""}
+                      </span>
+                      {p.has_photo && <Camera className="size-3.5 shrink-0" aria-label="Con foto" />}
                     </p>
                     {p.notes && <p className="mt-1 text-sm text-ink/80">{p.notes}</p>}
                   </div>

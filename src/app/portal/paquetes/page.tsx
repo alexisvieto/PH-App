@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { Clock, Package, PackageCheck } from "lucide-react";
 
 import { getResidentContext } from "@/lib/session";
@@ -19,8 +20,18 @@ export default async function PortalPaquetes() {
   const res = await getResidentContext();
   if (!res?.orgId) return null;
 
-  const unitIds = res.units.map((u) => u.id);
   const supabase = await createClient();
+  // Gating del módulo pago (igual que /portal/accesos): sin "accesos" → 404.
+  const { data: mod } = await supabase
+    .from("organization_modules")
+    .select("module_key")
+    .eq("organization_id", res.orgId)
+    .eq("module_key", "accesos")
+    .eq("enabled", true)
+    .maybeSingle();
+  if (!mod) notFound();
+
+  const unitIds = res.units.map((u) => u.id);
   const { data: pkgs } = await supabase
     .from("packages")
     .select("id, unit_id, status, courier, notes, photo_path, received_at, delivered_at, delivered_to")
@@ -32,12 +43,17 @@ export default async function PortalPaquetes() {
   const unitCode = new Map(res.units.map((u) => [u.id, u.code]));
   const showUnit = res.units.length > 1;
 
-  // Firmas para las fotos (el residente puede leer las de sus paquetes vía RLS).
+  // Firmas para las fotos en un solo round trip (el residente lee las de sus
+  // paquetes vía la policy aditiva de Storage).
+  const photoPaths = list.flatMap((p) => (p.photo_path ? [p.photo_path] : []));
   const photos = new Map<string, string>();
-  for (const p of list) {
-    if (!p.photo_path) continue;
-    const { data } = await supabase.storage.from("ph-photos").createSignedUrl(p.photo_path, 3600);
-    if (data?.signedUrl) photos.set(p.id, data.signedUrl);
+  if (photoPaths.length > 0) {
+    const { data: signed } = await supabase.storage.from("ph-photos").createSignedUrls(photoPaths, 3600);
+    const urlByPath = new Map((signed ?? []).map((s) => [s.path, s.signedUrl]));
+    for (const p of list) {
+      const url = p.photo_path ? urlByPath.get(p.photo_path) : null;
+      if (url) photos.set(p.id, url);
+    }
   }
 
   const pending = list.filter((p) => p.status === "en_garita");

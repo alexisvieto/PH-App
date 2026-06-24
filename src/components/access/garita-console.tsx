@@ -50,18 +50,19 @@ export function GaritaConsole({
   const [photo, setPhoto] = useState<File | null>(null);
   const [walkOpen, setWalkOpen] = useState(false);
 
-  async function uploadPhoto(): Promise<string | null> {
+  // null = sin foto; false = error al subir (aborta el flujo); string = ruta ok.
+  async function uploadPhoto(): Promise<string | null | false> {
     if (!photo) return null;
     const ext = EXT[photo.type];
     if (!ext) {
       toast.error("Formato de foto no permitido.");
-      return null;
+      return false;
     }
     const path = `${orgId}/accesos/${crypto.randomUUID()}.${ext}`;
     const up = await createClient().storage.from("ph-photos").upload(path, photo, { contentType: photo.type });
     if (up.error) {
       toast.error("No se pudo subir la foto.");
-      return null;
+      return false;
     }
     return path;
   }
@@ -103,6 +104,11 @@ export function GaritaConsole({
     busyRef.current = true;
     setBusy(true);
     const photoPath = await uploadPhoto();
+    if (photoPath === false) {
+      busyRef.current = false;
+      setBusy(false);
+      return;
+    }
     const res = await registerVisit({
       passId: passId ?? null,
       visitorName: found?.pass.visitor_name ?? "",
@@ -130,6 +136,11 @@ export function GaritaConsole({
     setBusy(true);
     const f = new FormData(e.currentTarget);
     const photoPath = await uploadPhoto();
+    if (photoPath === false) {
+      busyRef.current = false;
+      setBusy(false);
+      return;
+    }
     const res = await registerVisit({
       passId: null,
       visitorName: String(f.get("visitor_name") ?? ""),
