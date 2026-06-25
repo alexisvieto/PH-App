@@ -6,7 +6,7 @@ import QRCode from "qrcode";
 import { anularResidentPass } from "@/app/portal/accesos/actions";
 import { AnularPassButton } from "@/components/access/anular-pass-button";
 import { SharePassButton } from "@/components/access/share-pass-button";
-import { PASS_TYPE_LABEL, passState, WEEKDAYS } from "@/lib/access";
+import { PASS_TYPE_LABEL, passState, vigenciaText, WEEKDAYS } from "@/lib/access";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +31,8 @@ export default async function PortalPassDetail({
   const { data: unit } = await supabase.from("units").select("code").eq("id", pass.unit_id).maybeSingle();
   const st = passState(pass);
   const qrDataUrl = await QRCode.toDataURL(pass.code, { width: 280, margin: 1 });
-  const msg = `Pase de visita — ${pass.visitor_name}\nCódigo: ${pass.code}\nUnidad: ${unit?.code ?? ""}\nVálido: ${formatDate(pass.valid_from)} a ${formatDate(pass.valid_to)}\nPresenta este código en la garita.`;
+  const validez = pass.valid_to ? `${formatDate(pass.valid_from)} a ${formatDate(pass.valid_to)}` : "indefinido";
+  const msg = `Pase de visita — ${pass.visitor_name}\nCódigo: ${pass.code}\nUnidad: ${unit?.code ?? ""}\nVálido: ${validez}\nPresenta este código en la garita.`;
   const waLink = `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
   return (
@@ -56,7 +57,7 @@ export default async function PortalPassDetail({
           <Field label="Visitante" value={pass.visitor_name} />
           <Field label="Unidad" value={unit?.code ?? "—"} />
           <Field label="Tipo" value={PASS_TYPE_LABEL[pass.type]} />
-          <Field label="Vigencia" value={`${formatDate(pass.valid_from)} — ${formatDate(pass.valid_to)}`} />
+          <Field label="Vigencia" value={vigenciaText(pass.valid_from, pass.valid_to)} />
           {pass.recurring_days && pass.recurring_days.length > 0 && (
             <Field label="Días" value={pass.recurring_days.map((d) => WEEKDAYS[d]).join(", ")} />
           )}

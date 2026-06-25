@@ -36,12 +36,25 @@ export async function createPass(
 
   const visitorName = String(formData.get("visitor_name") ?? "").trim();
   if (!visitorName) return { error: "El nombre del visitante es obligatorio.", ok: false };
+  const visitorDoc = String(formData.get("visitor_doc") ?? "").trim();
 
-  const validFrom = String(formData.get("valid_from") ?? "").trim();
-  const validTo = String(formData.get("valid_to") ?? "").trim();
-  if (!isValidIsoDate(validFrom) || !isValidIsoDate(validTo))
-    return { error: "Vigencia inválida.", ok: false };
-  if (validTo < validFrom) return { error: "La fecha final debe ser posterior a la inicial.", ok: false };
+  // Indefinido (p. ej. doméstica): sin vencimiento, pero exige cédula/pasaporte
+  // para dejar registro formal por lo delicado del tema.
+  const isIndefinido = type === "indefinido";
+  const todayPa = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
+  let validFrom: string;
+  let validTo: string | null;
+  if (isIndefinido) {
+    if (!visitorDoc) return { error: "Para un pase indefinido, la cédula o pasaporte es obligatorio.", ok: false };
+    validFrom = todayPa;
+    validTo = null;
+  } else {
+    validFrom = String(formData.get("valid_from") ?? "").trim();
+    const vt = String(formData.get("valid_to") ?? "").trim();
+    if (!isValidIsoDate(validFrom) || !isValidIsoDate(vt)) return { error: "Vigencia inválida.", ok: false };
+    if (vt < validFrom) return { error: "La fecha final debe ser posterior a la inicial.", ok: false };
+    validTo = vt;
+  }
 
   const timeFrom = String(formData.get("time_from") ?? "").trim();
   const timeTo = String(formData.get("time_to") ?? "").trim();
@@ -77,7 +90,7 @@ export async function createPass(
     unit_id: unitId,
     type: type as Enums["visitor_pass_type"],
     visitor_name: visitorName,
-    visitor_doc: String(formData.get("visitor_doc") ?? "").trim() || null,
+    visitor_doc: visitorDoc || null,
     valid_from: validFrom,
     valid_to: validTo,
     recurring_days: recurringDays.length > 0 ? recurringDays : null,
@@ -114,7 +127,7 @@ function canEnterNow(p: PassRow): { ok: boolean; reason: string | null } {
   const now = new Date();
   const todayPa = now.toLocaleDateString("en-CA", { timeZone: "America/Panama" }); // YYYY-MM-DD
   if (todayPa < p.valid_from) return { ok: false, reason: "El pase aún no está vigente." };
-  if (todayPa > p.valid_to) return { ok: false, reason: "Pase vencido." };
+  if (p.valid_to && todayPa > p.valid_to) return { ok: false, reason: "Pase vencido." };
   if (p.max_uses !== null && p.uses_count >= p.max_uses)
     return { ok: false, reason: "Pase sin usos disponibles." };
   const paNow = new Date(now.toLocaleString("en-US", { timeZone: "America/Panama" }));

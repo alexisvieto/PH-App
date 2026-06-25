@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Enums = Database["public"]["Enums"];
@@ -7,6 +8,7 @@ export const PASS_TYPE_LABEL: Record<Enums["visitor_pass_type"], string> = {
   evento: "Evento",
   recurrente: "Recurrente",
   domestico: "Doméstico",
+  indefinido: "Indefinido",
   proveedor: "Proveedor",
   delivery: "Delivery",
 };
@@ -24,7 +26,7 @@ export const WEEKDAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 type PassLike = {
   status: string;
-  valid_to: string;
+  valid_to: string | null; // null = indefinido (sin vencimiento)
   max_uses: number | null;
   uses_count: number;
 };
@@ -33,7 +35,7 @@ type PassLike = {
 export function isPassActive(p: PassLike): boolean {
   if (p.status === "anulado") return false;
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
-  if (p.valid_to < today) return false;
+  if (p.valid_to && p.valid_to < today) return false;
   if (p.max_uses !== null && p.uses_count >= p.max_uses) return false;
   return true;
 }
@@ -43,8 +45,13 @@ export function passState(p: PassLike): { label: string; className: string } {
   if (p.status === "anulado") return { label: "Anulado", className: "bg-gray-100 text-gray-500" };
   // Fecha en hora de Panamá, igual que la validación de garita (canEnterNow).
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
-  if (p.valid_to < today) return { label: "Vencido", className: "bg-gray-100 text-gray-500" };
+  if (p.valid_to && p.valid_to < today) return { label: "Vencido", className: "bg-gray-100 text-gray-500" };
   if (p.max_uses !== null && p.uses_count >= p.max_uses)
     return { label: "Agotado", className: "bg-gray-100 text-gray-500" };
   return { label: "Activo", className: "bg-emerald-50 text-emerald-700" };
+}
+
+/** Texto de vigencia de un pase: rango de fechas, o "Indefinido" si no vence. */
+export function vigenciaText(validFrom: string, validTo: string | null): string {
+  return validTo ? `${formatDate(validFrom)} — ${formatDate(validTo)}` : "Indefinido";
 }

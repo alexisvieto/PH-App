@@ -39,6 +39,7 @@ export function NewPassForm({
   }
 
   const isRecurrente = type === "recurrente";
+  const isIndefinido = type === "indefinido";
 
   return (
     <form action={action} className="space-y-4 rounded-2xl border border-line bg-surface p-5">
@@ -64,21 +65,35 @@ export function NewPassForm({
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Visitante</span>
+          <span className="mb-1 block text-sm font-medium">Nombre completo</span>
           <input name="visitor_name" required className={input} placeholder="Nombre completo" />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium">Documento</span>
-          <input name="visitor_doc" className={input} placeholder="Cédula (opcional)" />
+          <span className="mb-1 block text-sm font-medium">{isIndefinido ? "Cédula o Pasaporte" : "Documento"}</span>
+          <input
+            name="visitor_doc"
+            required={isIndefinido}
+            className={input}
+            placeholder={isIndefinido ? "Cédula o pasaporte" : "Cédula (opcional)"}
+          />
         </label>
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium">Vigente desde</span>
-          <input name="valid_from" type="date" required defaultValue={today} className={input} />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium">Vigente hasta</span>
-          <input name="valid_to" type="date" required defaultValue={today} className={input} />
-        </label>
+        {isIndefinido ? (
+          <p className="block rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800 sm:col-span-2">
+            El pase indefinido <strong>no vence</strong> (ideal para personal doméstico con contrato indefinido). Queda
+            registrado con nombre y documento por lo delicado del tema.
+          </p>
+        ) : (
+          <>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium">Vigente desde</span>
+              <input name="valid_from" type="date" required defaultValue={today} className={input} />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium">Vigente hasta</span>
+              <input name="valid_to" type="date" required defaultValue={today} className={input} />
+            </label>
+          </>
+        )}
 
         {isRecurrente && (
           <>
@@ -104,10 +119,12 @@ export function NewPassForm({
           </>
         )}
 
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium">Usos máximos</span>
-          <input name="max_uses" type="number" min="1" step="1" className={input} placeholder={type === "visita" ? "1" : "Ilimitado"} />
-        </label>
+        {!isIndefinido && (
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">Usos máximos</span>
+            <input name="max_uses" type="number" min="1" step="1" className={input} placeholder={type === "visita" ? "1" : "Ilimitado"} />
+          </label>
+        )}
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Placa de vehículo</span>
           <input name="vehicle_plate" autoCapitalize="characters" className={`${input} uppercase placeholder:normal-case`} placeholder="Opcional" />

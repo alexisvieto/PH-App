@@ -4,7 +4,7 @@ import { ShieldCheck } from "lucide-react";
 
 import { createPass } from "@/app/app/accesos/actions";
 import { NewPassForm } from "@/components/forms/new-pass-form";
-import { LOG_DIRECTION_LABEL, PASS_TYPE_LABEL, passState } from "@/lib/access";
+import { LOG_DIRECTION_LABEL, PASS_TYPE_LABEL, passState, vigenciaText } from "@/lib/access";
 import { formatDate } from "@/lib/format";
 import { getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -98,9 +98,7 @@ export default async function AccesosPage() {
                       <td className="px-4 py-3">{p.visitor_name}</td>
                       <td className="px-4 py-3 text-muted">{unitCode.get(p.unit_id) ?? "—"}</td>
                       <td className="px-4 py-3 text-muted">{PASS_TYPE_LABEL[p.type]}</td>
-                      <td className="px-4 py-3 text-muted">
-                        {formatDate(p.valid_from)} — {formatDate(p.valid_to)}
-                      </td>
+                      <td className="px-4 py-3 text-muted">{vigenciaText(p.valid_from, p.valid_to)}</td>
                       <td className="px-4 py-3">
                         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
                       </td>
@@ -121,7 +119,7 @@ export default async function AccesosPage() {
                         <p className="font-mono text-base font-semibold text-brand">{p.code}</p>
                         <p className="truncate text-sm">{p.visitor_name}</p>
                         <p className="text-xs text-muted">
-                          {unitCode.get(p.unit_id) ?? "—"} · {PASS_TYPE_LABEL[p.type]} · {formatDate(p.valid_to)}
+                          {unitCode.get(p.unit_id) ?? "—"} · {PASS_TYPE_LABEL[p.type]} · {p.valid_to ? formatDate(p.valid_to) : "Indefinido"}
                         </p>
                       </div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>

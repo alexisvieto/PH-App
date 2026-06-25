@@ -3128,7 +3128,7 @@ export type Database = {
           unit_id: string
           uses_count: number
           valid_from: string
-          valid_to: string
+          valid_to: string | null
           vehicle_plate: string | null
           visitor_doc: string | null
           visitor_name: string
@@ -3150,7 +3150,7 @@ export type Database = {
           unit_id: string
           uses_count?: number
           valid_from?: string
-          valid_to?: string
+          valid_to?: string | null
           vehicle_plate?: string | null
           visitor_doc?: string | null
           visitor_name: string
@@ -3172,7 +3172,7 @@ export type Database = {
           unit_id?: string
           uses_count?: number
           valid_from?: string
-          valid_to?: string
+          valid_to?: string | null
           vehicle_plate?: string | null
           visitor_doc?: string | null
           visitor_name?: string
@@ -3638,6 +3638,7 @@ export type Database = {
         | "domestico"
         | "proveedor"
         | "delivery"
+        | "indefinido"
       votation_kind: "si_no" | "multiple"
       votation_status: "borrador" | "abierta" | "cerrada"
       work_shift: "diurna" | "mixta" | "nocturna"
@@ -3867,6 +3868,7 @@ export const Constants = {
         "domestico",
         "proveedor",
         "delivery",
+        "indefinido",
       ],
       votation_kind: ["si_no", "multiple"],
       votation_status: ["borrador", "abierta", "cerrada"],

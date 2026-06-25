@@ -69,7 +69,7 @@ export default async function PortalAccesosPage() {
                   <p className="font-mono text-base font-semibold text-brand">{p.code}</p>
                   <p className="truncate font-medium">{p.visitor_name}</p>
                   <p className="text-xs text-muted">
-                    {PASS_TYPE_LABEL[p.type]} · {unitCode.get(p.unit_id) ?? ""} · {formatDate(p.valid_to)}
+                    {PASS_TYPE_LABEL[p.type]} · {unitCode.get(p.unit_id) ?? ""} · {p.valid_to ? formatDate(p.valid_to) : "Indefinido"}
                   </p>
                 </div>
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${st.className}`}>{st.label}</span>
