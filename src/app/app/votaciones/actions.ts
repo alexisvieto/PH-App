@@ -44,6 +44,16 @@ export async function createVotation(_prev: ActionState, formData: FormData): Pr
     if (options.length < 2) return { error: "Agrega al menos dos opciones.", ok: false };
   }
 
+  // La votación se rige por sus fechas (no se abre/cierra ni cancela a mano).
+  const opensAt = ts(formData.get("opens_at"));
+  const closesAt = ts(formData.get("closes_at"));
+  if (!opensAt || !closesAt)
+    return { error: "Indica la fecha y hora de inicio y de cierre.", ok: false };
+  if (new Date(closesAt).getTime() <= new Date(opensAt).getTime())
+    return { error: "El cierre debe ser posterior al inicio.", ok: false };
+  const initialStatus: "abierta" | "borrador" =
+    Date.now() >= new Date(opensAt).getTime() ? "abierta" : "borrador";
+
   const supabase = await createClient();
   const { data: building } = await supabase
     .from("buildings")
@@ -61,8 +71,9 @@ export async function createVotation(_prev: ActionState, formData: FormData): Pr
       title,
       description: String(formData.get("description") ?? "").trim() || null,
       kind: kind as "si_no" | "multiple",
-      opens_at: ts(formData.get("opens_at")),
-      closes_at: ts(formData.get("closes_at")),
+      opens_at: opensAt,
+      closes_at: closesAt,
+      status: initialStatus,
       quorum_pct: num(formData.get("quorum_pct"), 51),
       approval_pct: num(formData.get("approval_pct"), 50.01),
       created_by: ctx.userId,
@@ -88,30 +99,5 @@ export async function createVotation(_prev: ActionState, formData: FormData): Pr
   }
 
   revalidatePath("/app/votaciones");
-  return { error: null, ok: true };
-}
-
-export async function setVotationStatus(
-  votationId: string,
-  status: "abierta" | "cerrada",
-): Promise<ActionState> {
-  const ctx = await getSessionContext();
-  const orgId = ctx?.activeOrg?.id;
-  if (!orgId) return { error: "Sin organización activa.", ok: false };
-  if (!UUID.test(votationId)) return { error: "Votación inválida.", ok: false };
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("votations")
-    .update({ status })
-    .eq("id", votationId)
-    .eq("organization_id", orgId);
-  if (error) {
-    console.error("setVotationStatus:", error.code, error.message);
-    return { error: "No se pudo actualizar la votación.", ok: false };
-  }
-  revalidatePath("/app/votaciones");
-  revalidatePath(`/app/votaciones/${votationId}`);
-  revalidatePath("/portal/votaciones");
   return { error: null, ok: true };
 }

@@ -2,9 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FileText } from "lucide-react";
 
-import { VotationAdminControls } from "@/components/votaciones/votation-admin-controls";
 import { VotationResults } from "@/components/votaciones/votation-results";
-import { VOTATION_STATUS_LABEL, VOTATION_STATUS_STYLE } from "@/lib/votations";
+import { VOTATION_PHASE_LABEL, VOTATION_PHASE_STYLE, votationPhase } from "@/lib/votations";
 import { loadVotationResults, tallyFrom } from "@/lib/votations-server";
 import { getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -30,6 +29,7 @@ export default async function VotacionDetallePage({ params }: { params: Promise<
     .maybeSingle();
   if (!v) notFound();
 
+  const phase = votationPhase(v.opens_at, v.closes_at);
   const results = await loadVotationResults(id);
   const t = results
     ? tallyFrom(results, Number(v.quorum_pct), Number(v.approval_pct), v.kind)
@@ -47,8 +47,8 @@ export default async function VotacionDetallePage({ params }: { params: Promise<
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-semibold">{v.title}</h1>
-            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${VOTATION_STATUS_STYLE[v.status]}`}>
-              {VOTATION_STATUS_LABEL[v.status]}
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${VOTATION_PHASE_STYLE[phase]}`}>
+              {VOTATION_PHASE_LABEL[phase]}
             </span>
           </div>
           {v.description && <p className="mt-1 text-sm text-ink/80">{v.description}</p>}
@@ -57,21 +57,22 @@ export default async function VotacionDetallePage({ params }: { params: Promise<
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <VotationAdminControls votationId={v.id} status={v.status} />
-          {v.status === "cerrada" && (
+          {phase === "cerrada" ? (
             <a
               href={`/app/votaciones/${v.id}/acta`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
             >
-              <FileText className="size-4" /> Descargar acta (PDF)
+              <FileText className="size-4" /> Ver / compartir acta (PDF)
             </a>
+          ) : (
+            <p className="text-xs text-muted">El acta se genera al cerrar la votación.</p>
           )}
         </div>
       </div>
 
-      {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={v.status === "cerrada"} />}
+      {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={phase === "cerrada"} />}
 
       <section className="space-y-2">
         <h2 className="font-semibold">Detalle por unidad</h2>

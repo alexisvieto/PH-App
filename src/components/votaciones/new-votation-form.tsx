@@ -84,12 +84,15 @@ export function NewVotationForm({ buildings }: { buildings: { id: string; label:
 
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Abre</span>
-          <input name="opens_at" type="datetime-local" className={input} />
+          <input name="opens_at" type="datetime-local" required className={input} />
         </label>
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Cierra</span>
-          <input name="closes_at" type="datetime-local" className={input} />
+          <input name="closes_at" type="datetime-local" required className={input} />
         </label>
+        <p className="block text-xs text-muted sm:col-span-2">
+          La votación abre y cierra automáticamente según estas fechas. No se puede cancelar manualmente.
+        </p>
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Quórum requerido (%)</span>
           <input name="quorum_pct" type="number" min="1" max="100" step="0.01" defaultValue="51" className={input} />

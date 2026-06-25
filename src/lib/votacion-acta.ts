@@ -24,7 +24,8 @@ export async function renderActaPdf(votationId: string, brand: Brand): Promise<R
   const supabase = await createClient();
   const { data: v } = await supabase.from("votations").select("*").eq("id", votationId).maybeSingle();
   if (!v) return { error: "not_found" };
-  if (v.status !== "cerrada") return { error: "not_closed" };
+  // El acta solo existe cuando la votación ya cerró por su fecha de cierre.
+  if (!v.closes_at || Date.now() < new Date(v.closes_at).getTime()) return { error: "not_closed" };
 
   const [{ data: building }, results] = await Promise.all([
     supabase.from("buildings").select("name").eq("id", v.building_id).maybeSingle(),

@@ -2,14 +2,31 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type Enums = Database["public"]["Enums"];
 
-export const VOTATION_STATUS_LABEL: Record<Enums["votation_status"], string> = {
-  borrador: "Borrador",
+/**
+ * Fase REAL de una votación derivada de sus fechas (no del status manual): el
+ * ciclo lo dictan `opens_at`/`closes_at`, no la administración. Una votación no
+ * se cancela ni se abre/cierra a mano.
+ */
+export type VotationPhase = "programada" | "abierta" | "cerrada";
+
+export function votationPhase(
+  opensAt: string | null,
+  closesAt: string | null,
+  now: number = Date.now(),
+): VotationPhase {
+  if (opensAt && now < new Date(opensAt).getTime()) return "programada";
+  if (closesAt && now >= new Date(closesAt).getTime()) return "cerrada";
+  return "abierta";
+}
+
+export const VOTATION_PHASE_LABEL: Record<VotationPhase, string> = {
+  programada: "Programada",
   abierta: "Abierta",
   cerrada: "Cerrada",
 };
 
-export const VOTATION_STATUS_STYLE: Record<Enums["votation_status"], string> = {
-  borrador: "bg-gray-100 text-gray-500",
+export const VOTATION_PHASE_STYLE: Record<VotationPhase, string> = {
+  programada: "bg-amber-50 text-amber-700",
   abierta: "bg-emerald-50 text-emerald-700",
   cerrada: "bg-sky-50 text-sky-700",
 };

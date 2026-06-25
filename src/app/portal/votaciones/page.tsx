@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Vote } from "lucide-react";
+import { FileText, Vote } from "lucide-react";
 
-import { PdfActions } from "@/components/portal/pdf-actions";
 import { ABSTAIN, VotePanel } from "@/components/votaciones/vote-panel";
 import { VotationResults } from "@/components/votaciones/votation-results";
-import { VOTATION_STATUS_LABEL, VOTATION_STATUS_STYLE } from "@/lib/votations";
+import { VOTATION_PHASE_LABEL, VOTATION_PHASE_STYLE, votationPhase } from "@/lib/votations";
 import { loadVotationResults, tallyFrom } from "@/lib/votations-server";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -15,11 +14,12 @@ export default async function PortalVotacionesPage() {
 
   const myUnitCodes = new Set(res.units.map((u) => u.code));
   const supabase = await createClient();
+  // El residente ve las votaciones ya iniciadas (abiertas o cerradas), nunca las programadas.
   const { data: votations } = await supabase
     .from("votations")
-    .select("id, title, description, kind, status, quorum_pct, approval_pct")
+    .select("id, title, description, kind, opens_at, closes_at, quorum_pct, approval_pct")
     .eq("organization_id", res.orgId)
-    .in("status", ["abierta", "cerrada"])
+    .lte("opens_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -46,6 +46,7 @@ export default async function PortalVotacionesPage() {
         <div className="space-y-4">
           {list.map((v, idx) => {
             const r = results[idx];
+            const phase = votationPhase(v.opens_at, v.closes_at);
             const t = r ? tallyFrom(r, Number(v.quorum_pct), Number(v.approval_pct), v.kind) : null;
             const mine = r?.votes.find((x) => myUnitCodes.has(x.unit_code));
             const myChoice = mine ? (mine.is_abstention ? ABSTAIN : mine.option_id) : null;
@@ -57,24 +58,26 @@ export default async function PortalVotacionesPage() {
                     <h2 className="font-semibold">{v.title}</h2>
                     {v.description && <p className="mt-0.5 text-sm text-ink/80">{v.description}</p>}
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${VOTATION_STATUS_STYLE[v.status]}`}>
-                    {VOTATION_STATUS_LABEL[v.status]}
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${VOTATION_PHASE_STYLE[phase]}`}>
+                    {VOTATION_PHASE_LABEL[phase]}
                   </span>
                 </div>
 
-                {v.status === "abierta" && (
+                {phase === "abierta" && (
                   <VotePanel votationId={v.id} options={(r?.options ?? []).map((o) => ({ id: o.id, label: o.label }))} myChoice={myChoice} />
                 )}
 
-                {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={v.status === "cerrada"} />}
+                {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={phase === "cerrada"} />}
 
-                {v.status === "cerrada" && (
-                  <PdfActions
-                    url={`/portal/votaciones/${v.id}/acta`}
-                    filename={`acta-votacion.pdf`}
-                    title={`Acta · ${v.title}`}
-                    name="acta"
-                  />
+                {phase === "cerrada" && (
+                  <a
+                    href={`/portal/votaciones/${v.id}/acta`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-medium transition hover:border-brand hover:text-brand"
+                  >
+                    <FileText className="size-4" /> Ver / compartir acta (PDF)
+                  </a>
                 )}
               </article>
             );
