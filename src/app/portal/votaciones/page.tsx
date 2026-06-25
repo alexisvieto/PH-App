@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { FileText, Vote } from "lucide-react";
 
+import { MonthSection } from "@/components/votaciones/month-section";
 import { ABSTAIN, VotePanel } from "@/components/votaciones/vote-panel";
 import { VotationResults } from "@/components/votaciones/votation-results";
-import { VOTATION_PHASE_LABEL, VOTATION_PHASE_STYLE, votationPhase } from "@/lib/votations";
+import {
+  DECISION_LABEL,
+  DECISION_STYLE,
+  VOTATION_PHASE_LABEL,
+  VOTATION_PHASE_STYLE,
+  groupByMonth,
+  votationPhase,
+} from "@/lib/votations";
 import { loadVotationResults, tallyFrom } from "@/lib/votations-server";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -26,6 +34,17 @@ export default async function PortalVotacionesPage() {
   const list = votations ?? [];
   const results = await Promise.all(list.map((v) => loadVotationResults(v.id)));
 
+  const items = list.map((v, idx) => {
+    const r = results[idx];
+    const phase = votationPhase(v.opens_at, v.closes_at);
+    const t = r ? tallyFrom(r, Number(v.quorum_pct), Number(v.approval_pct), v.kind) : null;
+    const mine = r?.votes.find((x) => myUnitCodes.has(x.unit_code));
+    const myChoice = mine ? (mine.is_abstention ? ABSTAIN : mine.option_id) : null;
+    return { v, r, phase, t, myChoice };
+  });
+  const active = items.filter((x) => x.phase !== "cerrada");
+  const archive = groupByMonth(items.filter((x) => x.phase === "cerrada"), (x) => x.v.closes_at);
+
   return (
     <div className="space-y-6">
       <div>
@@ -38,50 +57,65 @@ export default async function PortalVotacionesPage() {
         <p className="text-sm text-muted">Decisiones de la comunidad, ponderadas por coeficiente.</p>
       </div>
 
-      {list.length === 0 ? (
+      {items.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-line bg-surface p-8 text-center text-sm text-muted">
           No hay votaciones por ahora.
         </p>
       ) : (
-        <div className="space-y-4">
-          {list.map((v, idx) => {
-            const r = results[idx];
-            const phase = votationPhase(v.opens_at, v.closes_at);
-            const t = r ? tallyFrom(r, Number(v.quorum_pct), Number(v.approval_pct), v.kind) : null;
-            const mine = r?.votes.find((x) => myUnitCodes.has(x.unit_code));
-            const myChoice = mine ? (mine.is_abstention ? ABSTAIN : mine.option_id) : null;
-
-            return (
-              <article key={v.id} className="space-y-4 rounded-2xl border border-line bg-surface p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h2 className="font-semibold">{v.title}</h2>
-                    {v.description && <p className="mt-0.5 text-sm text-ink/80">{v.description}</p>}
+        <div className="space-y-6">
+          {active.length > 0 && (
+            <div className="space-y-4">
+              {active.map(({ v, r, phase, t, myChoice }) => (
+                <article key={v.id} className="space-y-4 rounded-2xl border border-line bg-surface p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h2 className="font-semibold">{v.title}</h2>
+                      {v.description && <p className="mt-0.5 text-sm text-ink/80">{v.description}</p>}
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${VOTATION_PHASE_STYLE[phase]}`}>
+                      {VOTATION_PHASE_LABEL[phase]}
+                    </span>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${VOTATION_PHASE_STYLE[phase]}`}>
-                    {VOTATION_PHASE_LABEL[phase]}
-                  </span>
-                </div>
 
-                {phase === "abierta" && (
-                  <VotePanel votationId={v.id} options={(r?.options ?? []).map((o) => ({ id: o.id, label: o.label }))} myChoice={myChoice} />
-                )}
+                  {phase === "abierta" && (
+                    <VotePanel votationId={v.id} options={(r?.options ?? []).map((o) => ({ id: o.id, label: o.label }))} myChoice={myChoice} />
+                  )}
 
-                {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={phase === "cerrada"} />}
+                  {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={false} />}
+                </article>
+              ))}
+            </div>
+          )}
 
-                {phase === "cerrada" && (
-                  <a
-                    href={`/portal/votaciones/${v.id}/acta`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-medium transition hover:border-brand hover:text-brand"
-                  >
-                    <FileText className="size-4" /> Ver / compartir acta (PDF)
-                  </a>
-                )}
-              </article>
-            );
-          })}
+          {archive.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Archivo</h2>
+              {archive.map((g, gi) => (
+                <MonthSection key={g.key} label={g.label} count={g.items.length} defaultOpen={gi === 0}>
+                  {g.items.map(({ v, t }) => (
+                    <div key={v.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{v.title}</p>
+                        {t && (
+                          <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${DECISION_STYLE[t.decision]}`}>
+                            {DECISION_LABEL[t.decision]}
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href={`/portal/votaciones/${v.id}/acta`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
+                      >
+                        <FileText className="size-4" /> Acta
+                      </a>
+                    </div>
+                  ))}
+                </MonthSection>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

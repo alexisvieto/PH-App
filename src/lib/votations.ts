@@ -31,6 +31,42 @@ export const VOTATION_PHASE_STYLE: Record<VotationPhase, string> = {
   cerrada: "bg-sky-50 text-sky-700",
 };
 
+export const DECISION_LABEL: Record<Tally["decision"], string> = {
+  aprobada: "Aprobada",
+  rechazada: "Rechazada",
+  sin_quorum: "Sin quórum",
+};
+
+export const DECISION_STYLE: Record<Tally["decision"], string> = {
+  aprobada: "bg-emerald-600 text-white",
+  rechazada: "bg-red-50 text-red-700",
+  sin_quorum: "bg-gray-100 text-gray-500",
+};
+
+/** Clave (YYYY-MM) y etiqueta ("Junio 2026") del mes de un timestamp, en hora de Panamá. */
+export function monthKeyOf(ts: string): string {
+  return new Date(ts)
+    .toLocaleDateString("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "America/Panama" })
+    .slice(0, 7);
+}
+export function monthLabelOf(ts: string): string {
+  const s = new Date(ts).toLocaleDateString("es-PA", { month: "long", year: "numeric", timeZone: "America/Panama" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Agrupa elementos con fecha de cierre en meses (desc.), para el archivo en acordeón. */
+export function groupByMonth<T>(items: T[], closesAt: (x: T) => string | null): { key: string; label: string; items: T[] }[] {
+  const map = new Map<string, { key: string; label: string; items: T[] }>();
+  for (const it of items) {
+    const ts = closesAt(it);
+    if (!ts) continue;
+    const key = monthKeyOf(ts);
+    if (!map.has(key)) map.set(key, { key, label: monthLabelOf(ts), items: [] });
+    map.get(key)!.items.push(it);
+  }
+  return [...map.values()].sort((a, b) => (a.key < b.key ? 1 : -1));
+}
+
 export type VoteRow = { option_id: string | null; is_abstention: boolean; weight: number | string };
 export type OptionRow = { id: string; label: string; sort_order: number };
 
