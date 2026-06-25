@@ -1,17 +1,18 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Eye, Loader2, Share2 } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 
 /**
- * Acciones de un PDF del portal: VER (lo abre para revisarlo) y COMPARTIR.
- *
- * El residente primero abre el documento (la ruta lo entrega `inline`, así el
- * navegador lo muestra) y, cuando ya lo revisó, lo comparte. "Compartir" usa la
- * Web Share API con el archivo adjunto (WhatsApp/correo/guardar en Archivos).
+ * Botón de un PDF del portal. Al tocarlo abre directamente la **hoja nativa**
+ * del sistema (iOS/Android) con el documento adjunto: vista previa + imprimir,
+ * enviar por correo, compartir (WhatsApp…), guardar en Archivos. Sin pasos
+ * intermedios ("ver" y luego "compartir" eran dos botones).
  *
  * iOS es estricto: `navigator.share` solo corre dentro del gesto del toque. Por
  * eso pre-cargamos el PDF al apuntar el botón (onPointerDown) para conservarlo.
+ * En escritorio (sin Web Share de archivos) abre el PDF en una pestaña nueva
+ * (ahí el navegador ofrece imprimir/descargar); si el popup se bloquea, descarga.
  */
 export function PdfActions({
   url,
@@ -58,56 +59,49 @@ export function PdfActions({
     setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
   }
 
-  async function onShare() {
+  async function onOpen() {
     if (busy) return;
     setBusy(true);
     try {
       const blob = await ensureBlob();
       const file = new File([blob], filename, { type: "application/pdf" });
       const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
+      // Móvil: hoja nativa con el documento (imprimir / correo / compartir / guardar).
       if (typeof nav.share === "function" && nav.canShare?.({ files: [file] })) {
         await nav.share({ title, files: [file] });
         return;
       }
-      download(blob); // sin Web Share (desktop): descarga directa
+      // Escritorio: abre el PDF en pestaña nueva (ver + imprimir/descargar del navegador).
+      const objectUrl = URL.createObjectURL(blob);
+      const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
+      if (!win) download(blob); // popup bloqueado → descarga
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return; // canceló
+      if (err instanceof DOMException && err.name === "AbortError") return; // canceló la hoja
       if (blobRef.current) download(blobRef.current);
     } finally {
       setBusy(false);
     }
   }
 
-  const view =
+  const label = name.charAt(0).toUpperCase() + name.slice(1);
+  const cls =
     variant === "solid"
       ? "bg-brand text-white hover:opacity-90"
       : "border border-line bg-surface hover:border-brand hover:text-brand";
 
   return (
-    <div className="inline-flex items-stretch gap-2">
-      {/* VER: abre el PDF para revisarlo antes de compartir */}
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${view}`}
-      >
-        <Eye className="size-4" /> Ver {name}
-      </a>
-      {/* COMPARTIR (icono): envía o guarda el PDF */}
-      <button
-        type="button"
-        onClick={onShare}
-        onPointerDown={() => {
-          ensureBlob().catch(() => {});
-        }}
-        disabled={busy}
-        aria-label={`Compartir ${name}`}
-        title={`Compartir ${name}`}
-        className="inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-surface px-3.5 transition hover:border-brand hover:text-brand disabled:opacity-60"
-      >
-        {busy ? <Loader2 className="size-4 animate-spin" /> : <Share2 className="size-4" />}
-      </button>
-    </div>
+    <button
+      type="button"
+      onPointerDown={() => {
+        ensureBlob().catch(() => {});
+      }}
+      onClick={onOpen}
+      disabled={busy}
+      aria-label={`Abrir ${name} (compartir, imprimir o guardar)`}
+      className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition disabled:opacity-60 ${cls}`}
+    >
+      {busy ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />} {label}
+    </button>
   );
 }
