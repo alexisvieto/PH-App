@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 
 import type { Brand } from "@/lib/brand";
 import { PRODUCT_CREDIT } from "@/lib/brand";
@@ -83,6 +83,19 @@ export function pdfStyles(brand: Brand) {
   });
 }
 
+/** Símbolo de Atrio PH (rombos apilados) porteado a primitivas de @react-pdf.
+ *  En blanco, para la barra de color del header. */
+export function AtrioMark({ h = 16 }: { h?: number }) {
+  const w = (h * 320) / 260;
+  return (
+    <Svg width={w} height={h} viewBox="90 60 320 260">
+      <Path d="M 250,160 L 390,230 L 250,300 L 110,230 Z" fill="none" stroke="#ffffff" strokeWidth={22} strokeLinejoin="round" opacity={0.8} />
+      <Path d="M 250,120 L 390,190 L 250,260 L 110,190 Z" fill="none" stroke="#ffffff" strokeWidth={22} strokeLinejoin="round" opacity={0.5} />
+      <Path d="M 250,80 L 390,150 L 250,220 L 110,150 Z" fill="none" stroke="#ffffff" strokeWidth={22} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function BrandHeader({
   brand,
   generatedOn,
@@ -94,7 +107,10 @@ export function BrandHeader({
 }) {
   return (
     <View style={styles.header}>
-      <Text style={styles.brandName}>{brand.name}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <AtrioMark h={16} />
+        <Text style={[styles.brandName, { marginLeft: 7 }]}>{brand.name}</Text>
+      </View>
       <Text style={styles.headerRight}>Emitido el {generatedOn}</Text>
     </View>
   );

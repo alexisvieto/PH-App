@@ -1,5 +1,6 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
+import { AtrioMark } from "@/components/pdf/_kit";
 import type { Brand } from "@/lib/brand";
 import { PRODUCT_CREDIT } from "@/lib/brand";
 
@@ -67,7 +68,10 @@ export function JdReportPDF({
     <Document>
       <Page size="A4" style={styles.page} wrap>
         <View style={styles.header}>
-          <Text style={styles.brandName}>{brand.name}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <AtrioMark h={16} />
+            <Text style={[styles.brandName, { marginLeft: 7 }]}>{brand.name}</Text>
+          </View>
         </View>
 
         <Text style={styles.title}>Reporte a la Junta Directiva</Text>

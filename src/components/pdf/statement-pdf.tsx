@@ -6,6 +6,7 @@ import {
   View,
 } from "@react-pdf/renderer";
 
+import { AtrioMark } from "@/components/pdf/_kit";
 import type { Brand } from "@/lib/brand";
 import { PRODUCT_CREDIT } from "@/lib/brand";
 import type { UnitStatement } from "@/lib/statement";
@@ -86,7 +87,10 @@ export function StatementPDF({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.brandName}>{brand.name}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <AtrioMark h={16} />
+            <Text style={[styles.brandName, { marginLeft: 7 }]}>{brand.name}</Text>
+          </View>
           <Text style={styles.docTitle}>Estado de cuenta</Text>
         </View>
 

@@ -58,10 +58,8 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
-            {PRODUCT_NAME[0]}
-          </div>
-          <h1 className="text-xl font-semibold">{PRODUCT_NAME}</h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/atrio-logo.svg" alt={PRODUCT_NAME} className="mx-auto mb-1 h-28 w-auto" />
           <p className="text-sm text-muted">Administración de propiedad horizontal</p>
         </div>
 
