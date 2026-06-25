@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Clock, Users } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 import { createResidentReservation } from "@/app/portal/reservas/actions";
 import { ReservationCalendar } from "@/components/reservas/reservation-calendar";
@@ -34,6 +34,9 @@ export default async function PortalReservasPage() {
   const calendarAreas = activeAreas.map((a) => ({
     id: a.id,
     name: a.name,
+    icon: a.icon,
+    description: a.description,
+    capacity: a.capacity,
     open_time: a.open_time,
     close_time: a.close_time,
     advance_days: a.advance_days,
@@ -62,40 +65,12 @@ export default async function PortalReservasPage() {
           Por ahora no hay áreas disponibles para reservar.
         </p>
       ) : (
-        <>
-          <ReservationCalendar
-            areas={calendarAreas}
-            units={unitOptions}
-            today={todayPa}
-            action={createResidentReservation}
-          />
-
-          {/* Áreas disponibles (con sus reglas) */}
-          <section className="space-y-3">
-            <h2 className="font-semibold">Áreas disponibles</h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {activeAreas.map((a) => (
-                <div key={a.id} className="rounded-2xl border border-line bg-surface p-4">
-                  <p className="font-semibold">{a.name}</p>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="size-3.5" /> {fmtTime(a.open_time)}–{fmtTime(a.close_time)}
-                    </span>
-                    {a.capacity != null && (
-                      <span className="inline-flex items-center gap-1">
-                        <Users className="size-3.5" /> {a.capacity}
-                      </span>
-                    )}
-                  </p>
-                  {a.description && <p className="mt-1 text-sm text-ink/70">{a.description}</p>}
-                  {a.requires_approval && (
-                    <p className="mt-1 text-xs text-amber-700">Requiere aprobación del administrador.</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        </>
+        <ReservationCalendar
+          areas={calendarAreas}
+          units={unitOptions}
+          today={todayPa}
+          action={createResidentReservation}
+        />
       )}
 
       {/* Mis reservas */}

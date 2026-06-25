@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 
+import { areaIcon } from "@/components/reservas/area-icons";
 import { EMPTY_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import { fmtTime } from "@/lib/reservas";
 import { createClient } from "@/lib/supabase/client";
@@ -12,6 +13,9 @@ import { createClient } from "@/lib/supabase/client";
 type Area = {
   id: string;
   name: string;
+  icon: string;
+  description?: string | null;
+  capacity?: number | null;
   open_time: string;
   close_time: string;
   advance_days: number;
@@ -132,32 +136,58 @@ export function ReservationCalendar({
         <CalendarDays className="size-5 text-brand" /> Reservar un área
       </h2>
 
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium">Área</span>
-        <select
-          value={areaId}
-          onChange={(e) => {
-            setAreaId(e.target.value);
-            setSelected(null);
-            setView({ y: ty, m: tm });
-          }}
-          className={input}
-        >
-          <option value="" disabled>
-            Selecciona…
-          </option>
-          {areas.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {/* Carrusel de recursos: íconos deslizables con el dedo */}
+      <div>
+        <span className="mb-2 block text-sm font-medium">Elige un recurso</span>
+        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
+          {areas.map((a) => {
+            const Icon = areaIcon(a.icon);
+            const active = a.id === areaId;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => {
+                  setAreaId(a.id);
+                  setSelected(null);
+                  setView({ y: ty, m: tm });
+                }}
+                className="flex w-[4.5rem] shrink-0 snap-start flex-col items-center gap-1.5"
+              >
+                <span
+                  className={`flex size-14 items-center justify-center rounded-2xl border transition ${
+                    active
+                      ? "border-brand bg-brand text-white shadow-sm"
+                      : "border-line bg-surface text-ink/70 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon className="size-6" />
+                </span>
+                <span
+                  className={`text-center text-xs leading-tight ${
+                    active ? "font-semibold text-brand" : "text-muted"
+                  }`}
+                >
+                  {a.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {area && (
         <>
-          <p className="flex items-center gap-1.5 text-sm text-muted">
-            <Clock className="size-3.5" /> Horario: {fmtTime(area.open_time)}–{fmtTime(area.close_time)}
+          {area.description && <p className="text-sm text-ink/70">{area.description}</p>}
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="size-3.5" /> {fmtTime(area.open_time)}–{fmtTime(area.close_time)}
+            </span>
+            {area.capacity != null && (
+              <span className="inline-flex items-center gap-1.5">
+                <Users className="size-3.5" /> {area.capacity}
+              </span>
+            )}
           </p>
 
           {/* Navegación de mes */}

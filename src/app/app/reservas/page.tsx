@@ -46,6 +46,9 @@ export default async function ReservasStaffPage() {
   const calendarAreas = activeAreas.map((a) => ({
     id: a.id,
     name: a.name,
+    icon: a.icon,
+    description: a.description,
+    capacity: a.capacity,
     open_time: a.open_time,
     close_time: a.close_time,
     advance_days: a.advance_days,

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Plus } from "lucide-react";
 
 import { createArea } from "@/app/app/reservas/actions";
+import { AREA_ICON_OPTIONS } from "@/components/reservas/area-icons";
 import { SubmitButton } from "@/components/submit-button";
 import { useFormPanel } from "@/components/use-form-panel";
 import { EMPTY_ACTION_STATE } from "@/lib/action-state";
@@ -39,6 +40,16 @@ export function NewAreaForm({ buildings }: { buildings: { id: string; label: str
           <select name="building_id" required defaultValue={buildings.length === 1 ? buildings[0].id : ""} className={input}>
             {buildings.length !== 1 && <option value="" disabled>Selecciona…</option>}
             {buildings.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">Ícono</span>
+          <select name="icon" defaultValue="default" className={input}>
+            {AREA_ICON_OPTIONS.map((o) => (
+              <option key={o.key} value={o.key}>
+                {o.label}
+              </option>
+            ))}
           </select>
         </label>
         <label className="block">

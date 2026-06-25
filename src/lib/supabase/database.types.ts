@@ -548,6 +548,7 @@ export type Database = {
           close_time: string
           created_at: string
           description: string | null
+          icon: string
           id: string
           max_minutes: number | null
           name: string
@@ -563,6 +564,7 @@ export type Database = {
           close_time?: string
           created_at?: string
           description?: string | null
+          icon?: string
           id?: string
           max_minutes?: number | null
           name: string
@@ -578,6 +580,7 @@ export type Database = {
           close_time?: string
           created_at?: string
           description?: string | null
+          icon?: string
           id?: string
           max_minutes?: number | null
           name?: string

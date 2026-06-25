@@ -33,6 +33,10 @@ export async function createArea(_prev: ActionState, formData: FormData): Promis
   if (!HHMM.test(open) || !HHMM.test(close) || close <= open)
     return { error: "Horario de apertura/cierre inválido.", ok: false };
 
+  const ICON_KEYS = ["party", "bbq", "elevator", "truck", "gym", "pool", "garden", "default"];
+  const iconRaw = String(formData.get("icon") ?? "default");
+  const icon = ICON_KEYS.includes(iconRaw) ? iconRaw : "default";
+
   const supabase = await createClient();
   const { data: building } = await supabase
     .from("buildings")
@@ -46,6 +50,7 @@ export async function createArea(_prev: ActionState, formData: FormData): Promis
     organization_id: orgId,
     building_id: buildingId,
     name,
+    icon,
     description: String(formData.get("description") ?? "").trim() || null,
     capacity: intOrNull(formData.get("capacity")),
     open_time: open,
