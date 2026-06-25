@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { PRODUCT_NAME, VENDOR_CREDIT } from "@/lib/brand";
+import { PRODUCT_CREDIT, PRODUCT_NAME } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -131,7 +131,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-center text-xs text-muted">
-          {PRODUCT_NAME} · {VENDOR_CREDIT}
+          {PRODUCT_CREDIT}
         </p>
       </div>
     </main>

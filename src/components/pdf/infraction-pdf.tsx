@@ -1,7 +1,7 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 import type { Brand } from "@/lib/brand";
-import { VENDOR_CREDIT } from "@/lib/brand";
+import { PRODUCT_CREDIT } from "@/lib/brand";
 
 export function InfractionPDF({
   brand,
@@ -142,7 +142,7 @@ export function InfractionPDF({
 
         <Text style={styles.footer} fixed>
           Emitido el {generatedOn}
-          {brand.exportCredit ? ` · ${brand.name} · ${VENDOR_CREDIT}` : ""}
+          {brand.exportCredit ? ` · ${brand.name} · ${PRODUCT_CREDIT}` : ""}
         </Text>
       </Page>
     </Document>

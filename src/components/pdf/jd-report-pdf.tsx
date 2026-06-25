@@ -1,7 +1,7 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 import type { Brand } from "@/lib/brand";
-import { VENDOR_CREDIT } from "@/lib/brand";
+import { PRODUCT_CREDIT } from "@/lib/brand";
 
 export type ReportItem = { date: string; label: string; meta: string };
 export type ReportSection = { title: string; count: number; items: ReportItem[] };
@@ -96,7 +96,7 @@ export function JdReportPDF({
 
         <Text style={styles.footer} fixed>
           Generado el {generatedOn}
-          {brand.exportCredit ? ` · ${brand.name} · ${VENDOR_CREDIT}` : ""}
+          {brand.exportCredit ? ` · ${brand.name} · ${PRODUCT_CREDIT}` : ""}
         </Text>
       </Page>
     </Document>

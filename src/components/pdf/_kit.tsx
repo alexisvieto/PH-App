@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "@react-pdf/renderer";
 
 import type { Brand } from "@/lib/brand";
-import { PRODUCT_NAME, VENDOR_CREDIT } from "@/lib/brand";
+import { PRODUCT_CREDIT } from "@/lib/brand";
 
 /** Estilos base compartidos por los documentos (diseño profesional, marca por tenant). */
 export function pdfStyles(brand: Brand) {
@@ -109,7 +109,7 @@ export function Footer({
 }) {
   return (
     <View style={styles.footer} fixed>
-      <Text>{brand.exportCredit ? `${PRODUCT_NAME} · ${VENDOR_CREDIT}` : brand.name}</Text>
+      <Text>{brand.exportCredit ? `${brand.name} · ${PRODUCT_CREDIT}` : brand.name}</Text>
       <Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
     </View>
   );

@@ -7,7 +7,7 @@ import {
 } from "@react-pdf/renderer";
 
 import type { Brand } from "@/lib/brand";
-import { VENDOR_CREDIT } from "@/lib/brand";
+import { PRODUCT_CREDIT } from "@/lib/brand";
 import type { UnitStatement } from "@/lib/statement";
 
 const money = (n: number) =>
@@ -151,7 +151,7 @@ export function StatementPDF({
 
         {brand.exportCredit && (
           <Text style={styles.footer} fixed>
-            {brand.name} · {VENDOR_CREDIT}
+            {brand.name} · {PRODUCT_CREDIT}
           </Text>
         )}
       </Page>

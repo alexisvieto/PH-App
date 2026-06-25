@@ -10,8 +10,14 @@
 /** Nombre comercial del producto (centralizado; cambiar la marca = editar aquí). */
 export const PRODUCT_NAME = "Atrio PH";
 
-/** Crédito discreto del fabricante en exportables y landing. */
-export const VENDOR_CREDIT = "by Nexera · www.nexerai.io · ventas@nexerai.io";
+/** Sitio del producto. */
+export const PRODUCT_URL = "www.atrioph.net";
+
+/** Crédito discreto del producto en exportables y landing (marca subordinada al PH). */
+export const PRODUCT_CREDIT = `${PRODUCT_NAME} · ${PRODUCT_URL} · by Nexera`;
+
+/** Contacto del fabricante (disponible si se requiere; no va en el pie de cada documento). */
+export const VENDOR_CONTACT = "Nexera · www.nexerai.io · ventas@nexerai.io";
 
 export type Brand = {
   name: string; // nombre legal/comercial para documentos
