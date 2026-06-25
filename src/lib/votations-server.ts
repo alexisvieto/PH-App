@@ -20,11 +20,26 @@ export type VotationResults = {
 };
 
 /**
- * Carga el resultado de una votación vía RPC (funciona para staff y residentes;
- * el residente no puede leer la tabla `units` completa por RLS).
+ * Carga el resultado de una votación. Si está cerrada, usa la **foto inmutable**
+ * (`result_snapshot`) congelada al cierre — así el acta es idéntica para siempre,
+ * sin depender de coeficientes/votos vivos. Si está abierta, calcula en vivo vía
+ * RPC (el residente no puede leer la tabla `units` completa por RLS).
  */
 export async function loadVotationResults(votationId: string): Promise<VotationResults | null> {
   const supabase = await createClient();
+
+  const { data: vrow } = await supabase
+    .from("votations")
+    .select("result_snapshot")
+    .eq("id", votationId)
+    .maybeSingle();
+  const snap = vrow?.result_snapshot as
+    | { total_coef?: number | string; options?: OptionRow[]; votes?: ResultVote[] }
+    | null;
+  if (snap?.options && snap?.votes) {
+    return { totalCoef: Number(snap.total_coef) || 0, options: snap.options, votes: snap.votes };
+  }
+
   const { data, error } = await supabase.rpc("get_votation_results", { p_votation: votationId });
   if (error || !data) return null;
   const d = data as unknown as {

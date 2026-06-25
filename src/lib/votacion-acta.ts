@@ -22,10 +22,19 @@ type RenderResult = { buffer: Buffer; filename: string } | { error: "not_found" 
  */
 export async function renderActaPdf(votationId: string, brand: Brand): Promise<RenderResult> {
   const supabase = await createClient();
+  // Congela la foto inmutable si ya cerró (idempotente, write-once).
+  await supabase.rpc("freeze_votation_result", { p_votation: votationId });
+
   const { data: v } = await supabase.from("votations").select("*").eq("id", votationId).maybeSingle();
   if (!v) return { error: "not_found" };
   // El acta solo existe cuando la votación ya cerró por su fecha de cierre.
   if (!v.closes_at || Date.now() < new Date(v.closes_at).getTime()) return { error: "not_closed" };
+
+  // Umbrales tomados de la foto congelada (inmutables); fallback a los vivos.
+  const snap = v.result_snapshot as { quorum_pct?: number | string; approval_pct?: number | string; kind?: string } | null;
+  const quorumPct = Number(snap?.quorum_pct ?? v.quorum_pct);
+  const approvalPct = Number(snap?.approval_pct ?? v.approval_pct);
+  const kind = (snap?.kind ?? v.kind) as typeof v.kind;
 
   const [{ data: building }, results] = await Promise.all([
     supabase.from("buildings").select("name").eq("id", v.building_id).maybeSingle(),
@@ -33,18 +42,18 @@ export async function renderActaPdf(votationId: string, brand: Brand): Promise<R
   ]);
   if (!results) return { error: "not_found" };
 
-  const t = tallyFrom(results, Number(v.quorum_pct), Number(v.approval_pct), v.kind);
+  const t = tallyFrom(results, quorumPct, approvalPct, kind);
   const optionLabel = new Map(results.options.map((o) => [o.id, o.label]));
 
   const data: ActaData = {
     title: v.title,
     description: v.description,
     buildingName: building?.name ?? "Edificio",
-    kindLabel: v.kind === "si_no" ? "Sí / No" : "Opción múltiple",
+    kindLabel: kind === "si_no" ? "Sí / No" : "Opción múltiple",
     opensAt: dtShort(v.opens_at),
     closesAt: dtShort(v.closes_at),
-    quorumPct: Number(v.quorum_pct),
-    approvalPct: Number(v.approval_pct),
+    quorumPct,
+    approvalPct,
     generatedOn: new Date().toLocaleDateString("es-PA", { year: "numeric", month: "long", day: "numeric" }),
     tally: t,
     votes: results.votes.map((x) => ({

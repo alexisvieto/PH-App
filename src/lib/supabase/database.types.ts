@@ -3318,6 +3318,7 @@ export type Database = {
           opens_at: string | null
           organization_id: string
           quorum_pct: number
+          result_snapshot: Json | null
           secret: boolean
           status: Database["public"]["Enums"]["votation_status"]
           title: string
@@ -3334,6 +3335,7 @@ export type Database = {
           opens_at?: string | null
           organization_id: string
           quorum_pct?: number
+          result_snapshot?: Json | null
           secret?: boolean
           status?: Database["public"]["Enums"]["votation_status"]
           title: string
@@ -3350,6 +3352,7 @@ export type Database = {
           opens_at?: string | null
           organization_id?: string
           quorum_pct?: number
+          result_snapshot?: Json | null
           secret?: boolean
           status?: Database["public"]["Enums"]["votation_status"]
           title?: string
@@ -3449,6 +3452,10 @@ export type Database = {
         Returns: string
       }
       end_lease: { Args: { p_unit_id: string }; Returns: undefined }
+      freeze_votation_result: {
+        Args: { p_votation: string }
+        Returns: undefined
+      }
       generate_all_monthly_charges: { Args: never; Returns: number }
       generate_late_fees: { Args: never; Returns: number }
       generate_monthly_charges: {
@@ -3495,6 +3502,7 @@ export type Database = {
         Args: { p: Database["public"]["Tables"]["payments"]["Row"] }
         Returns: undefined
       }
+      post_payroll_period: { Args: { p_period: string }; Returns: undefined }
       purge_old_access_records: { Args: never; Returns: undefined }
       register_ad_click: { Args: { p_campaign: string }; Returns: undefined }
       register_lease: {
@@ -3531,6 +3539,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      sync_votation_status: { Args: never; Returns: undefined }
       transfer_ownership: {
         Args: { p_acquired_on?: string; p_person_id: string; p_unit_id: string }
         Returns: undefined
