@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CheckCircle2,
   FileText,
+  HardHat,
   type LucideIcon,
   Mail,
   Megaphone,
@@ -61,6 +62,13 @@ export default async function PortalHome() {
     .eq("organization_id", res.orgId)
     .eq("status", "abierta");
   const hasVotacion = (openVotes ?? 0) > 0;
+
+  // ¿Hay proyectos publicados? (cotizaciones a la vista, transparencia del gasto)
+  const { count: projectsCount } = await supabase
+    .from("projects")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", res.orgId);
+  const hasProjects = (projectsCount ?? 0) > 0;
 
   // ¿Hay una visita esperando en garita (citófono)? — urgente.
   const unitIds = res.units.map((u) => u.id);
@@ -234,6 +242,15 @@ export default async function PortalHome() {
             sub="Hay una votación abierta"
           />
         )}
+        {hasProjects && (
+          <ActionTile
+            href="/portal/proyectos"
+            icon={HardHat}
+            color="teal"
+            label="Proyectos"
+            sub="Cotizaciones y gastos"
+          />
+        )}
         <ActionTile
           href="/portal/a-domicilio"
           icon={ShoppingBag}
@@ -336,6 +353,7 @@ const TILE_COLORS: Record<string, string> = {
   rose: "bg-rose-500",
   red: "bg-red-500",
   orange: "bg-orange-500",
+  teal: "bg-teal-600",
 };
 
 function ActionTile({

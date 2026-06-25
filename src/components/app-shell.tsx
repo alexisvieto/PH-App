@@ -10,6 +10,7 @@ import {
   DoorOpen,
   FileBarChart,
   Gavel,
+  HardHat,
   ShieldCheck,
   Home,
   LogOut,
@@ -64,6 +65,7 @@ const NAV: NavItem[] = [
   { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
   { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },
   { href: "/app/planilla", label: "Planilla", icon: Receipt, exact: false },
+  { href: "/app/proyectos", label: "Proyectos", icon: HardHat, exact: false },
   { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
   { href: "/app/configuracion", label: "Configuración", icon: Settings, exact: false },
 ];

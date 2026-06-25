@@ -2195,6 +2195,114 @@ export type Database = {
         }
         Relationships: []
       }
+      project_quotes: {
+        Row: {
+          amount: number
+          company_name: string
+          created_at: string
+          created_by: string | null
+          file_path: string | null
+          id: string
+          is_winner: boolean
+          notes: string | null
+          organization_id: string
+          project_id: string
+        }
+        Insert: {
+          amount: number
+          company_name: string
+          created_at?: string
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          is_winner?: boolean
+          notes?: string | null
+          organization_id: string
+          project_id: string
+        }
+        Update: {
+          amount?: number
+          company_name?: string
+          created_at?: string
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          is_winner?: boolean
+          notes?: string | null
+          organization_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_quotes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_quotes_project_fk"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          award_reason: string | null
+          awarded_at: string | null
+          building_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          organization_id: string
+          status: Database["public"]["Enums"]["project_status"]
+          title: string
+        }
+        Insert: {
+          award_reason?: string | null
+          awarded_at?: string | null
+          building_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          organization_id: string
+          status?: Database["public"]["Enums"]["project_status"]
+          title: string
+        }
+        Update: {
+          award_reason?: string | null
+          awarded_at?: string | null
+          building_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          organization_id?: string
+          status?: Database["public"]["Enums"]["project_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_building_fk"
+            columns: ["building_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       providers: {
         Row: {
           active: boolean
@@ -3119,6 +3227,10 @@ export type Database = {
         }
         Returns: string
       }
+      award_project_quote: {
+        Args: { p_project: string; p_quote: string; p_reason: string }
+        Returns: undefined
+      }
       cast_vote: {
         Args: { p_abstention: boolean; p_option: string; p_votation: string }
         Returns: undefined
@@ -3308,6 +3420,7 @@ export type Database = {
         | "expirada"
       payroll_kind: "ordinaria" | "xiii"
       payroll_status: "borrador" | "procesada" | "pagada"
+      project_status: "abierto" | "adjudicado" | "cerrado"
       reservation_status: "pendiente" | "aprobada" | "rechazada" | "cancelada"
       termination_scenario:
         | "renuncia"
@@ -3527,6 +3640,7 @@ export const Constants = {
       ],
       payroll_kind: ["ordinaria", "xiii"],
       payroll_status: ["borrador", "procesada", "pagada"],
+      project_status: ["abierto", "adjudicado", "cerrado"],
       reservation_status: ["pendiente", "aprobada", "rechazada", "cancelada"],
       termination_scenario: [
         "renuncia",
