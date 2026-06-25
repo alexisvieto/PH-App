@@ -4,16 +4,22 @@ import { useRef, useState } from "react";
 import { FileText, Loader2 } from "lucide-react";
 
 /**
- * Botón de un PDF del portal. Al tocarlo abre directamente la **hoja nativa**
- * del sistema (iOS/Android) con el documento adjunto: vista previa + imprimir,
- * enviar por correo, compartir (WhatsApp…), guardar en Archivos. Sin pasos
- * intermedios ("ver" y luego "compartir" eran dos botones).
+ * Acción de un PDF del portal/admin. Es un enlace al PDF (`url`, ruta inline
+ * same-origin bajo RLS).
  *
- * iOS es estricto: `navigator.share` solo corre dentro del gesto del toque. Por
- * eso pre-cargamos el PDF al apuntar el botón (onPointerDown) para conservarlo.
- * En escritorio (sin Web Share de archivos) abre el PDF en una pestaña nueva
- * (ahí el navegador ofrece imprimir/descargar); si el popup se bloquea, descarga.
+ * - **Escritorio:** se comporta como un enlace normal → abre el PDF en una
+ *   pestaña nueva al instante (ahí el navegador ofrece imprimir/descargar). No
+ *   hay fetch ni `window.open` tras un `await` (eso lo bloquea el popup blocker
+ *   y dejaba el botón "pegado/inactivo").
+ * - **Móvil/tablet (pointer: coarse):** intercepta el toque y abre la hoja
+ *   nativa con el archivo adjunto (WhatsApp, correo, imprimir, guardar). iOS
+ *   exige `navigator.share` dentro del gesto, por eso pre-cargamos el blob en
+ *   `onPointerDown`.
  */
+function isTouch() {
+  return typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches;
+}
+
 export function PdfActions({
   url,
   filename,
@@ -21,10 +27,10 @@ export function PdfActions({
   name,
   variant = "outline",
 }: {
-  url: string; // ruta same-origin que devuelve el PDF inline (bajo RLS)
-  filename: string; // nombre sugerido al compartir/guardar
-  title: string; // título de la hoja de compartir
-  name: string; // nombre del documento, p. ej. "estado de cuenta"
+  url: string;
+  filename: string;
+  title: string;
+  name: string;
   variant?: "outline" | "solid";
 }) {
   const [busy, setBusy] = useState(false);
@@ -48,64 +54,53 @@ export function PdfActions({
     return pendingRef.current;
   }
 
-  function download(blob: Blob) {
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = objectUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-  }
-
-  async function onOpen() {
+  async function onClick(e: React.MouseEvent) {
+    // Escritorio: deja que el <a target="_blank"> abra el PDF (sin JS, instantáneo).
+    if (!isTouch()) return;
+    const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
+    if (typeof nav.share !== "function") return; // sin Web Share → también deja abrir el enlace
+    // Móvil: intercepta y abre la hoja nativa con el archivo.
+    e.preventDefault();
     if (busy) return;
     setBusy(true);
     try {
       const blob = await ensureBlob();
       const file = new File([blob], filename, { type: "application/pdf" });
-      const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
-      // Hoja nativa SOLO en dispositivos tactiles (movil/tablet). En escritorio
-      // el dialogo de compartir con archivo es poco fiable (se queda pegado y no
-      // genera nada), asi que ahi abrimos el PDF en pestana nueva.
-      const touchDevice =
-        typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
-      if (touchDevice && typeof nav.share === "function" && nav.canShare?.({ files: [file] })) {
+      if (nav.canShare?.({ files: [file] })) {
         await nav.share({ title, files: [file] });
-        return;
+      } else {
+        const objectUrl = URL.createObjectURL(blob);
+        window.open(objectUrl, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
       }
-      // Escritorio: abre el PDF en pestaña nueva (ver + imprimir/descargar del navegador).
-      const objectUrl = URL.createObjectURL(blob);
-      const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
-      if (!win) download(blob); // popup bloqueado → descarga
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return; // canceló la hoja
-      if (blobRef.current) download(blobRef.current);
     } finally {
       setBusy(false);
     }
   }
 
-  const label = name.charAt(0).toUpperCase() + name.slice(1);
   const cls =
     variant === "solid"
       ? "bg-brand text-white hover:opacity-90"
       : "border border-line bg-surface hover:border-brand hover:text-brand";
+  const label = name.charAt(0).toUpperCase() + name.slice(1);
 
   return (
-    <button
-      type="button"
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
       onPointerDown={() => {
-        ensureBlob().catch(() => {});
+        if (isTouch()) ensureBlob().catch(() => {});
       }}
-      onClick={onOpen}
-      disabled={busy}
-      aria-label={`Abrir ${name} (compartir, imprimir o guardar)`}
-      className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition disabled:opacity-60 ${cls}`}
+      onClick={onClick}
+      aria-label={`Abrir ${name}`}
+      className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${cls} ${
+        busy ? "pointer-events-none opacity-60" : ""
+      }`}
     >
       {busy ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />} {label}
-    </button>
+    </a>
   );
 }
