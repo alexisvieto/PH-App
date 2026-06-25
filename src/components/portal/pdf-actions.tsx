@@ -66,8 +66,12 @@ export function PdfActions({
       const blob = await ensureBlob();
       const file = new File([blob], filename, { type: "application/pdf" });
       const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
-      // Móvil: hoja nativa con el documento (imprimir / correo / compartir / guardar).
-      if (typeof nav.share === "function" && nav.canShare?.({ files: [file] })) {
+      // Hoja nativa SOLO en dispositivos tactiles (movil/tablet). En escritorio
+      // el dialogo de compartir con archivo es poco fiable (se queda pegado y no
+      // genera nada), asi que ahi abrimos el PDF en pestana nueva.
+      const touchDevice =
+        typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+      if (touchDevice && typeof nav.share === "function" && nav.canShare?.({ files: [file] })) {
         await nav.share({ title, files: [file] });
         return;
       }
