@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 
-import { areaIcon } from "@/components/reservas/area-icons";
+import { areaIcon, areaIconColor } from "@/components/reservas/area-icons";
 import { EMPTY_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import { fmtTime } from "@/lib/reservas";
 import { createClient } from "@/lib/supabase/client";
@@ -155,11 +155,9 @@ export function ReservationCalendar({
                 className="flex w-[4.5rem] shrink-0 snap-start flex-col items-center gap-1.5"
               >
                 <span
-                  className={`flex size-14 items-center justify-center rounded-2xl border transition ${
-                    active
-                      ? "border-brand bg-brand text-white shadow-sm"
-                      : "border-line bg-surface text-ink/70 hover:bg-gray-50"
-                  }`}
+                  className={`flex size-14 items-center justify-center rounded-2xl transition ${areaIconColor(
+                    a.icon,
+                  )} ${active ? "ring-2 ring-brand ring-offset-2" : "ring-1 ring-line"}`}
                 >
                   <Icon className="size-6" />
                 </span>

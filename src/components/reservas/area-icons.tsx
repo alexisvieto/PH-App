@@ -46,6 +46,22 @@ export function areaIcon(key: string | null | undefined): IconCmp {
   return ICONS[key ?? "default"] ?? CalendarDays;
 }
 
+/** Color representativo por recurso (fondo suave + ícono a color). */
+const ICON_COLOR: Record<string, string> = {
+  party: "bg-fuchsia-100 text-fuchsia-600",
+  bbq: "bg-orange-100 text-orange-600",
+  elevator: "bg-teal-100 text-teal-600",
+  truck: "bg-blue-100 text-blue-600",
+  gym: "bg-violet-100 text-violet-600",
+  pool: "bg-sky-100 text-sky-600",
+  garden: "bg-emerald-100 text-emerald-600",
+  default: "bg-slate-100 text-slate-600",
+};
+
+export function areaIconColor(key: string | null | undefined): string {
+  return ICON_COLOR[key ?? "default"] ?? ICON_COLOR.default;
+}
+
 /** Opciones para que el admin elija el ícono al crear/editar un área. */
 export const AREA_ICON_OPTIONS: { key: string; label: string }[] = [
   { key: "party", label: "Salón / fiestas" },
