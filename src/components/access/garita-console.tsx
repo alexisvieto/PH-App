@@ -287,28 +287,28 @@ export function GaritaConsole({
           type="button"
           onClick={() => setWalkOpen((v) => !v)}
           aria-pressed={walkOpen}
-          className={`flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border bg-surface p-4 text-center transition hover:border-brand ${
+          className={`flex min-h-24 flex-col items-center justify-center gap-1.5 rounded-2xl border bg-surface p-3 text-center transition hover:border-brand ${
             walkOpen ? "border-brand ring-1 ring-brand" : "border-line"
           }`}
         >
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
-            <UserPlus className="size-6" />
+          <span className="flex size-14 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+            <UserPlus className="size-8" />
           </span>
-          <span className="font-semibold leading-tight">Visita sin pase</span>
+          <span className="text-sm font-semibold leading-tight">Visita sin pase</span>
         </button>
 
-        {/* Paquetería: look de caja de cartón (kraft + cinta). */}
+        {/* Paquetería: look de caja de cartón (kraft + cinta), con la caja dominando. */}
         <Link
           href="/app/paqueteria"
-          className="relative flex min-h-28 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl p-4 text-center shadow-sm transition hover:brightness-[0.97]"
+          className="relative flex min-h-24 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-2xl p-3 text-center shadow-sm transition hover:brightness-[0.97]"
           style={{ background: "linear-gradient(135deg, #dcbd92 0%, #c79a63 100%)" }}
         >
           {/* cinta de embalaje */}
-          <span className="pointer-events-none absolute inset-x-0 top-1/2 h-6 -translate-y-1/2 bg-[#e7d3b0]/70" />
-          <span className="relative flex size-12 items-center justify-center rounded-2xl bg-[#fff7ea] text-[#8a5a25] shadow-sm">
-            <Package className="size-6" />
+          <span className="pointer-events-none absolute inset-x-0 top-1/2 h-7 -translate-y-1/2 bg-[#e7d3b0]/70" />
+          <span className="relative flex size-16 items-center justify-center rounded-2xl bg-[#fff7ea] text-[#8a5a25] shadow-sm">
+            <Package className="size-10" />
           </span>
-          <span className="relative font-semibold leading-tight text-[#4a3420]">Paquetería</span>
+          <span className="relative text-sm font-semibold leading-tight text-[#4a3420]">Paquetería</span>
         </Link>
       </div>
 

@@ -2,8 +2,9 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Bell, Home, LogOut, MessagesSquare, QrCode } from "lucide-react";
+import { Bell, Home, LogOut, MessagesSquare, PhoneCall, QrCode } from "lucide-react";
 
+import { IntercomListener } from "@/components/access/intercom-listener";
 import { type Brand, brandInitial } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +14,8 @@ export function PortalShell({
   brand,
   orgName,
   userEmail,
+  orgId,
+  unitIds = [],
   accesosActive = false,
   pendingPackages = 0,
   children,
@@ -20,6 +23,8 @@ export function PortalShell({
   brand: Brand;
   orgName: string;
   userEmail: string | null;
+  orgId: string;
+  unitIds?: string[];
   accesosActive?: boolean;
   pendingPackages?: number;
   children: React.ReactNode;
@@ -39,7 +44,10 @@ export function PortalShell({
   const tabs: Tab[] = [
     { href: "/portal", label: "Inicio", icon: Home, exact: true },
     ...(accesosActive
-      ? [{ href: "/portal/accesos", label: "Visitas", icon: QrCode, exact: false } as Tab]
+      ? ([
+          { href: "/portal/accesos", label: "Visitas", icon: QrCode, exact: false },
+          { href: "/portal/citofono", label: "Citófono", icon: PhoneCall, exact: false },
+        ] as Tab[])
       : []),
     { href: "/portal/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
   ];
@@ -54,6 +62,8 @@ export function PortalShell({
         } as React.CSSProperties
       }
     >
+      {accesosActive && unitIds.length > 0 && <IntercomListener orgId={orgId} unitIds={unitIds} />}
+
       <header className="safe-top border-b border-line bg-surface">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
           <Link href="/portal" className="flex items-center gap-2">

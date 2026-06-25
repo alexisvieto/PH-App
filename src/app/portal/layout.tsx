@@ -42,6 +42,8 @@ export default async function PortalLayout({
       brand={res.brand}
       orgName={res.orgName ?? res.brand.name}
       userEmail={res.email}
+      orgId={res.orgId}
+      unitIds={unitIds}
       accesosActive={!!accesosMod}
       pendingPackages={pendingPackages}
     >
