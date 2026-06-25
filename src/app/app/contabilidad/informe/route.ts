@@ -11,15 +11,18 @@ const MESES = [
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
 
+const STAFF_ROLES = new Set(["owner", "administrador", "asistente"]);
+
 export async function GET(req: Request) {
   const ctx = await getSessionContext();
   const org = ctx?.activeOrg;
   if (!org) return new Response("No autorizado", { status: 401 });
+  if (!ctx?.role || !STAFF_ROLES.has(ctx.role)) return new Response("Sin permiso", { status: 403 });
 
   const url = new URL(req.url);
   const m = url.searchParams.get("m") ?? "";
   const panamaNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Panama" }));
-  const ym = /^\d{4}-\d{2}$/.test(m)
+  const ym = /^\d{4}-(0[1-9]|1[0-2])$/.test(m)
     ? m
     : `${panamaNow.getFullYear()}-${String(panamaNow.getMonth() + 1).padStart(2, "0")}`;
   const [y, mo] = ym.split("-").map(Number);

@@ -32,7 +32,7 @@ export default async function ContabilidadPage({
   const curY = panamaNow.getFullYear();
   const curM = panamaNow.getMonth() + 1;
   const defaultYm = `${curY}-${String(curM).padStart(2, "0")}`;
-  const ym = /^\d{4}-\d{2}$/.test(sp.m ?? "") ? (sp.m as string) : defaultYm;
+  const ym = /^\d{4}-(0[1-9]|1[0-2])$/.test(sp.m ?? "") ? (sp.m as string) : defaultYm;
   const months = Array.from({ length: 12 }, (_, i) => {
     const d = new Date(Date.UTC(curY, curM - 1 - i, 1));
     return {
