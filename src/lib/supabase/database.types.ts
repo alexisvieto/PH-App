@@ -2195,6 +2195,48 @@ export type Database = {
         }
         Relationships: []
       }
+      providers: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          link_url: string | null
+          logo_path: string | null
+          name: string
+          phone: string | null
+          priority: number
+          whatsapp: string | null
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          link_url?: string | null
+          logo_path?: string | null
+          name: string
+          phone?: string | null
+          priority?: number
+          whatsapp?: string | null
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          link_url?: string | null
+          logo_path?: string | null
+          name?: string
+          phone?: string | null
+          priority?: number
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       salary_history: {
         Row: {
           base_salary: number

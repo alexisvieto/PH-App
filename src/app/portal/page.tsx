@@ -11,6 +11,7 @@ import {
   Phone,
   PhoneCall,
   QrCode,
+  ShoppingBag,
   Siren,
   Vote,
 } from "lucide-react";
@@ -234,6 +235,13 @@ export default async function PortalHome() {
           />
         )}
         <ActionTile
+          href="/portal/a-domicilio"
+          icon={ShoppingBag}
+          color="orange"
+          label="A domicilio"
+          sub="Comida, súper y más"
+        />
+        <ActionTile
           href="/portal/quejas"
           icon={MessagesSquare}
           color="amber"
@@ -327,6 +335,7 @@ const TILE_COLORS: Record<string, string> = {
   violet: "bg-violet-500",
   rose: "bg-rose-500",
   red: "bg-red-500",
+  orange: "bg-orange-500",
 };
 
 function ActionTile({
