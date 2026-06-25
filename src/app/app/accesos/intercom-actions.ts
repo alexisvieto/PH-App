@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type IntercomCreate =
-  | { ok: true; requestId: string; contactName: string | null; contactPhone: string | null }
+  | { ok: true; requestId: string; contactName: string | null }
   | { ok: false; error: string };
 
 /** El guardia "llama" a una unidad: crea una solicitud y resuelve a quién avisar
@@ -32,18 +32,17 @@ export async function createIntercom(
   const supabase = await createClient();
   const { data: unit } = await supabase
     .from("units")
-    .select("building_id, is_rented, tenant_name, tenant_phone")
+    .select("building_id, is_rented, tenant_name")
     .eq("id", unitId)
     .eq("organization_id", orgId)
     .maybeSingle();
   if (!unit) return { ok: false, error: "Unidad no encontrada." };
 
-  // ¿A quién le suena? Inquilino si está alquilada; si no, propietario principal.
+  // Solo el NOMBRE para la etiqueta del guardia ("Esperando a…"). El TELÉFONO
+  // del residente nunca sale al cliente: privacidad (el aviso llega in-app).
   let contactName: string | null = null;
-  let contactPhone: string | null = null;
-  if (unit.is_rented && (unit.tenant_phone ?? "").trim()) {
-    contactName = unit.tenant_name ?? "Inquilino";
-    contactPhone = unit.tenant_phone;
+  if (unit.is_rented && (unit.tenant_name ?? "").trim()) {
+    contactName = unit.tenant_name;
   } else {
     const { data: own } = await supabase
       .from("unit_ownerships")
@@ -56,11 +55,10 @@ export async function createIntercom(
     if (own?.person_id) {
       const { data: p } = await supabase
         .from("people")
-        .select("full_name, phone")
+        .select("full_name")
         .eq("id", own.person_id)
         .maybeSingle();
       contactName = p?.full_name ?? null;
-      contactPhone = p?.phone ?? null;
     }
   }
 
@@ -82,7 +80,7 @@ export async function createIntercom(
   }
 
   revalidatePath("/app/garita");
-  return { ok: true, requestId: req.id, contactName, contactPhone };
+  return { ok: true, requestId: req.id, contactName };
 }
 
 export async function cancelIntercom(requestId: string): Promise<{ ok: boolean; error: string | null }> {

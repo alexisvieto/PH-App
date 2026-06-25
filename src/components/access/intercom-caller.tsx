@@ -2,13 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, DoorOpen, Loader2, PhoneCall, Send, X, XCircle } from "lucide-react";
+import { CheckCircle2, DoorOpen, Loader2, PhoneCall, X, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { registerVisit } from "@/app/app/accesos/actions";
 import { cancelIntercom, createIntercom } from "@/app/app/accesos/intercom-actions";
 import { createClient } from "@/lib/supabase/client";
-import { buildWaLink, waPhone } from "@/lib/whatsapp";
 
 type Status = "pendiente" | "autorizada" | "rechazada" | "cancelada";
 type Call = {
@@ -17,7 +16,6 @@ type Call = {
   unitLabel: string;
   visitorName: string;
   contactName: string | null;
-  contactPhone: string | null;
   status: Status;
 };
 
@@ -73,18 +71,8 @@ export function IntercomCaller({ units }: { units: { id: string; label: string }
       unitLabel,
       visitorName: visitor.trim(),
       contactName: res.contactName,
-      contactPhone: res.contactPhone,
       status: "pendiente",
     });
-  }
-
-  function notifyWhatsApp() {
-    if (!call) return;
-    const phone = waPhone(call.contactPhone);
-    if (!phone) return toast.error("La unidad no tiene un teléfono registrado.");
-    const link = `${window.location.origin}/portal/citofono`;
-    const text = `Hola${call.contactName ? ` ${call.contactName}` : ""}, soy la garita de tu edificio. ${call.visitorName} está en la entrada y quiere ingresar a tu unidad ${call.unitLabel}. Autoriza o rechaza aquí: ${link}`;
-    window.open(buildWaLink(phone, text), "_blank", "noopener,noreferrer");
   }
 
   async function onCancel() {
@@ -161,21 +149,14 @@ export function IntercomCaller({ units }: { units: { id: string; label: string }
             <p className="text-sm text-muted">
               {call.unitLabel} · {call.contactName ?? "residente"}
             </p>
+            <p className="mt-1 text-xs text-muted">Le llegó un aviso en su app.</p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <button
-              onClick={notifyWhatsApp}
-              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-base font-semibold text-white transition hover:opacity-90"
-            >
-              <Send className="size-5" /> Avisar por WhatsApp
-            </button>
-            <button
-              onClick={onCancel}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-line px-4 py-3 text-sm font-medium text-muted transition hover:bg-gray-50"
-            >
-              <X className="size-4" /> Cancelar
-            </button>
-          </div>
+          <button
+            onClick={onCancel}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-3 text-sm font-medium text-muted transition hover:bg-gray-50"
+          >
+            <X className="size-4" /> Cancelar llamada
+          </button>
         </div>
       ) : call.status === "autorizada" ? (
         <div className="space-y-3">
