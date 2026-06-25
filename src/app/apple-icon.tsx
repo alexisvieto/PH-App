@@ -26,8 +26,8 @@ export default function AppleIcon() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          width={112}
-          height={112}
+          width={142}
+          height={142}
           alt=""
           src={`data:image/svg+xml,${encodeURIComponent(MARK)}`}
         />
