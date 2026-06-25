@@ -1,21 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Modus PH">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Atrio PH">
   <rect width="512" height="512" rx="112" fill="#0F766E"/>
-  <!-- edificio -->
-  <rect x="156" y="120" width="200" height="276" rx="12" fill="#ffffff"/>
-  <!-- ventanas (3 x 4) -->
-  <g fill="#0F766E">
-    <rect x="180" y="148" width="30" height="30" rx="4"/>
-    <rect x="241" y="148" width="30" height="30" rx="4"/>
-    <rect x="302" y="148" width="30" height="30" rx="4"/>
-    <rect x="180" y="204" width="30" height="30" rx="4"/>
-    <rect x="241" y="204" width="30" height="30" rx="4"/>
-    <rect x="302" y="204" width="30" height="30" rx="4"/>
-    <rect x="180" y="260" width="30" height="30" rx="4"/>
-    <rect x="241" y="260" width="30" height="30" rx="4"/>
-    <rect x="302" y="260" width="30" height="30" rx="4"/>
+  <g transform="translate(256, 250)" fill="none" stroke-linejoin="round">
+    <path d="M 0,-60 L 140,10 L 0,80 L -140,10 Z" stroke="#FFFFFF" stroke-width="22" opacity="0.85"/>
+    <path d="M 0,-100 L 140,-30 L 0,40 L -140,-30 Z" stroke="#FFFFFF" stroke-width="22" opacity="0.55"/>
+    <path d="M 0,-140 L 140,-70 L 0,0 L -140,-70 Z" stroke="#FFFFFF" stroke-width="22"/>
+    <polygon points="0,-40 50,-15 0,10 -50,-15" fill="#FFFFFF" opacity="0.2"/>
   </g>
-  <!-- puerta -->
-  <rect x="232" y="320" width="48" height="76" rx="6" fill="#14B8A6"/>
-  <!-- base / acera -->
-  <rect x="120" y="392" width="272" height="16" rx="8" fill="#14B8A6"/>
 </svg>

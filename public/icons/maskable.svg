@@ -1,18 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Modus PH">
-  <!-- maskable: glifo dentro de la zona segura (~64% central) sobre fondo lleno -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Atrio PH">
   <rect width="512" height="512" fill="#0F766E"/>
-  <rect x="196" y="176" width="120" height="166" rx="8" fill="#ffffff"/>
-  <g fill="#0F766E">
-    <rect x="210" y="192" width="18" height="18" rx="3"/>
-    <rect x="247" y="192" width="18" height="18" rx="3"/>
-    <rect x="284" y="192" width="18" height="18" rx="3"/>
-    <rect x="210" y="226" width="18" height="18" rx="3"/>
-    <rect x="247" y="226" width="18" height="18" rx="3"/>
-    <rect x="284" y="226" width="18" height="18" rx="3"/>
-    <rect x="210" y="260" width="18" height="18" rx="3"/>
-    <rect x="247" y="260" width="18" height="18" rx="3"/>
-    <rect x="284" y="260" width="18" height="18" rx="3"/>
+  <g transform="translate(256, 256) scale(0.72) translate(0, 30)" fill="none" stroke-linejoin="round">
+    <path d="M 0,-60 L 140,10 L 0,80 L -140,10 Z" stroke="#FFFFFF" stroke-width="22" opacity="0.85"/>
+    <path d="M 0,-100 L 140,-30 L 0,40 L -140,-30 Z" stroke="#FFFFFF" stroke-width="22" opacity="0.55"/>
+    <path d="M 0,-140 L 140,-70 L 0,0 L -140,-70 Z" stroke="#FFFFFF" stroke-width="22"/>
   </g>
-  <rect x="241" y="300" width="30" height="42" rx="4" fill="#14B8A6"/>
-  <rect x="180" y="338" width="152" height="10" rx="5" fill="#14B8A6"/>
 </svg>
