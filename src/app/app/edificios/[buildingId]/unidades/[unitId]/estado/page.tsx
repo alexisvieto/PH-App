@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Download } from "lucide-react";
 
 import { NewChargeForm } from "@/components/forms/new-charge-form";
 import { NewPaymentForm } from "@/components/forms/new-payment-form";
+import { PdfActions } from "@/components/portal/pdf-actions";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/format";
 import { getSessionContext } from "@/lib/session";
@@ -41,31 +41,22 @@ export default async function EstadoCuentaPage({
             {st.ownerName ? ` · ${st.ownerName}` : ""}
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
-          <a
-            href={`/app/edificios/${buildingId}/unidades/${unitId}/estado/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm font-medium transition hover:border-brand hover:text-brand"
-          >
-            <Download className="size-4" /> Estado PDF
-          </a>
-          {owes ? (
-            <span
-              className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-muted opacity-60"
-              title="No se puede emitir con saldo pendiente"
-            >
-              Paz y salvo
-            </span>
-          ) : (
-            <a
-              href={`/app/edificios/${buildingId}/unidades/${unitId}/estado/paz-y-salvo`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-brand px-3 py-1.5 text-sm font-medium text-brand transition hover:bg-brand-soft/40"
-            >
-              Paz y salvo
-            </a>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          {/* Generar + enviar al residente (menú nativo: WhatsApp, correo, imprimir, guardar). */}
+          <PdfActions
+            url={`/app/edificios/${buildingId}/unidades/${unitId}/estado/pdf`}
+            filename={`Estado de cuenta - ${st.unitCode}${st.ownerName ? ` - ${st.ownerName}` : ""}.pdf`}
+            title={`Estado de cuenta · Unidad ${st.unitCode}${st.ownerName ? ` · ${st.ownerName}` : ""}`}
+            name="estado de cuenta"
+          />
+          {!owes && (
+            <PdfActions
+              url={`/app/edificios/${buildingId}/unidades/${unitId}/estado/paz-y-salvo`}
+              filename={`Paz y salvo - ${st.unitCode}${st.ownerName ? ` - ${st.ownerName}` : ""}.pdf`}
+              title={`Paz y salvo · Unidad ${st.unitCode}${st.ownerName ? ` · ${st.ownerName}` : ""}`}
+              name="paz y salvo"
+              variant="solid"
+            />
           )}
         </div>
       </div>

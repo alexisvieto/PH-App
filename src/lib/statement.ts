@@ -52,9 +52,10 @@ export async function getUnitStatement(
   const [ownerRes, chargesRes, paymentsRes] = await Promise.all([
     supabase
       .from("unit_ownerships")
-      .select("person:people(full_name)")
+      .select("person:people(full_name), is_primary, share")
       .eq("unit_id", unitId)
       .eq("is_active", true)
+      .order("is_primary", { ascending: false }) // el propietario principal (contacto/responsable) primero
       .order("share", { ascending: false })
       .limit(1)
       .maybeSingle(),
