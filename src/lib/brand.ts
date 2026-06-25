@@ -35,9 +35,9 @@ export type Brand = {
 /** Fallback al producto cuando una org no tiene marca configurada. */
 export const DEFAULT_BRAND: Brand = {
   name: PRODUCT_NAME,
-  primary: "#0F766E",
-  accent: "#14B8A6",
-  dark: "#1F2937",
+  primary: "#2C5BCB",
+  accent: "#7B9BE8",
+  dark: "#0F1E3D",
   website: null,
   email: null,
   phone: null,

@@ -1,8 +1,7 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Page, Text, View } from "@react-pdf/renderer";
 
-import { AtrioMark } from "@/components/pdf/_kit";
+import { ATRIO, BrandHeader, Footer, pdfStyles } from "@/components/pdf/_kit";
 import type { Brand } from "@/lib/brand";
-import { PRODUCT_CREDIT } from "@/lib/brand";
 
 export function PazSalvoPDF({
   brand,
@@ -17,94 +16,55 @@ export function PazSalvoPDF({
   ownerName: string | null;
   generatedOn: string;
 }) {
-  const styles = StyleSheet.create({
-    page: {
-      padding: 48,
-      fontSize: 11,
-      color: "#1f2937",
-      fontFamily: "Helvetica",
-      lineHeight: 1.6,
-    },
-    header: {
-      backgroundColor: brand.primary,
-      color: "#ffffff",
-      padding: 16,
-      borderRadius: 6,
-      marginBottom: 32,
-    },
-    brandName: { fontSize: 16, fontFamily: "Helvetica-Bold" },
-    title: {
-      fontSize: 20,
-      fontFamily: "Helvetica-Bold",
-      textAlign: "center",
-      marginBottom: 24,
-      letterSpacing: 1,
-    },
-    body: { textAlign: "justify", marginBottom: 24 },
-    bold: { fontFamily: "Helvetica-Bold" },
-    date: { marginTop: 8 },
-    sign: {
-      marginTop: 64,
-      alignItems: "center",
-    },
-    signLine: {
-      borderTopWidth: 1,
-      borderColor: "#1f2937",
-      width: 220,
-      paddingTop: 6,
-      textAlign: "center",
-    },
-    footer: {
-      position: "absolute",
-      bottom: 24,
-      left: 48,
-      right: 48,
-      textAlign: "center",
-      color: "#9ca3af",
-      fontSize: 8,
-    },
-  });
+  const s = pdfStyles(brand);
+  const bold = { fontFamily: "Helvetica-Bold" as const };
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <AtrioMark h={16} />
-            <Text style={[styles.brandName, { marginLeft: 7 }]}>{brand.name}</Text>
+      <Page size="A4" style={s.page}>
+        <BrandHeader brand={brand} generatedOn={generatedOn} docType="Paz y salvo" styles={s} />
+
+        <Text style={[s.title, { textAlign: "center", marginTop: 26 }]}>Paz y Salvo</Text>
+
+        {/* Sello de estado */}
+        <View
+          style={{
+            alignSelf: "center",
+            backgroundColor: brand.primary,
+            borderRadius: 999,
+            paddingVertical: 6,
+            paddingHorizontal: 18,
+            marginBottom: 30,
+          }}
+        >
+          <Text style={{ color: "#FFFFFF", fontFamily: "Helvetica-Bold", fontSize: 9.5, letterSpacing: 0.8 }}>
+            SIN SALDOS PENDIENTES
+          </Text>
+        </View>
+
+        <View style={{ marginHorizontal: 18 }}>
+          <Text style={{ textAlign: "justify", fontSize: 11, lineHeight: 1.7, color: ATRIO.text }}>
+            Por medio de la presente, la administración de <Text style={bold}>{buildingName}</Text> hace constar
+            que la unidad <Text style={bold}>{unitCode}</Text>
+            {ownerName ? (
+              <Text>
+                , a nombre de <Text style={bold}>{ownerName}</Text>
+              </Text>
+            ) : null}{" "}
+            se encuentra <Text style={{ ...bold, color: brand.primary }}>a paz y salvo</Text> con la administración,
+            sin saldos pendientes por cuotas de mantenimiento, cuotas extraordinarias ni multas a la fecha de
+            emisión.
+          </Text>
+          <Text style={{ marginTop: 14, color: ATRIO.text2 }}>Emitido el {generatedOn}.</Text>
+        </View>
+
+        <View style={[s.sign, { justifyContent: "center" }]}>
+          <View style={s.signBox}>
+            <Text>Administración</Text>
           </View>
         </View>
 
-        <Text style={styles.title}>PAZ Y SALVO</Text>
-
-        <View style={styles.body}>
-          <Text>
-            Por medio de la presente, la administración de{" "}
-            <Text style={styles.bold}>{buildingName}</Text> hace constar que la
-            unidad <Text style={styles.bold}>{unitCode}</Text>
-            {ownerName ? (
-              <Text>
-                , a nombre de <Text style={styles.bold}>{ownerName}</Text>
-              </Text>
-            ) : (
-              <Text></Text>
-            )}{" "}
-            se encuentra <Text style={styles.bold}>a paz y salvo</Text> con la
-            administración, sin saldos pendientes por cuotas de mantenimiento,
-            cuotas extraordinarias ni multas a la fecha de emisión.
-          </Text>
-          <Text style={styles.date}>Emitido el {generatedOn}.</Text>
-        </View>
-
-        <View style={styles.sign}>
-          <Text style={styles.signLine}>Administración</Text>
-        </View>
-
-        {brand.exportCredit && (
-          <Text style={styles.footer} fixed>
-            {brand.name} · {PRODUCT_CREDIT}
-          </Text>
-        )}
+        <Footer brand={brand} styles={s} />
       </Page>
     </Document>
   );

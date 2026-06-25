@@ -3,119 +3,196 @@ import { Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import type { Brand } from "@/lib/brand";
 import { PRODUCT_CREDIT } from "@/lib/brand";
 
-/** Estilos base compartidos por los documentos (diseño profesional, marca por tenant). */
-export function pdfStyles(brand: Brand) {
-  return StyleSheet.create({
-    page: {
-      paddingTop: 40,
-      paddingBottom: 64,
-      paddingHorizontal: 48,
-      fontSize: 10,
-      color: "#1f2937",
-      fontFamily: "Helvetica",
-      lineHeight: 1.5,
-    },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: brand.primary,
-      color: "#ffffff",
-      paddingVertical: 14,
-      paddingHorizontal: 18,
-      borderRadius: 8,
-      marginBottom: 24,
-    },
-    brandName: { fontSize: 15, fontFamily: "Helvetica-Bold" },
-    headerRight: { fontSize: 9, color: "#ffffff", opacity: 0.9, textAlign: "right" },
-    docType: {
-      fontSize: 9,
-      letterSpacing: 2,
-      textTransform: "uppercase",
-      color: brand.primary,
-      fontFamily: "Helvetica-Bold",
-      marginBottom: 4,
-    },
-    title: { fontSize: 20, fontFamily: "Helvetica-Bold", marginBottom: 16 },
-    metaGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 8 },
-    metaCell: { width: "50%", marginBottom: 6, paddingRight: 8 },
-    metaLabel: { fontSize: 8, color: "#6b7280", textTransform: "uppercase", letterSpacing: 0.5 },
-    metaValue: { fontSize: 11, fontFamily: "Helvetica-Bold" },
-    section: { marginTop: 16 },
-    sectionTitle: {
-      fontSize: 11,
-      fontFamily: "Helvetica-Bold",
-      color: brand.primary,
-      borderBottomWidth: 1,
-      borderColor: "#e5e7eb",
-      paddingBottom: 4,
-      marginBottom: 8,
-    },
-    row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
-    rowLabel: { color: "#374151" },
-    rowValue: { fontFamily: "Helvetica-Bold" },
-    totalRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: 8,
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderColor: "#1f2937",
-    },
-    totalLabel: { fontSize: 13, fontFamily: "Helvetica-Bold" },
-    totalValue: { fontSize: 13, fontFamily: "Helvetica-Bold", color: brand.primary },
-    note: { marginTop: 14, fontSize: 9, color: "#6b7280" },
-    sign: { marginTop: 56, flexDirection: "row", justifyContent: "space-between" },
-    signBox: { width: "45%", borderTopWidth: 1, borderColor: "#9ca3af", paddingTop: 6, textAlign: "center", fontSize: 9 },
-    footer: {
-      position: "absolute",
-      bottom: 24,
-      left: 48,
-      right: 48,
-      borderTopWidth: 1,
-      borderColor: "#e5e7eb",
-      paddingTop: 8,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      color: "#9ca3af",
-      fontSize: 8,
-    },
-  });
-}
+/** Paleta Atrio (guía de marca). El color del tenant entra como acento (brand.primary). */
+export const ATRIO = {
+  blue: "#2C5BCB",
+  deep: "#1A3C86",
+  light: "#7B9BE8",
+  ink: "#0F1E3D",
+  surface: "#FFFFFF",
+  bg: "#FBFCFE",
+  border: "#EEF1F7",
+  text: "#0F1E3D",
+  text2: "#5A6680",
+  text3: "#8A93A8",
+};
 
-/** Símbolo de Atrio PH (rombos apilados) porteado a primitivas de @react-pdf.
- *  En blanco, para la barra de color del header. */
-export function AtrioMark({ h = 16 }: { h?: number }) {
-  const w = (h * 320) / 260;
+/** Símbolo "Prisma" (cubo isométrico) porteado a primitivas de @react-pdf. */
+export function AtrioPrisma({ size = 18, white = false }: { size?: number; white?: boolean }) {
   return (
-    <Svg width={w} height={h} viewBox="90 60 320 260">
-      <Path d="M 250,160 L 390,230 L 250,300 L 110,230 Z" fill="none" stroke="#ffffff" strokeWidth={22} strokeLinejoin="round" opacity={0.8} />
-      <Path d="M 250,120 L 390,190 L 250,260 L 110,190 Z" fill="none" stroke="#ffffff" strokeWidth={22} strokeLinejoin="round" opacity={0.5} />
-      <Path d="M 250,80 L 390,150 L 250,220 L 110,150 Z" fill="none" stroke="#ffffff" strokeWidth={22} strokeLinejoin="round" />
+    <Svg width={size} height={size} viewBox="0 0 100 100">
+      <Path
+        d="M 45.64 18.84 Q 50 16.4 54.36 18.84 L 75.24 30.54 Q 79.6 32.99 75.18 35.32 L 54.42 46.27 Q 50 48.6 45.58 46.27 L 24.82 35.32 Q 20.4 32.99 24.76 30.54 Z"
+        fill={white ? "#FFFFFF" : ATRIO.light}
+      />
+      <Path
+        d="M 19.8 39.2 Q 19.72 34.2 24.07 36.67 L 44.43 48.22 Q 48.78 50.69 48.86 55.69 L 49.21 78.8 Q 49.29 83.79 45 81.22 L 24.52 68.92 Q 20.24 66.34 20.16 61.34 Z"
+        fill={white ? "#FFFFFF" : ATRIO.blue}
+      />
+      <Path
+        d="M 75.93 36.67 Q 80.28 34.2 80.2 39.2 L 79.84 61.34 Q 79.76 66.34 75.48 68.92 L 55 81.22 Q 50.71 83.79 50.79 78.8 L 51.14 55.69 Q 51.22 50.69 55.57 48.22 Z"
+        fill={white ? "#FFFFFF" : ATRIO.deep}
+      />
     </Svg>
   );
 }
 
+/** Compat: docs aún no migrados llaman <AtrioMark h=…/> en headers de color → Prisma blanco. */
+export function AtrioMark({ h = 16 }: { h?: number }) {
+  return <AtrioPrisma size={h} white />;
+}
+
+/** Sistema de estilos moderno (marca Atrio + acento por tenant). */
+export function pdfStyles(brand: Brand) {
+  const accent = brand.primary;
+  return StyleSheet.create({
+    page: {
+      paddingTop: 42,
+      paddingBottom: 64,
+      paddingHorizontal: 44,
+      fontSize: 9.5,
+      color: ATRIO.text,
+      fontFamily: "Helvetica",
+      lineHeight: 1.5,
+    },
+
+    // Encabezado: lockup del PH (cubo + nombre) a la izquierda, eyebrow a la derecha.
+    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
+    lockup: { flexDirection: "row", alignItems: "center" },
+    brandName: { fontSize: 13, fontFamily: "Helvetica-Bold", color: ATRIO.ink, marginLeft: 8 },
+    headerRight: { alignItems: "flex-end" },
+    eyebrow: {
+      fontSize: 8,
+      letterSpacing: 1.6,
+      textTransform: "uppercase",
+      color: accent,
+      fontFamily: "Helvetica-Bold",
+    },
+    headerSub: { fontSize: 9, color: ATRIO.text2, marginTop: 2 },
+    rule: { height: 2.5, backgroundColor: accent, borderRadius: 2, marginTop: 10, marginBottom: 18 },
+
+    // Título de documento (cuando no va en el eyebrow del header).
+    title: { fontSize: 22, fontFamily: "Helvetica-Bold", color: ATRIO.ink, marginBottom: 14, letterSpacing: -0.4 },
+
+    // Tarjeta "hero" (saldo / dato destacado).
+    hero: { borderRadius: 14, paddingVertical: 16, paddingHorizontal: 20, marginBottom: 18 },
+    heroLabel: { fontSize: 8.5, letterSpacing: 1, textTransform: "uppercase", color: "#FFFFFF", opacity: 0.85 },
+    heroValue: { fontSize: 28, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1, marginTop: 8, marginBottom: 8 },
+    heroNote: { fontSize: 9, color: "#FFFFFF", opacity: 0.9 },
+
+    // Meta (Edificio / Propietario / Emitido…).
+    metaGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 16 },
+    metaCell: { width: "33.33%", marginBottom: 8, paddingRight: 8 },
+    metaLabel: { fontSize: 7.5, color: ATRIO.text3, textTransform: "uppercase", letterSpacing: 0.6 },
+    metaValue: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: ATRIO.ink, marginTop: 1 },
+
+    sectionTitle: {
+      fontSize: 8,
+      letterSpacing: 1.4,
+      textTransform: "uppercase",
+      color: ATRIO.text3,
+      fontFamily: "Helvetica-Bold",
+      marginBottom: 8,
+    },
+
+    // Tabla.
+    tHead: {
+      flexDirection: "row",
+      backgroundColor: ATRIO.bg,
+      borderRadius: 8,
+      paddingVertical: 7,
+      paddingHorizontal: 10,
+    },
+    th: { fontSize: 8, fontFamily: "Helvetica-Bold", color: ATRIO.text2, textTransform: "uppercase", letterSpacing: 0.5 },
+    tRow: {
+      flexDirection: "row",
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderBottomWidth: 1,
+      borderColor: ATRIO.border,
+    },
+    td: { fontSize: 10, color: ATRIO.text },
+    tdMuted: { fontSize: 10, color: ATRIO.text2 },
+
+    // Totales.
+    totals: { marginTop: 14, marginLeft: "auto", width: "55%" },
+    totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
+    totalLabel: { fontSize: 10, color: ATRIO.text2 },
+    totalValue: { fontSize: 10, fontFamily: "Helvetica-Bold", color: ATRIO.ink },
+    grandTotal: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 8,
+      paddingVertical: 9,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+    },
+    grandLabel: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
+    grandValue: { fontSize: 15, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
+
+    note: { marginTop: 16, fontSize: 9, color: ATRIO.text2 },
+
+    // Compat con documentos aún no migrados al sistema nuevo.
+    docType: { fontSize: 8, letterSpacing: 1.6, textTransform: "uppercase", color: accent, fontFamily: "Helvetica-Bold", marginBottom: 4 },
+    section: { marginTop: 16 },
+    row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
+    rowLabel: { color: ATRIO.text2 },
+    rowValue: { fontFamily: "Helvetica-Bold", color: ATRIO.ink },
+
+    // Firmas.
+    sign: { marginTop: 54, flexDirection: "row", justifyContent: "space-between" },
+    signBox: { width: "45%", borderTopWidth: 1, borderColor: ATRIO.text3, paddingTop: 6, textAlign: "center", fontSize: 9, color: ATRIO.text2 },
+
+    // Pie con el Prisma + crédito.
+    footer: {
+      position: "absolute",
+      bottom: 26,
+      left: 44,
+      right: 44,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderTopWidth: 1,
+      borderColor: ATRIO.border,
+      paddingTop: 8,
+    },
+    footerLeft: { flexDirection: "row", alignItems: "center" },
+    footerText: { fontSize: 7.5, color: ATRIO.text3, marginLeft: 6 },
+    footerPage: { fontSize: 7.5, color: ATRIO.text3 },
+  });
+}
+
+/** Encabezado de marca reutilizable: lockup del PH + eyebrow del documento. */
 export function BrandHeader({
   brand,
   generatedOn,
+  docType,
   styles,
 }: {
   brand: Brand;
   generatedOn: string;
+  docType?: string;
   styles: ReturnType<typeof pdfStyles>;
 }) {
   return (
-    <View style={styles.header}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <AtrioMark h={16} />
-        <Text style={[styles.brandName, { marginLeft: 7 }]}>{brand.name}</Text>
+    <>
+      <View style={styles.header}>
+        <View style={styles.lockup}>
+          <AtrioPrisma size={20} />
+          <Text style={styles.brandName}>{brand.name}</Text>
+        </View>
+        <View style={styles.headerRight}>
+          {docType ? <Text style={styles.eyebrow}>{docType}</Text> : null}
+          <Text style={styles.headerSub}>Emitido el {generatedOn}</Text>
+        </View>
       </View>
-      <Text style={styles.headerRight}>Emitido el {generatedOn}</Text>
-    </View>
+      <View style={styles.rule} />
+    </>
   );
 }
 
+/** Pie reutilizable: Prisma + crédito ("‹PH› · Atrio PH · www.atrioph.net · by Nexera") + página. */
 export function Footer({
   brand,
   styles,
@@ -125,8 +202,13 @@ export function Footer({
 }) {
   return (
     <View style={styles.footer} fixed>
-      <Text>{brand.exportCredit ? `${brand.name} · ${PRODUCT_CREDIT}` : brand.name}</Text>
-      <Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
+      <View style={styles.footerLeft}>
+        <AtrioPrisma size={11} />
+        <Text style={styles.footerText}>
+          {brand.exportCredit ? `${brand.name} · ${PRODUCT_CREDIT}` : brand.name}
+        </Text>
+      </View>
+      <Text style={styles.footerPage} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
     </View>
   );
 }
