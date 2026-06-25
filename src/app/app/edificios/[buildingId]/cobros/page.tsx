@@ -30,7 +30,7 @@ export default async function CobrosPage({
   const [{ data: fee }, { data: charges }] = await Promise.all([
     supabase
       .from("fee_settings")
-      .select("method, base_amount")
+      .select("method, base_amount, late_fee_pct, late_fee_day, reserve_pct")
       .eq("building_id", buildingId)
       .maybeSingle(),
     supabase
@@ -68,6 +68,9 @@ export default async function CobrosPage({
         buildingId={buildingId}
         method={fee?.method ?? null}
         baseAmount={fee?.base_amount ?? null}
+        lateFeePct={fee?.late_fee_pct ?? null}
+        lateFeeDay={fee?.late_fee_day ?? null}
+        reservePct={fee?.reserve_pct ?? null}
       />
 
       <GenerateChargesForm

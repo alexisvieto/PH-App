@@ -1005,8 +1005,11 @@ export type Database = {
           created_by: string | null
           currency: string
           id: string
+          late_fee_day: number | null
+          late_fee_pct: number
           method: Database["public"]["Enums"]["fee_method"]
           organization_id: string
+          reserve_pct: number
           updated_at: string
         }
         Insert: {
@@ -1015,8 +1018,11 @@ export type Database = {
           created_by?: string | null
           currency?: string
           id?: string
+          late_fee_day?: number | null
+          late_fee_pct?: number
           method?: Database["public"]["Enums"]["fee_method"]
           organization_id: string
+          reserve_pct?: number
           updated_at?: string
         }
         Update: {
@@ -1025,8 +1031,11 @@ export type Database = {
           created_by?: string | null
           currency?: string
           id?: string
+          late_fee_day?: number | null
+          late_fee_pct?: number
           method?: Database["public"]["Enums"]["fee_method"]
           organization_id?: string
+          reserve_pct?: number
           updated_at?: string
         }
         Relationships: [
@@ -1191,6 +1200,146 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          entry_date: string
+          id: string
+          organization_id: string
+          source_id: string | null
+          source_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          entry_date: string
+          id?: string
+          organization_id: string
+          source_id?: string | null
+          source_type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          entry_date?: string
+          id?: string
+          organization_id?: string
+          source_id?: string | null
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_lines: {
+        Row: {
+          account_id: string
+          credit: number
+          debit: number
+          entry_id: string
+          id: string
+          organization_id: string
+        }
+        Insert: {
+          account_id: string
+          credit?: number
+          debit?: number
+          entry_id: string
+          id?: string
+          organization_id: string
+        }
+        Update: {
+          account_id?: string
+          credit?: number
+          debit?: number
+          entry_id?: string
+          id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_lines_account_fk"
+            columns: ["account_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_accounts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "journal_lines_entry_fk"
+            columns: ["entry_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "journal_lines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_accounts: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          fund: Database["public"]["Enums"]["account_fund"]
+          id: string
+          is_system: boolean
+          name: string
+          organization_id: string
+          system_role: string | null
+          tax_exempt: boolean
+          type: Database["public"]["Enums"]["account_type"]
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          fund?: Database["public"]["Enums"]["account_fund"]
+          id?: string
+          is_system?: boolean
+          name: string
+          organization_id: string
+          system_role?: string | null
+          tax_exempt?: boolean
+          type: Database["public"]["Enums"]["account_type"]
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          fund?: Database["public"]["Enums"]["account_fund"]
+          id?: string
+          is_system?: boolean
+          name?: string
+          organization_id?: string
+          system_role?: string | null
+          tax_exempt?: boolean
+          type?: Database["public"]["Enums"]["account_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3227,6 +3376,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accounting_summary: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: Json
+      }
       add_unit_owner: {
         Args: {
           p_acquired_on?: string
@@ -3297,6 +3450,7 @@ export type Database = {
       }
       end_lease: { Args: { p_unit_id: string }; Returns: undefined }
       generate_all_monthly_charges: { Args: never; Returns: number }
+      generate_late_fees: { Args: never; Returns: number }
       generate_monthly_charges: {
         Args: { p_building_id: string; p_due_date?: string; p_period: string }
         Returns: number
@@ -3329,6 +3483,18 @@ export type Database = {
         Args: { p_email: string; p_user: string }
         Returns: undefined
       }
+      post_charge: {
+        Args: { c: Database["public"]["Tables"]["charges"]["Row"] }
+        Returns: undefined
+      }
+      post_expense: {
+        Args: { e: Database["public"]["Tables"]["expenses"]["Row"] }
+        Returns: undefined
+      }
+      post_payment: {
+        Args: { p: Database["public"]["Tables"]["payments"]["Row"] }
+        Returns: undefined
+      }
       purge_old_access_records: { Args: never; Returns: undefined }
       register_ad_click: { Args: { p_campaign: string }; Returns: undefined }
       register_lease: {
@@ -3354,6 +3520,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      seed_ledger_accounts: { Args: { p_org: string }; Returns: undefined }
       set_yappy_config: {
         Args: {
           p_enabled: boolean
@@ -3370,12 +3537,19 @@ export type Database = {
       }
     }
     Enums: {
+      account_fund: "operativo" | "imprevistos"
+      account_type: "activo" | "pasivo" | "patrimonio" | "ingreso" | "gasto"
       ad_status: "active" | "paused"
       amenity_type: "estacionamiento" | "deposito"
       announcement_kind: "anuncio" | "novedad"
       anomaly_status: "abierta" | "resuelta"
       building_type: "residencial" | "comercial" | "mixto"
-      charge_concept: "mantenimiento" | "extraordinaria" | "multa" | "otro"
+      charge_concept:
+        | "mantenimiento"
+        | "extraordinaria"
+        | "multa"
+        | "otro"
+        | "recargo"
       contract_type: "indefinido" | "definido"
       doc_type: "cedula" | "pasaporte" | "ruc" | "otro"
       employee_status: "activo" | "inactivo"
@@ -3585,12 +3759,20 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_fund: ["operativo", "imprevistos"],
+      account_type: ["activo", "pasivo", "patrimonio", "ingreso", "gasto"],
       ad_status: ["active", "paused"],
       amenity_type: ["estacionamiento", "deposito"],
       announcement_kind: ["anuncio", "novedad"],
       anomaly_status: ["abierta", "resuelta"],
       building_type: ["residencial", "comercial", "mixto"],
-      charge_concept: ["mantenimiento", "extraordinaria", "multa", "otro"],
+      charge_concept: [
+        "mantenimiento",
+        "extraordinaria",
+        "multa",
+        "otro",
+        "recargo",
+      ],
       contract_type: ["indefinido", "definido"],
       doc_type: ["cedula", "pasaporte", "ruc", "otro"],
       employee_status: ["activo", "inactivo"],

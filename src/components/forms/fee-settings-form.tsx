@@ -18,10 +18,16 @@ export function FeeSettingsForm({
   buildingId,
   method,
   baseAmount,
+  lateFeePct,
+  lateFeeDay,
+  reservePct,
 }: {
   buildingId: string;
   method: FeeMethod | null;
   baseAmount: number | null;
+  lateFeePct: number | null;
+  lateFeeDay: number | null;
+  reservePct: number | null;
 }) {
   const [state, action] = useActionState(saveFeeSettings, EMPTY_ACTION_STATE);
 
@@ -70,6 +76,55 @@ export function FeeSettingsForm({
         las unidades según su % de participación.{" "}
         <strong>Monto fijo:</strong> monto que paga cada unidad.
       </p>
+
+      <div className="border-t border-line pt-4">
+        <h3 className="text-sm font-semibold">Morosidad y Fondo de Imprevistos (Ley 284)</h3>
+        <div className="mt-3 grid gap-4 sm:grid-cols-3">
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">Recargo por morosidad (%)</span>
+            <input
+              name="late_fee_pct"
+              type="number"
+              step="0.01"
+              min="0"
+              max="20"
+              required
+              defaultValue={lateFeePct ?? 10}
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">Día de corte</span>
+            <input
+              name="late_fee_day"
+              type="number"
+              step="1"
+              min="1"
+              max="28"
+              defaultValue={lateFeeDay ?? ""}
+              placeholder="1 (inicio de mes)"
+              className={input}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">Fondo de Imprevistos (%)</span>
+            <input
+              name="reserve_pct"
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              required
+              defaultValue={reservePct ?? 1}
+              className={input}
+            />
+          </label>
+        </div>
+        <p className="mt-2 text-xs text-muted">
+          El recargo (libre entre 10% y 20% según tu Reglamento) se aplica automáticamente a las cuotas vencidas no
+          pagadas. El Fondo de Imprevistos (mínimo 1% por ley) se aparta automáticamente en cada pago.
+        </p>
+      </div>
 
       {state.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Building2,
+  Calculator,
   CalendarDays,
   DoorOpen,
   FileBarChart,
@@ -66,6 +67,7 @@ const NAV: NavItem[] = [
   { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },
   { href: "/app/planilla", label: "Planilla", icon: Receipt, exact: false },
   { href: "/app/proyectos", label: "Proyectos", icon: HardHat, exact: false },
+  { href: "/app/contabilidad", label: "Contabilidad", icon: Calculator, exact: false },
   { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
   { href: "/app/configuracion", label: "Configuración", icon: Settings, exact: false },
 ];

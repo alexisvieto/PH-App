@@ -9,6 +9,7 @@ export const CHARGE_CONCEPT_LABEL: Record<Enums["charge_concept"], string> = {
   mantenimiento: "Mantenimiento",
   extraordinaria: "Extraordinaria",
   multa: "Multa",
+  recargo: "Recargo por morosidad",
   otro: "Otro",
 };
 

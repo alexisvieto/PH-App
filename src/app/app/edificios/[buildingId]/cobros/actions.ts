@@ -50,6 +50,19 @@ export async function saveFeeSettings(
   if (!Number.isFinite(base) || base < 0)
     return { error: "Monto inválido.", ok: false };
 
+  const lateFeePct = Number(formData.get("late_fee_pct"));
+  if (!Number.isFinite(lateFeePct) || lateFeePct < 0 || lateFeePct > 20)
+    return { error: "El recargo por morosidad debe estar entre 0% y 20%.", ok: false };
+
+  const reservePct = Number(formData.get("reserve_pct"));
+  if (!Number.isFinite(reservePct) || reservePct < 0 || reservePct > 100)
+    return { error: "El aporte al Fondo de Imprevistos debe estar entre 0% y 100%.", ok: false };
+
+  const lateDayRaw = String(formData.get("late_fee_day") ?? "").trim();
+  const lateDay: number | null = lateDayRaw === "" ? null : Number(lateDayRaw);
+  if (lateDay !== null && (!Number.isInteger(lateDay) || lateDay < 1 || lateDay > 28))
+    return { error: "El día de corte debe estar entre 1 y 28.", ok: false };
+
   const supabase = await createClient();
   if (!(await buildingInOrg(supabase, buildingId, orgId)))
     return { error: "Edificio no encontrado.", ok: false };
@@ -57,7 +70,15 @@ export async function saveFeeSettings(
   const { error } = await supabase
     .from("fee_settings")
     .upsert(
-      { organization_id: orgId, building_id: buildingId, method, base_amount: base },
+      {
+        organization_id: orgId,
+        building_id: buildingId,
+        method,
+        base_amount: base,
+        late_fee_pct: lateFeePct,
+        late_fee_day: lateDay,
+        reserve_pct: reservePct,
+      },
       { onConflict: "building_id" },
     );
   if (error) return { error: error.message, ok: false };
