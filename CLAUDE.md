@@ -1,7 +1,7 @@
 @AGENTS.md
 @BUILD-PLAYBOOK.md
 
-# Modus PH — estado del proyecto
+# Atrio — estado del proyecto
 
 SaaS **multi-tenant** de administración de Propiedad Horizontal (producto de **Nexera**; Ingesoft es solo un cliente, no confundir). Objetivo central: **transparencia y comunicación** con los residentes.
 

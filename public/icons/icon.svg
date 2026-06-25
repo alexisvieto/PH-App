@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Atrio PH">
-  <rect width="512" height="512" rx="112" fill="#0F766E"/>
-  <g transform="translate(256, 250)" fill="none" stroke-linejoin="round">
-    <path d="M 0,-60 L 140,10 L 0,80 L -140,10 Z" stroke="#FFFFFF" stroke-width="22" opacity="0.85"/>
-    <path d="M 0,-100 L 140,-30 L 0,40 L -140,-30 Z" stroke="#FFFFFF" stroke-width="22" opacity="0.55"/>
-    <path d="M 0,-140 L 140,-70 L 0,0 L -140,-70 Z" stroke="#FFFFFF" stroke-width="22"/>
-    <polygon points="0,-40 50,-15 0,10 -50,-15" fill="#FFFFFF" opacity="0.2"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Atrio">
+  <rect x="0" y="0" width="1024" height="1024" rx="229" fill="#2c5bcb"/>
+  <g transform="translate(192,192) scale(6.4)">
+    <path d="M 45.64 18.84 Q 50.00 16.40 54.36 18.84 L 75.24 30.54 Q 79.60 32.99 75.18 35.32 L 54.42 46.27 Q 50.00 48.60 45.58 46.27 L 24.82 35.32 Q 20.40 32.99 24.76 30.54 Z" fill="#ffffff"/>
+    <path d="M 19.80 39.20 Q 19.72 34.20 24.07 36.67 L 44.43 48.22 Q 48.78 50.69 48.86 55.69 L 49.21 78.80 Q 49.29 83.79 45.00 81.22 L 24.52 68.92 Q 20.24 66.34 20.16 61.34 Z" fill="#dfe8fb"/>
+    <path d="M 75.93 36.67 Q 80.28 34.20 80.20 39.20 L 79.84 61.34 Q 79.76 66.34 75.48 68.92 L 55.00 81.22 Q 50.71 83.79 50.79 78.80 L 51.14 55.69 Q 51.22 50.69 55.57 48.22 Z" fill="#b9caf3"/>
   </g>
 </svg>

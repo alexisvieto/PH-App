@@ -1,4 +1,4 @@
-# Modus PH — App móvil (Capacitor)
+# Atrio — App móvil (Capacitor)
 
 > Cómo empaquetar el producto como app para **App Store** y **Google Play**.
 > Estado: **base lista** (config + manifest + iconos + escáner QR nativo en garita).
@@ -8,14 +8,14 @@
 
 ## Arquitectura: modo "shell" (server.url)
 
-Modus PH es **server-rendered** (middleware en `src/proxy.ts`, server actions, Supabase SSR). **No** es exportable a estático, así que la app nativa **no empaqueta un bundle web**: es un contenedor que carga el sitio ya desplegado (Vercel) y le suma **plugins nativos** (escáner QR; luego push/cámara).
+Atrio es **server-rendered** (middleware en `src/proxy.ts`, server actions, Supabase SSR). **No** es exportable a estático, así que la app nativa **no empaqueta un bundle web**: es un contenedor que carga el sitio ya desplegado (Vercel) y le suma **plugins nativos** (escáner QR; luego push/cámara).
 
 Ventajas: un solo código, y los cambios de contenido salen al publicar en Vercel **sin pasar por revisión de tienda**. El identificador del bundle y los plugins nativos son lo único que vive en las tiendas.
 
 > **Apple — regla 4.2 (minimum functionality):** una app que es "solo un sitio web" puede ser rechazada. Por eso usamos funciones nativas reales (escáner QR de la garita y, próximamente, notificaciones push). Mantener/ampliar esas capacidades nativas es lo que sustenta la aprobación.
 
 La config está en [`capacitor.config.ts`](./capacitor.config.ts):
-- `appId: "io.nexerai.modusph"` y `appName: "Modus PH"` — **confírmalos antes del primer envío** (cambiarlos después de publicar es costoso).
+- `appId: "io.nexerai.modusph"` y `appName: "Atrio"` — **confírmalos antes del primer envío** (cambiarlos después de publicar es costoso).
 - `server.url` por defecto apunta a producción (Vercel). Override con la variable `CAP_SERVER_URL` (p. ej. tu dev en la LAN).
 
 ---

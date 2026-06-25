@@ -142,7 +142,7 @@ export function pdfStyles(brand: Brand) {
     sign: { marginTop: 54, flexDirection: "row", justifyContent: "space-between" },
     signBox: { width: "45%", borderTopWidth: 1, borderColor: ATRIO.text3, paddingTop: 6, textAlign: "center", fontSize: 9, color: ATRIO.text2 },
 
-    // Pie: cubo + crédito (‹PH› · Atrio PH · www.atrioph.net · by Nexera) + página.
+    // Pie: cubo + crédito (‹PH› · Atrio · www.atrioph.net · by Nexera) + página.
     footer: {
       position: "absolute",
       bottom: 24,

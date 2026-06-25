@@ -59,8 +59,11 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/atrio-logo.svg" alt={PRODUCT_NAME} className="mx-auto mb-1 h-28 w-auto" />
-          <p className="text-sm text-muted">Administración de propiedad horizontal</p>
+          <img src="/atrio-lockup.png" alt={PRODUCT_NAME} className="mx-auto mb-3 h-12 w-auto" />
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+            One app. One community.
+          </p>
+          <p className="mt-1 text-sm text-muted">Administración de propiedad horizontal</p>
         </div>
 
         <form

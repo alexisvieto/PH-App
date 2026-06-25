@@ -4,13 +4,14 @@
 //
 // IMPORTANTE: el NOMBRE DEL PRODUCTO vive SOLO aquí (PRODUCT_NAME).
 // Cambiar la marca comercial mañana = editar esta constante.
-// Nunca hardcodear "Atrio PH" en componentes, rutas ni tablas.
+// Nunca hardcodear "Atrio" en componentes, rutas ni tablas.
+// La marca en la app es "Atrio" (sin "PH"); el "PH" solo vive en el sitio web.
 // =========================================================
 
 /** Nombre comercial del producto (centralizado; cambiar la marca = editar aquí). */
-export const PRODUCT_NAME = "Atrio PH";
+export const PRODUCT_NAME = "Atrio";
 
-/** Sitio del producto. */
+/** Sitio del producto (única referencia con "PH", en el dominio web). */
 export const PRODUCT_URL = "www.atrioph.net";
 
 /** Crédito discreto del producto en exportables y landing (marca subordinada al PH). */

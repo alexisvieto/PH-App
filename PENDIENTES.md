@@ -1,4 +1,4 @@
-# Pendientes — Modus PH
+# Pendientes — Atrio
 
 > Contexto vivo para retomar. Última actualización: 2026-06-19.
 > Ver `CLAUDE.md` (estado de lo construido) y `PLAN-DE-TRABAJO.md` (roadmap).

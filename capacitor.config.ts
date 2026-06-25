@@ -17,8 +17,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const serverUrl = process.env.CAP_SERVER_URL || "https://ph-app-one.vercel.app";
 
 const config: CapacitorConfig = {
-  appId: "io.nexerai.modusph",
-  appName: "Modus PH",
+  appId: "io.nexerai.atrioph",
+  appName: "Atrio",
   webDir: "public", // requerido por el CLI aunque con server.url su contenido se ignora
   server: {
     url: serverUrl,
@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
     // contenido remoto ya cargó (evita el parpadeo a blanco).
     SplashScreen: {
       launchAutoHide: false,
-      backgroundColor: "#0F766E",
+      backgroundColor: "#2C5BCB",
     },
   },
 };
