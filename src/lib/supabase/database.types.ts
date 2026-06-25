@@ -2264,6 +2264,7 @@ export type Database = {
           award_reason: string | null
           awarded_at: string | null
           building_id: string | null
+          category: Database["public"]["Enums"]["expense_category"]
           created_at: string
           created_by: string | null
           description: string | null
@@ -2276,6 +2277,7 @@ export type Database = {
           award_reason?: string | null
           awarded_at?: string | null
           building_id?: string | null
+          category?: Database["public"]["Enums"]["expense_category"]
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -2288,6 +2290,7 @@ export type Database = {
           award_reason?: string | null
           awarded_at?: string | null
           building_id?: string | null
+          category?: Database["public"]["Enums"]["expense_category"]
           created_at?: string
           created_by?: string | null
           description?: string | null

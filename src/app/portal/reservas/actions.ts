@@ -53,6 +53,7 @@ export async function cancelReservation(reservationId: string): Promise<ActionSt
     .from("area_reservations")
     .update({ status: "cancelada" })
     .eq("id", reservationId)
+    .eq("organization_id", res.orgId)
     .in("status", ["pendiente", "aprobada"]);
   if (error) {
     console.error("cancelReservation:", error.code, error.message);

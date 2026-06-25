@@ -41,7 +41,12 @@ export function DeleteProjectButton({ projectId }: { projectId: string }) {
   const [busy, setBusy] = useState(false);
   async function onDelete() {
     if (busy) return;
-    if (!confirm("¿Eliminar el proyecto completo y sus cotizaciones? Esta acción no se puede deshacer.")) return;
+    if (
+      !confirm(
+        "¿Eliminar el proyecto completo y sus cotizaciones? El gasto ya registrado en Finanzas se mantendrá. Esta acción no se puede deshacer.",
+      )
+    )
+      return;
     setBusy(true);
     const res = await deleteProject(projectId);
     setBusy(false);

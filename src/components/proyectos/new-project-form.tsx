@@ -10,6 +10,16 @@ import { createProject } from "@/app/app/proyectos/actions";
 const input =
   "w-full min-h-12 rounded-xl border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-brand";
 
+// Categoría con que se registrará el gasto al adjudicar (sin 'personal' = nómina).
+const CATEGORIES: [string, string][] = [
+  ["mantenimiento", "Mantenimiento"],
+  ["servicios", "Servicios"],
+  ["administrativo", "Administrativo"],
+  ["seguros", "Seguros"],
+  ["reserva", "Fondo de reserva"],
+  ["otro", "Otro"],
+];
+
 export function NewProjectForm({ buildings }: { buildings: { id: string; name: string }[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -17,13 +27,14 @@ export function NewProjectForm({ buildings }: { buildings: { id: string; name: s
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [buildingId, setBuildingId] = useState("");
+  const [category, setCategory] = useState("mantenimiento");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
     if (!title.trim()) return toast.error("Escribe el título del proyecto.");
     setBusy(true);
-    const res = await createProject({ title, description, buildingId: buildingId || null });
+    const res = await createProject({ title, description, buildingId: buildingId || null, category });
     setBusy(false);
     if (res.ok) {
       toast.success("Proyecto creado.");
@@ -63,6 +74,16 @@ export function NewProjectForm({ buildings }: { buildings: { id: string; name: s
       <label className="block">
         <span className="mb-1 block text-xs font-medium text-muted">Descripción (opcional)</span>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} className={`${input} min-h-20`} placeholder="Alcance del proyecto, qué se va a hacer…" />
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-xs font-medium text-muted">Categoría del gasto</span>
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className={input}>
+          {CATEGORIES.map(([v, l]) => (
+            <option key={v} value={v}>
+              {l}
+            </option>
+          ))}
+        </select>
       </label>
       {buildings.length > 1 && (
         <label className="block">

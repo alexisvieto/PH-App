@@ -25,6 +25,7 @@ export default async function ProyectoDetallePage({ params }: { params: Promise<
     .from("projects")
     .select("id, title, description, status, building_id, award_reason")
     .eq("id", id)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (!project) notFound();
 

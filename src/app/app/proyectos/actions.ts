@@ -6,6 +6,8 @@ import type { ActionState } from "@/lib/action-state";
 import { quoteFolder } from "@/lib/projects";
 import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
+import { Constants } from "@/lib/supabase/database.types";
+import type { Database } from "@/lib/supabase/database.types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -16,6 +18,7 @@ export async function createProject(input: {
   title: string;
   description?: string;
   buildingId?: string | null;
+  category?: string;
 }): Promise<CreateProjectResult> {
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;
@@ -24,6 +27,9 @@ export async function createProject(input: {
   const title = (input.title ?? "").trim();
   if (!title) return { ok: false, error: "El título es obligatorio." };
   if (input.buildingId && !UUID.test(input.buildingId)) return { ok: false, error: "Edificio inválido." };
+  const category = (Constants.public.Enums.expense_category as readonly string[]).includes(input.category ?? "")
+    ? (input.category as Database["public"]["Enums"]["expense_category"])
+    : "mantenimiento";
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -33,6 +39,7 @@ export async function createProject(input: {
       building_id: input.buildingId || null,
       title,
       description: (input.description ?? "").trim() || null,
+      category,
       created_by: ctx.userId,
     })
     .select("id")
@@ -63,7 +70,7 @@ export async function addQuote(input: {
   const company = (input.companyName ?? "").trim();
   if (!company) return { ok: false, error: "El nombre de la empresa es obligatorio." };
   const amount = Number(input.amount);
-  if (!Number.isFinite(amount) || amount < 0) return { ok: false, error: "Monto inválido." };
+  if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: "El monto debe ser mayor a 0." };
   const filePath = (input.filePath ?? "").trim() || null;
   if (filePath && !filePath.startsWith(quoteFolder(orgId, input.projectId)))
     return { ok: false, error: "Ruta de archivo inválida." };
@@ -121,10 +128,17 @@ export async function deleteQuote(quoteId: string): Promise<ActionState> {
   const supabase = await createClient();
   const { data: q } = await supabase
     .from("project_quotes")
-    .select("project_id, file_path")
+    .select("project_id, file_path, is_winner")
     .eq("id", quoteId)
+    .eq("organization_id", orgId)
     .maybeSingle();
-  const { error } = await supabase.from("project_quotes").delete().eq("id", quoteId);
+  if (q?.is_winner)
+    return { error: "No puedes eliminar la cotización ganadora. Re-adjudica primero.", ok: false };
+  const { error } = await supabase
+    .from("project_quotes")
+    .delete()
+    .eq("id", quoteId)
+    .eq("organization_id", orgId);
   if (error) {
     console.error("deleteQuote:", error.code, error.message);
     return { error: "No se pudo eliminar la cotización.", ok: false };
@@ -143,9 +157,13 @@ export async function deleteProject(projectId: string): Promise<ActionState> {
   if (!UUID.test(projectId)) return { error: "Proyecto inválido.", ok: false };
 
   const supabase = await createClient();
-  const { data: qs } = await supabase.from("project_quotes").select("file_path").eq("project_id", projectId);
+  const { data: qs } = await supabase
+    .from("project_quotes")
+    .select("file_path")
+    .eq("project_id", projectId)
+    .eq("organization_id", orgId);
   const paths = (qs ?? []).map((q) => q.file_path).filter((p): p is string => !!p);
-  const { error } = await supabase.from("projects").delete().eq("id", projectId);
+  const { error } = await supabase.from("projects").delete().eq("id", projectId).eq("organization_id", orgId);
   if (error) {
     console.error("deleteProject:", error.code, error.message);
     return { error: "No se pudo eliminar el proyecto.", ok: false };

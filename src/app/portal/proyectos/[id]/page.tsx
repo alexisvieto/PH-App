@@ -20,6 +20,7 @@ export default async function PortalProyectoDetalle({ params }: { params: Promis
     .from("projects")
     .select("id, title, description, status, award_reason")
     .eq("id", id)
+    .eq("organization_id", res.orgId)
     .maybeSingle();
   if (!project) notFound();
 
