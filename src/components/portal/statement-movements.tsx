@@ -94,6 +94,16 @@ export function StatementMovements({ movements }: { movements: Movement[] }) {
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{m.concept}</p>
                   <p className="text-xs text-muted">{formatDate(m.date)}</p>
+                  {m.kind === "pago" && m.paymentId && (
+                    <a
+                      href={`/recibo/pago/${m.paymentId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-brand hover:underline"
+                    >
+                      Ver recibo
+                    </a>
+                  )}
                 </div>
                 <div className="shrink-0 text-right">
                   <p

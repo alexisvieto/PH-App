@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpenCheck, CheckCircle2, FileText, ListTree, TriangleAlert } from "lucide-react";
+import { BookOpenCheck, CheckCircle2, FileText, ListTree, TriangleAlert, Truck } from "lucide-react";
 
 import { MonthPicker } from "@/components/portal/month-picker";
 import { getAccountingStatements } from "@/lib/accounting";
@@ -61,6 +61,12 @@ export default async function ContabilidadPage({
             className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line px-3 text-sm font-medium transition hover:border-brand hover:text-brand"
           >
             <ListTree className="size-4" /> Catálogo
+          </Link>
+          <Link
+            href="/app/contabilidad/gastos"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line px-3 text-sm font-medium transition hover:border-brand hover:text-brand"
+          >
+            <Truck className="size-4" /> Pagos a proveedores
           </Link>
           <a
             href={`/app/contabilidad/informe?m=${ym}`}

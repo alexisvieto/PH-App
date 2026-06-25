@@ -118,7 +118,19 @@ export default async function PortalEstado({
                 {st.movements.map((m, i) => (
                   <tr key={i} className="border-b border-line last:border-0">
                     <td className="px-4 py-3 text-muted">{formatDate(m.date)}</td>
-                    <td className="px-4 py-3">{m.concept}</td>
+                    <td className="px-4 py-3">
+                      {m.concept}
+                      {m.kind === "pago" && m.paymentId && (
+                        <a
+                          href={`/recibo/pago/${m.paymentId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-xs font-medium text-brand hover:underline"
+                        >
+                          Recibo
+                        </a>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       {m.debit ? formatMoney(m.debit) : ""}
                     </td>

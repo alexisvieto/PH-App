@@ -16,6 +16,7 @@ export type Movement = {
   debit: number; // cargo
   credit: number; // pago
   balance: number; // saldo corrido tras el movimiento
+  paymentId?: string | null; // id del pago (para el recibo), solo en kind "pago"
 };
 
 export type UnitStatement = {
@@ -66,7 +67,7 @@ export async function getUnitStatement(
       .order("created_at", { ascending: true }),
     supabase
       .from("payments")
-      .select("amount, paid_on, method, reference, created_at")
+      .select("id, amount, paid_on, method, reference, created_at")
       .eq("unit_id", unitId)
       .order("created_at", { ascending: true }),
   ]);
@@ -80,6 +81,7 @@ export async function getUnitStatement(
     debit: number;
     credit: number;
     ts: string;
+    paymentId?: string | null;
   };
   const raw: Raw[] = [];
 
@@ -102,6 +104,7 @@ export async function getUnitStatement(
       debit: 0,
       credit: cents(Number(p.amount ?? 0)),
       ts: p.created_at,
+      paymentId: p.id,
     });
   }
 
@@ -131,6 +134,7 @@ export async function getUnitStatement(
       debit: m.debit,
       credit: m.credit,
       balance: running,
+      paymentId: m.paymentId ?? null,
     };
   });
 
