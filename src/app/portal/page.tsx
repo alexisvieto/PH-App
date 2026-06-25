@@ -11,6 +11,7 @@ import {
   MessagesSquare,
   Phone,
   PhoneCall,
+  PieChart,
   QrCode,
   ShoppingBag,
   Siren,
@@ -215,6 +216,13 @@ export default async function PortalHome() {
             sub={res.units.length > 1 ? `Unidad ${u.code}` : "Saldo y pagos"}
           />
         ))}
+        <ActionTile
+          href="/portal/finanzas"
+          icon={PieChart}
+          color="cyan"
+          label="Finanzas del PH"
+          sub="Ingresos y gastos"
+        />
         {accesosMod && (
           <ActionTile
             href="/portal/accesos"
@@ -354,6 +362,7 @@ const TILE_COLORS: Record<string, string> = {
   red: "bg-red-500",
   orange: "bg-orange-500",
   teal: "bg-teal-600",
+  cyan: "bg-cyan-600",
 };
 
 function ActionTile({

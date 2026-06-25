@@ -937,6 +937,7 @@ export type Database = {
           description: string
           id: string
           organization_id: string
+          project_id: string | null
           spent_on: string
           supplier: string | null
         }
@@ -949,6 +950,7 @@ export type Database = {
           description: string
           id?: string
           organization_id: string
+          project_id?: string | null
           spent_on?: string
           supplier?: string | null
         }
@@ -961,6 +963,7 @@ export type Database = {
           description?: string
           id?: string
           organization_id?: string
+          project_id?: string | null
           spent_on?: string
           supplier?: string | null
         }
@@ -977,6 +980,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
@@ -3283,6 +3293,7 @@ export type Database = {
         Returns: string
       }
       end_lease: { Args: { p_unit_id: string }; Returns: undefined }
+      generate_all_monthly_charges: { Args: never; Returns: number }
       generate_monthly_charges: {
         Args: { p_building_id: string; p_due_date?: string; p_period: string }
         Returns: number
@@ -3294,6 +3305,10 @@ export type Database = {
           reservation_date: string
           start_time: string
         }[]
+      }
+      get_finance_summary: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: Json
       }
       get_votation_results: { Args: { p_votation: string }; Returns: Json }
       has_module: { Args: { org: string; p_module: string }; Returns: boolean }
