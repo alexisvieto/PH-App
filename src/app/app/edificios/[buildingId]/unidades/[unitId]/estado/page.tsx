@@ -48,6 +48,7 @@ export default async function EstadoCuentaPage({
             filename={`Estado de cuenta - ${st.unitCode}${st.ownerName ? ` - ${st.ownerName}` : ""}.pdf`}
             title={`Estado de cuenta · Unidad ${st.unitCode}${st.ownerName ? ` · ${st.ownerName}` : ""}`}
             name="estado de cuenta"
+            variant="solid"
           />
           {!owes && (
             <PdfActions
@@ -55,7 +56,6 @@ export default async function EstadoCuentaPage({
               filename={`Paz y salvo - ${st.unitCode}${st.ownerName ? ` - ${st.ownerName}` : ""}.pdf`}
               title={`Paz y salvo · Unidad ${st.unitCode}${st.ownerName ? ` · ${st.ownerName}` : ""}`}
               name="paz y salvo"
-              variant="solid"
             />
           )}
         </div>
