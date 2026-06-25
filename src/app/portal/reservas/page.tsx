@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { CalendarDays, Clock, Users } from "lucide-react";
 
-import { CancelReservation, ReservarForm } from "@/components/reservas/reservar-form";
+import { ReservationCalendar } from "@/components/reservas/reservation-calendar";
+import { CancelReservation } from "@/components/reservas/reservar-form";
 import { fmtTime, RESERVATION_STATUS_LABEL, RESERVATION_STATUS_STYLE } from "@/lib/reservas";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
@@ -29,7 +30,14 @@ export default async function PortalReservasPage() {
   const areaName = new Map(allAreas.map((a) => [a.id, a.name]));
   const showUnit = res.units.length > 1;
   const unitCode = new Map(res.units.map((u) => [u.id, u.code]));
-  const areaOptions = activeAreas.map((a) => ({ id: a.id, name: a.name }));
+  const calendarAreas = activeAreas.map((a) => ({
+    id: a.id,
+    name: a.name,
+    open_time: a.open_time,
+    close_time: a.close_time,
+    advance_days: a.advance_days,
+    requires_approval: a.requires_approval,
+  }));
   const unitOptions = res.units.map((u) => ({ id: u.id, label: u.code }));
 
   const mine = reservations ?? [];
@@ -54,7 +62,7 @@ export default async function PortalReservasPage() {
         </p>
       ) : (
         <>
-          <ReservarForm areas={areaOptions} units={unitOptions} />
+          <ReservationCalendar areas={calendarAreas} units={unitOptions} today={todayPa} />
 
           {/* Áreas disponibles (con sus reglas) */}
           <section className="space-y-3">

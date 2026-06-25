@@ -3130,6 +3130,14 @@ export type Database = {
         Args: { p_building_id: string; p_due_date?: string; p_period: string }
         Returns: number
       }
+      get_area_availability: {
+        Args: { p_area_id: string; p_from: string; p_to: string }
+        Returns: {
+          end_time: string
+          reservation_date: string
+          start_time: string
+        }[]
+      }
       get_votation_results: { Args: { p_votation: string }; Returns: Json }
       has_module: { Args: { org: string; p_module: string }; Returns: boolean }
       has_org_role: {
