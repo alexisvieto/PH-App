@@ -140,3 +140,45 @@ export async function logMaintenance(
   revalidatePath(`/app/mantenimiento/${equipmentId}`);
   return { error: null, ok: true };
 }
+
+/**
+ * Marca un equipo como atendido HOY (registro rápido): inserta un mantenimiento
+ * con la fecha de hoy y limpia la alerta. Con frecuencia, el trigger reprograma
+ * el próximo (hoy + frecuencia); sin frecuencia, deja el equipo "sin programar".
+ */
+export async function markAttended(equipmentId: string): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!UUID.test(equipmentId)) return { error: "Equipo inválido.", ok: false };
+
+  const supabase = await createClient();
+  const { data: eq } = await supabase
+    .from("equipment")
+    .select("organization_id, building_id, maintenance_frequency_days")
+    .eq("id", equipmentId)
+    .maybeSingle();
+  if (!eq) return { error: "Equipo no encontrado.", ok: false };
+
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
+  const { error } = await supabase.from("maintenance_logs").insert({
+    organization_id: eq.organization_id,
+    building_id: eq.building_id,
+    equipment_id: equipmentId,
+    description: "Mantenimiento realizado",
+    performed_on: today,
+  });
+  if (error) {
+    console.error("markAttended:", error.code, error.message);
+    return { error: "No se pudo registrar el mantenimiento.", ok: false };
+  }
+
+  // Sin frecuencia el trigger no reprograma → limpiamos la alerta dejándolo sin programar.
+  if (eq.maintenance_frequency_days === null) {
+    await supabase.from("equipment").update({ next_maintenance: null }).eq("id", equipmentId);
+  }
+
+  revalidatePath("/app/mantenimiento");
+  revalidatePath(`/app/mantenimiento/${equipmentId}`);
+  return { error: null, ok: true };
+}

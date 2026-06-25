@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 
 import { LogMaintenanceForm } from "@/components/forms/log-maintenance-form";
+import { MarkAttendedButton } from "@/components/forms/mark-attended-button";
 import { formatDate, formatMoney } from "@/lib/format";
 import {
   EQUIPMENT_CATEGORY_LABEL,
@@ -69,6 +70,20 @@ export default async function EquipmentDetailPage({
           <AlertTriangle className="size-4" /> Reportar anomalía
         </Link>
       </div>
+
+      {(alert.kind === "vencido" || alert.kind === "proximo") && (
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-4 py-3 ${
+            alert.kind === "vencido" ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"
+          }`}
+        >
+          <p className={`text-sm font-medium ${alert.kind === "vencido" ? "text-red-700" : "text-amber-800"}`}>
+            {alert.kind === "vencido" ? "Mantenimiento vencido." : "Mantenimiento próximo."} Cuando lo realices, márcalo
+            como atendido para limpiar la alerta.
+          </p>
+          <MarkAttendedButton equipmentId={equipmentId} />
+        </div>
+      )}
 
       <div className="rounded-2xl border border-line bg-surface p-6">
         <div className="flex items-start justify-between gap-4">
