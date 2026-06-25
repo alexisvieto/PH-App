@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Vote } from "lucide-react";
 
-import { SharePdfButton } from "@/components/portal/share-pdf-button";
+import { PdfActions } from "@/components/portal/pdf-actions";
 import { ABSTAIN, VotePanel } from "@/components/votaciones/vote-panel";
 import { VotationResults } from "@/components/votaciones/votation-results";
 import { VOTATION_STATUS_LABEL, VOTATION_STATUS_STYLE } from "@/lib/votations";
@@ -69,11 +69,11 @@ export default async function PortalVotacionesPage() {
                 {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={v.status === "cerrada"} />}
 
                 {v.status === "cerrada" && (
-                  <SharePdfButton
+                  <PdfActions
                     url={`/portal/votaciones/${v.id}/acta`}
                     filename={`acta-votacion.pdf`}
                     title={`Acta · ${v.title}`}
-                    label="Descargar acta (PDF)"
+                    name="acta"
                   />
                 )}
               </article>
