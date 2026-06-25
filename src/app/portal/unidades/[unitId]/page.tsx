@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
 import { PayWithYappy } from "@/components/portal/pay-with-yappy";
-import { SharePdfButton } from "@/components/portal/share-pdf-button";
+import { PdfActions } from "@/components/portal/pdf-actions";
 import { StatementMovements } from "@/components/portal/statement-movements";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -63,18 +63,18 @@ export default async function PortalEstado({
       {/* Acciones: pagar (si aplica) y compartir/guardar el PDF */}
       <div className="flex flex-wrap gap-2">
         {owes && yappy?.enabled && <PayWithYappy unitId={unitId} amount={st.balance} />}
-        <SharePdfButton
+        <PdfActions
           url={`/portal/unidades/${unitId}/pdf`}
           filename={`estado-cuenta-${st.unitCode}.pdf`}
           title={`Estado de cuenta · Unidad ${st.unitCode}`}
-          label="Compartir estado de cuenta"
+          name="estado de cuenta"
         />
         {!owes && (
-          <SharePdfButton
+          <PdfActions
             url={`/portal/unidades/${unitId}/paz-y-salvo`}
             filename={`paz-y-salvo-${st.unitCode}.pdf`}
             title={`Paz y salvo · Unidad ${st.unitCode}`}
-            label="Compartir paz y salvo"
+            name="paz y salvo"
             variant="solid"
           />
         )}
