@@ -2,7 +2,7 @@ import { Document, Page, Text, View } from "@react-pdf/renderer";
 
 import type { Brand } from "@/lib/brand";
 import type { Tally } from "@/lib/votations";
-import { BrandHeader, Footer, pdfStyles } from "@/components/pdf/_kit";
+import { ATRIO, BrandHeader, Footer, pdfStyles } from "@/components/pdf/_kit";
 
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
@@ -33,11 +33,10 @@ export function ActaVotacionPDF({ data, brand }: { data: ActaData; brand: Brand 
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        <BrandHeader brand={brand} generatedOn={data.generatedOn} styles={s} />
+        <BrandHeader brand={brand} generatedOn={data.generatedOn} docType="Acta de votación" styles={s} />
 
-        <Text style={s.docType}>Acta de votación</Text>
         <Text style={s.title}>{data.title}</Text>
-        {data.description ? <Text style={{ marginBottom: 12, color: "#374151" }}>{data.description}</Text> : null}
+        {data.description ? <Text style={{ marginBottom: 12, color: ATRIO.text2 }}>{data.description}</Text> : null}
 
         <View style={s.metaGrid}>
           <Meta s={s} label="Edificio" value={data.buildingName} />
@@ -72,17 +71,17 @@ export function ActaVotacionPDF({ data, brand }: { data: ActaData; brand: Brand 
         {/* Detalle nominal */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Detalle por unidad</Text>
-          <View style={{ flexDirection: "row", backgroundColor: "#f3f4f6", paddingVertical: 5, fontFamily: "Helvetica-Bold" }}>
-            <Text style={{ width: "30%", paddingHorizontal: 4 }}>Unidad</Text>
-            <Text style={{ width: "35%", paddingHorizontal: 4 }}>Voto</Text>
-            <Text style={{ width: "17%", paddingHorizontal: 4, textAlign: "right" }}>Coef.</Text>
-            <Text style={{ width: "18%", paddingHorizontal: 4, textAlign: "right" }}>Fecha</Text>
+          <View style={s.tHead}>
+            <Text style={[s.th, { width: "30%" }]}>Unidad</Text>
+            <Text style={[s.th, { width: "35%" }]}>Voto</Text>
+            <Text style={[s.th, { width: "17%", textAlign: "right" }]}>Coef.</Text>
+            <Text style={[s.th, { width: "18%", textAlign: "right" }]}>Fecha</Text>
           </View>
           {data.votes.length === 0 ? (
-            <Text style={{ paddingVertical: 6, color: "#9ca3af" }}>Nadie votó.</Text>
+            <Text style={{ paddingVertical: 7, color: ATRIO.text3 }}>Nadie votó.</Text>
           ) : (
             data.votes.map((v, i) => (
-              <View key={i} style={{ flexDirection: "row", borderBottomWidth: 1, borderColor: "#e5e7eb", paddingVertical: 4 }} wrap={false}>
+              <View key={i} style={{ flexDirection: "row", borderBottomWidth: 1, borderColor: ATRIO.border, paddingVertical: 5 }} wrap={false}>
                 <Text style={{ width: "30%", paddingHorizontal: 4 }}>{v.unit_code}</Text>
                 <Text style={{ width: "35%", paddingHorizontal: 4 }}>{v.choice}</Text>
                 <Text style={{ width: "17%", paddingHorizontal: 4, textAlign: "right" }}>{v.coef}</Text>

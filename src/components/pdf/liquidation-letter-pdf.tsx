@@ -48,9 +48,8 @@ export function LiquidationLetterPDF(d: LiquidationLetterData) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        <BrandHeader brand={d.brand} generatedOn={d.generatedOn} styles={s} />
+        <BrandHeader brand={d.brand} generatedOn={d.generatedOn} docType="Terminación laboral" styles={s} />
 
-        <Text style={s.docType}>Documento de terminación laboral</Text>
         <Text style={s.title}>Liquidación de Prestaciones</Text>
 
         <View style={s.metaGrid}>
@@ -101,9 +100,9 @@ export function LiquidationLetterPDF(d: LiquidationLetterData) {
           </View>
         )}
 
-        <View style={s.totalRow}>
-          <Text style={s.totalLabel}>Total a pagar</Text>
-          <Text style={s.totalValue}>{formatMoney(d.total)}</Text>
+        <View style={[s.grandTotal, { marginTop: 14 }]}>
+          <Text style={s.grandLabel}>Total a pagar</Text>
+          <Text style={s.grandValue}>{formatMoney(d.total)}</Text>
         </View>
 
         <Text style={s.note}>

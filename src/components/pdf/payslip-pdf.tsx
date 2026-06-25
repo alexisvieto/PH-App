@@ -52,9 +52,8 @@ export function PayslipPDF(d: PayslipData) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        <BrandHeader brand={d.brand} generatedOn={d.generatedOn} styles={s} />
+        <BrandHeader brand={d.brand} generatedOn={d.generatedOn} docType="Comprobante de pago" styles={s} />
 
-        <Text style={s.docType}>Comprobante de pago</Text>
         <Text style={s.title}>{d.isXiii ? "Recibo de Décimo Tercer Mes" : "Recibo de Pago"}</Text>
 
         <View style={s.metaGrid}>
@@ -112,9 +111,9 @@ export function PayslipPDF(d: PayslipData) {
           <Line label="Total deducciones" value={`− ${formatMoney(totalDeductions)}`} s={s} />
         </View>
 
-        <View style={s.totalRow}>
-          <Text style={s.totalLabel}>Neto a pagar</Text>
-          <Text style={s.totalValue}>{formatMoney(d.net)}</Text>
+        <View style={[s.grandTotal, { marginTop: 14 }]}>
+          <Text style={s.grandLabel}>Neto a pagar</Text>
+          <Text style={s.grandValue}>{formatMoney(d.net)}</Text>
         </View>
 
         <View style={s.section}>

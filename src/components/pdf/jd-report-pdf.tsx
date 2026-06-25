@@ -1,8 +1,7 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Page, Text, View } from "@react-pdf/renderer";
 
-import { AtrioMark } from "@/components/pdf/_kit";
+import { ATRIO, BrandHeader, Footer, Subject, pdfStyles } from "@/components/pdf/_kit";
 import type { Brand } from "@/lib/brand";
-import { PRODUCT_CREDIT } from "@/lib/brand";
 
 export type ReportItem = { date: string; label: string; meta: string };
 export type ReportSection = { title: string; count: number; items: ReportItem[] };
@@ -20,88 +19,48 @@ export function JdReportPDF({
   generatedOn: string;
   sections: ReportSection[];
 }) {
-  const styles = StyleSheet.create({
-    page: {
-      padding: 48,
-      fontSize: 10,
-      color: "#1f2937",
-      fontFamily: "Helvetica",
-      lineHeight: 1.5,
-    },
-    header: {
-      backgroundColor: brand.primary,
-      color: "#ffffff",
-      padding: 16,
-      borderRadius: 6,
-      marginBottom: 24,
-    },
-    brandName: { fontSize: 16, fontFamily: "Helvetica-Bold" },
-    title: { fontSize: 18, fontFamily: "Helvetica-Bold", marginBottom: 4 },
-    sub: { color: "#6b7280", marginBottom: 20, fontSize: 10 },
-    section: { marginBottom: 18 },
-    sectionHead: {
-      fontSize: 12,
-      fontFamily: "Helvetica-Bold",
-      color: brand.primary,
-      marginBottom: 8,
-      paddingBottom: 4,
-      borderBottomWidth: 1,
-      borderColor: "#e5e7eb",
-    },
-    row: { flexDirection: "row", marginBottom: 4 },
-    date: { width: 70, color: "#6b7280" },
-    label: { flex: 1, fontFamily: "Helvetica-Bold" },
-    meta: { width: 120, color: "#6b7280", textAlign: "right" },
-    empty: { color: "#9ca3af", fontStyle: "italic" },
-    footer: {
-      position: "absolute",
-      bottom: 24,
-      left: 48,
-      right: 48,
-      textAlign: "center",
-      color: "#9ca3af",
-      fontSize: 8,
-    },
-  });
+  const s = pdfStyles(brand);
 
   return (
     <Document>
-      <Page size="A4" style={styles.page} wrap>
-        <View style={styles.header}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <AtrioMark h={16} />
-            <Text style={[styles.brandName, { marginLeft: 7 }]}>{brand.name}</Text>
-          </View>
-        </View>
+      <Page size="A4" style={s.page} wrap>
+        <BrandHeader brand={brand} generatedOn={generatedOn} docType="Reporte a la Junta" styles={s} />
+        <Subject name={brand.name} meta={`${scope} · ${rangeLabel}`} styles={s} />
 
-        <Text style={styles.title}>Reporte a la Junta Directiva</Text>
-        <Text style={styles.sub}>
-          {scope} · {rangeLabel}
-        </Text>
-
-        {sections.map((s) => (
-          <View key={s.title} style={styles.section}>
-            <Text style={styles.sectionHead}>
-              {s.title} ({s.count})
-            </Text>
-            {s.items.length === 0 ? (
-              <Text style={styles.empty}>Sin registros en el período.</Text>
+        {sections.map((sec) => (
+          <View key={sec.title} style={{ marginBottom: 18 }} wrap={false}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottomWidth: 1,
+                borderColor: ATRIO.ink,
+                paddingBottom: 5,
+                marginBottom: 8,
+              }}
+            >
+              <Text style={{ fontSize: 10.5, fontFamily: "Helvetica-Bold", color: ATRIO.ink }}>{sec.title}</Text>
+              <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: brand.primary }}>{sec.count}</Text>
+            </View>
+            {sec.items.length === 0 ? (
+              <Text style={{ color: ATRIO.text3, fontStyle: "italic" }}>Sin registros en el período.</Text>
             ) : (
-              s.items.map((it, i) => (
-                <View key={i} style={styles.row}>
-                  <Text style={styles.date}>{it.date}</Text>
-                  <Text style={styles.label}>{it.label}</Text>
-                  <Text style={styles.meta}>{it.meta}</Text>
+              sec.items.map((it, i) => (
+                <View
+                  key={i}
+                  style={{ flexDirection: "row", paddingVertical: 5, borderBottomWidth: 1, borderColor: ATRIO.border }}
+                >
+                  <Text style={{ width: 70, color: ATRIO.text2 }}>{it.date}</Text>
+                  <Text style={{ flex: 1, color: ATRIO.text }}>{it.label}</Text>
+                  <Text style={{ width: 130, color: ATRIO.text2, textAlign: "right" }}>{it.meta}</Text>
                 </View>
               ))
             )}
           </View>
         ))}
 
-        <Text style={styles.footer} fixed>
-          Generado el {generatedOn}
-          {brand.exportCredit ? ` · ${brand.name} · ${PRODUCT_CREDIT}` : ""}
-        </Text>
+        <Footer brand={brand} styles={s} />
       </Page>
     </Document>
   );

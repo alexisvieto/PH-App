@@ -28,26 +28,19 @@ export function StatementPDF({
       <Page size="A4" style={s.page}>
         <BrandHeader brand={brand} generatedOn={generatedOn} docType="Estado de cuenta" styles={s} />
 
-        {/* Saldo destacado */}
-        <View style={[s.hero, { backgroundColor: brand.primary }]}>
-          <Text style={s.heroLabel}>Saldo actual</Text>
-          <Text style={s.heroValue}>{money(st.balance)}</Text>
-          <Text style={s.heroNote}>{owes ? "Pendiente de pago" : "Estás al día"}</Text>
-        </View>
-
-        {/* Datos de la unidad */}
-        <View style={s.metaGrid}>
-          <View style={s.metaCell}>
-            <Text style={s.metaLabel}>Edificio</Text>
-            <Text style={s.metaValue}>{st.buildingName}</Text>
+        {/* Edificio + saldo (sobrio, sin banda de color) */}
+        <View style={s.subjectRow}>
+          <View>
+            <Text style={s.subjectName}>{brand.name}</Text>
+            <Text style={s.subjectMeta}>
+              {st.buildingName} · Unidad {st.unitCode}
+              {st.ownerName ? ` · ${st.ownerName}` : ""}
+            </Text>
           </View>
-          <View style={s.metaCell}>
-            <Text style={s.metaLabel}>Unidad</Text>
-            <Text style={s.metaValue}>{st.unitCode}</Text>
-          </View>
-          <View style={s.metaCell}>
-            <Text style={s.metaLabel}>Propietario</Text>
-            <Text style={s.metaValue}>{st.ownerName ?? "—"}</Text>
+          <View style={s.saldoBox}>
+            <Text style={s.saldoLabel}>Saldo actual</Text>
+            <Text style={[s.saldoValue, { color: owes ? brand.primary : ATRIO.ink }]}>{money(st.balance)}</Text>
+            <Text style={s.saldoNote}>{owes ? "Pendiente de pago" : "Estás al día"}</Text>
           </View>
         </View>
 
@@ -90,7 +83,7 @@ export function StatementPDF({
             <Text style={s.totalLabel}>Total pagos</Text>
             <Text style={s.totalValue}>{money(st.totalPayments)}</Text>
           </View>
-          <View style={[s.grandTotal, { backgroundColor: brand.primary }]}>
+          <View style={s.grandTotal}>
             <Text style={s.grandLabel}>Saldo</Text>
             <Text style={s.grandValue}>{money(st.balance)}</Text>
           </View>

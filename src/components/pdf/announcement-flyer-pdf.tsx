@@ -1,8 +1,7 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Page, Text, View } from "@react-pdf/renderer";
 
-import { AtrioMark } from "@/components/pdf/_kit";
+import { ATRIO, BrandHeader, Footer, pdfStyles } from "@/components/pdf/_kit";
 import type { Brand } from "@/lib/brand";
-import { PRODUCT_CREDIT } from "@/lib/brand";
 
 export function AnnouncementFlyerPDF({
   brand,
@@ -19,81 +18,38 @@ export function AnnouncementFlyerPDF({
   kindLabel: string;
   publishedOn: string;
 }) {
-  const styles = StyleSheet.create({
-    page: {
-      padding: 56,
-      color: "#1f2937",
-      fontFamily: "Helvetica",
-      lineHeight: 1.5,
-    },
-    header: {
-      backgroundColor: brand.primary,
-      color: "#ffffff",
-      padding: 20,
-      borderRadius: 8,
-      marginBottom: 40,
-      textAlign: "center",
-    },
-    brandName: { fontSize: 22, fontFamily: "Helvetica-Bold", letterSpacing: 1 },
-    kind: {
-      fontSize: 12,
-      color: brand.primary,
-      fontFamily: "Helvetica-Bold",
-      textTransform: "uppercase",
-      letterSpacing: 2,
-      marginBottom: 12,
-      textAlign: "center",
-    },
-    title: {
-      fontSize: 30,
-      fontFamily: "Helvetica-Bold",
-      textAlign: "center",
-      marginBottom: 32,
-    },
-    body: { fontSize: 16, textAlign: "justify", lineHeight: 1.7 },
-    meta: {
-      marginTop: 48,
-      paddingTop: 16,
-      borderTopWidth: 1,
-      borderColor: "#e5e7eb",
-      fontSize: 11,
-      color: "#6b7280",
-    },
-    footer: {
-      position: "absolute",
-      bottom: 28,
-      left: 56,
-      right: 56,
-      textAlign: "center",
-      color: "#9ca3af",
-      fontSize: 9,
-    },
-  });
+  const s = pdfStyles(brand);
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <AtrioMark h={16} />
-            <Text style={[styles.brandName, { marginLeft: 7 }]}>{brand.name}</Text>
-          </View>
-        </View>
+      <Page size="A4" style={[s.page, { paddingHorizontal: 56 }]}>
+        <BrandHeader brand={brand} generatedOn={publishedOn} docType={kindLabel} styles={s} />
 
-        <Text style={styles.kind}>{kindLabel}</Text>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.body}>{body}</Text>
-
-        <View style={styles.meta}>
-          <Text>Dirigido a: {audience}</Text>
-          <Text>Publicado el {publishedOn}</Text>
-        </View>
-
-        {brand.exportCredit && (
-          <Text style={styles.footer} fixed>
-            {brand.name} · {PRODUCT_CREDIT}
+        <View style={{ marginTop: 44, marginBottom: 36 }}>
+          <Text
+            style={{
+              fontSize: 30,
+              fontFamily: "Helvetica-Bold",
+              color: ATRIO.ink,
+              textAlign: "center",
+              letterSpacing: -0.5,
+              lineHeight: 1.15,
+            }}
+          >
+            {title}
           </Text>
-        )}
+        </View>
+
+        <Text style={{ fontSize: 14, textAlign: "justify", lineHeight: 1.75, color: ATRIO.text }}>{body}</Text>
+
+        <View style={{ marginTop: 44, paddingTop: 14, borderTopWidth: 1, borderColor: ATRIO.border }}>
+          <Text style={{ fontSize: 10.5, color: ATRIO.text2 }}>
+            Dirigido a: <Text style={{ fontFamily: "Helvetica-Bold", color: ATRIO.ink }}>{audience}</Text>
+          </Text>
+          <Text style={{ fontSize: 10.5, color: ATRIO.text2, marginTop: 2 }}>Publicado el {publishedOn}</Text>
+        </View>
+
+        <Footer brand={brand} styles={s} />
       </Page>
     </Document>
   );
