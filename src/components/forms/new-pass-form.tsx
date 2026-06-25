@@ -44,13 +44,19 @@ export function NewPassForm({
     <form action={action} className="space-y-4 rounded-2xl border border-line bg-surface p-5">
       <h2 className="font-semibold">Nuevo pase de visita</h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium">Unidad</span>
-          <select name="unit_id" required className={input} defaultValue="">
-            <option value="" disabled>Selecciona…</option>
-            {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
-          </select>
-        </label>
+        {/* Una sola unidad → sin selector (queda ligada a la del usuario). Con
+            varias (suyas, o el staff con muchas) → elegir entre ellas. */}
+        {units.length === 1 ? (
+          <input type="hidden" name="unit_id" value={units[0].id} />
+        ) : (
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">Unidad</span>
+            <select name="unit_id" required className={input} defaultValue="">
+              <option value="" disabled>Selecciona…</option>
+              {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
+            </select>
+          </label>
+        )}
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Tipo</span>
           <select name="type" className={input} value={type} onChange={(e) => setType(e.target.value)}>
