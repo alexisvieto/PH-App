@@ -1,4 +1,5 @@
-import { CalendarDays, Clock, Users } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, CalendarDays, Clock, Users } from "lucide-react";
 
 import { createStaffReservation } from "@/app/app/reservas/actions";
 import { NewAreaForm } from "@/components/reservas/new-area-form";
@@ -73,7 +74,15 @@ export default async function ReservasStaffPage() {
           </h1>
           <p className="text-sm text-muted">Define las áreas y aprueba las solicitudes de los residentes.</p>
         </div>
-        <NewAreaForm buildings={buildingOptions} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/app/reservas/dashboard"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
+          >
+            <BarChart3 className="size-4" /> Generar Dashboard
+          </Link>
+          <NewAreaForm buildings={buildingOptions} />
+        </div>
       </div>
 
       {/* Solicitudes por aprobar */}
