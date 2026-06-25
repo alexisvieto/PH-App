@@ -1,10 +1,11 @@
-# Know-How de Construcción — Modus PM
+# Know-How de Construcción — Atrio
 
-> **Qué es esto:** la *forma* en que construimos Modus PM — el método, no la descripción de la app.
+> **Qué es esto:** la *forma* en que construimos Atrio — el método, no la descripción de la app
+> (eso vive en `CLAUDE.md`).
 > Es nuestra **constante de trabajo**: el estándar del que partimos y que mejoramos poco a poco.
 > Si una práctica nueva demuestra ser mejor (o aprendemos de un error), se actualiza aquí.
 >
-> **v1 · 2026-06-15.** Mantenerla **corta y real** vale más que exhaustiva.
+> **v2 · 2026-06-24.** Mantenerla **corta y real** vale más que exhaustiva.
 
 ---
 
@@ -33,6 +34,7 @@
 - **Lint:** `npm run lint` → 0 problemas. **Sin `eslint-disable` en masa.** Excepciones solo por línea y comentadas (p. ej. guards de hidratación / efectos de suscripción legítimos).
 - **Smoke funcional:** para cambios de UI o comportamiento, **Playwright** (login demo → navegar → aserciones → captura). Se instala como dev-dep de un solo uso y se **desinstala al terminar** (el repo queda limpio).
 - **Mirar la captura** de verdad cuando es visual o un exportable — no asumir que se ve bien.
+- **PDFs/exportables:** rasterizar el PDF a PNG (`pdf-to-png-converter` + Playwright logueado contra una ruta real) y **mirar la imagen** — `@react-pdf` no avisa de textos encimados ni de un SVG que no cargó.
 - **Datos:** se verifica con consulta de conteo/**diff** (p. ej. `EXCEPT` para confirmar que una copia quedó idéntica).
 - **Limpieza:** scripts y archivos temporales se borran al terminar.
 
@@ -46,7 +48,9 @@
 ## 4. Patrones de código
 
 - **Next.js 16 / React 19 (App Router).** Middleware = `src/proxy.ts`. Cómputo server-side por defecto.
-- **Exportables conscientes de marca:** `docPalette(brand)` — cada tenant exporta con SU color, nunca hardcodeado. Crédito Nexera **discreto y subordinado** a la marca del cliente + flag freemium `organizations.export_credit` (el tier "full" lo apaga).
+- **Marca centralizada:** el nombre vive **solo** en `src/lib/brand.ts` (`PRODUCT_NAME="Atrio"`, sin «PH» en la app; el «PH» solo en el dominio web). Marca blanca: el color del tenant (`brand.primary`) es el **acento**, la identidad Atrio (Prisma + lockup «atrio.» + crédito) es el lenguaje — nunca se hardcodea ni se filtra entre orgs.
+- **Exportables (PDF) con un solo kit:** `components/pdf/_kit.tsx` — `pdfStyles(brand)` + `BrandHeader`/`Subject`/`Footer`. Header = lockup Atrio, **nombre del edificio debajo**, look corporativo sobrio. Crédito `PRODUCT_CREDIT` discreto, gated por `organizations.export_credit`.
+- **Realtime poco fiable del lado residente** (RLS `is_unit_resident`) → **fallback con polling**; no asumir que el evento llega.
 - **Multi-tenant:** `organization_id` + RLS (`is_org_member`). Las páginas (server) cargan y pasan `brand` y los datos; el cliente no consulta lo que no le toca.
 - **Admin-gating en 2 capas:** servidor (`has_org_role(owner/admin)`, el enforcement real) + cliente (deshabilita controles + aviso claro).
 - **Secretos fuera del cliente:** se strippean antes de mandar al browser (p. ej. `safeItems`), las llaves viven en **Vault** con RPC *write-only*, `ANTHROPIC_API_KEY` solo server (nunca `NEXT_PUBLIC`).
