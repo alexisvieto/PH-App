@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { ArrowLeft, Receipt, Trophy } from "lucide-react";
 
 import { QuoteCard } from "@/components/proyectos/quote-card";
 import { formatMoney } from "@/lib/format";
@@ -69,6 +69,9 @@ export default async function PortalProyectoDetalle({ params }: { params: Promis
               <p className="mt-0.5 whitespace-pre-line text-sm text-ink/80">{project.award_reason}</p>
             </div>
           )}
+          <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+            <Receipt className="size-3.5" /> Registrado como gasto del PH
+          </p>
         </section>
       )}
 

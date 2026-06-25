@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Building2, Trophy } from "lucide-react";
+import { ArrowLeft, Building2, Receipt, Trophy } from "lucide-react";
 
 import { AddQuoteForm } from "@/components/proyectos/add-quote-form";
 import { DeleteProjectButton, DeleteQuoteButton } from "@/components/proyectos/admin-buttons";
@@ -93,6 +93,9 @@ export default async function ProyectoDetallePage({ params }: { params: Promise<
               <p className="mt-0.5 whitespace-pre-line text-sm text-ink/80">{project.award_reason}</p>
             </div>
           )}
+          <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+            <Receipt className="size-3.5" /> Registrado como gasto del PH en Finanzas
+          </p>
         </section>
       )}
 
