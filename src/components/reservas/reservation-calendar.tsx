@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { createResidentReservation } from "@/app/portal/reservas/actions";
-import { EMPTY_ACTION_STATE } from "@/lib/action-state";
+import { EMPTY_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import { fmtTime } from "@/lib/reservas";
 import { createClient } from "@/lib/supabase/client";
 
@@ -37,10 +36,12 @@ export function ReservationCalendar({
   areas,
   units,
   today,
+  action,
 }: {
   areas: Area[];
   units: UnitOption[];
   today: string;
+  action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
 }) {
   const router = useRouter();
   const [areaId, setAreaId] = useState(areas.length === 1 ? areas[0].id : "");
@@ -88,7 +89,7 @@ export function ReservationCalendar({
     const fd = new FormData(form);
     setBusy(true);
     setErr(null);
-    const res = await createResidentReservation(EMPTY_ACTION_STATE, fd);
+    const res = await action(EMPTY_ACTION_STATE, fd);
     setBusy(false);
     if (res.ok) {
       toast.success("Reserva enviada.");

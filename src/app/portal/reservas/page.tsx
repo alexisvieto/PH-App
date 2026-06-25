@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, Clock, Users } from "lucide-react";
 
+import { createResidentReservation } from "@/app/portal/reservas/actions";
 import { ReservationCalendar } from "@/components/reservas/reservation-calendar";
 import { CancelReservation } from "@/components/reservas/reservar-form";
 import { fmtTime, RESERVATION_STATUS_LABEL, RESERVATION_STATUS_STYLE } from "@/lib/reservas";
@@ -62,7 +63,12 @@ export default async function PortalReservasPage() {
         </p>
       ) : (
         <>
-          <ReservationCalendar areas={calendarAreas} units={unitOptions} today={todayPa} />
+          <ReservationCalendar
+            areas={calendarAreas}
+            units={unitOptions}
+            today={todayPa}
+            action={createResidentReservation}
+          />
 
           {/* Áreas disponibles (con sus reglas) */}
           <section className="space-y-3">

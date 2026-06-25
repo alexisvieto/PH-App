@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
+import { createReservation } from "@/lib/reservas-server";
 import { getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -58,6 +59,48 @@ export async function createArea(_prev: ActionState, formData: FormData): Promis
     return { error: "No se pudo crear el área.", ok: false };
   }
   revalidatePath("/app/reservas");
+  return { error: null, ok: true };
+}
+
+/** El administrador reserva un área a nombre de una unidad (auto-aprobada). */
+export async function createStaffReservation(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+
+  const unitId = String(formData.get("unit_id") ?? "");
+  if (!UUID.test(unitId)) return { error: "Selecciona una unidad.", ok: false };
+
+  const supabase = await createClient();
+  const { data: unit } = await supabase
+    .from("units")
+    .select("id")
+    .eq("id", unitId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!unit) return { error: "Unidad no encontrada.", ok: false };
+
+  const guestsRaw = String(formData.get("guests") ?? "").trim();
+  const guests = guestsRaw === "" ? null : Number(guestsRaw);
+  if (guests !== null && (!Number.isInteger(guests) || guests < 1))
+    return { error: "Número de invitados inválido.", ok: false };
+
+  const r = await createReservation({
+    orgId,
+    userId: ctx.userId,
+    areaId: String(formData.get("area_id") ?? ""),
+    unitId,
+    date: String(formData.get("date") ?? ""),
+    start: String(formData.get("start_time") ?? ""),
+    end: String(formData.get("end_time") ?? ""),
+    guests,
+    notes: String(formData.get("notes") ?? ""),
+    forceApprove: true,
+  });
+  if (!r.ok) return { error: r.error, ok: false };
   return { error: null, ok: true };
 }
 

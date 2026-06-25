@@ -26,6 +26,7 @@ export async function createReservation(vars: {
   end: string;
   guests?: number | null;
   notes?: string;
+  forceApprove?: boolean;
 }): Promise<Result> {
   if (!UUID.test(vars.areaId)) return { ok: false, error: "Selecciona un área." };
   if (!UUID.test(vars.unitId)) return { ok: false, error: "Selecciona una unidad." };
@@ -74,7 +75,8 @@ export async function createReservation(vars: {
   );
   if (clash) return { ok: false, error: "Ese horario ya está reservado. Elige otro." };
 
-  const autoApprove = !area.requires_approval;
+  // El staff es la autoridad: su reserva se aprueba aunque el área exija revisión.
+  const autoApprove = vars.forceApprove === true || !area.requires_approval;
   const { error } = await supabase.from("area_reservations").insert({
     organization_id: vars.orgId,
     building_id: area.building_id,

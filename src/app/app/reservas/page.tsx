@@ -1,6 +1,8 @@
 import { CalendarDays, Clock, Users } from "lucide-react";
 
+import { createStaffReservation } from "@/app/app/reservas/actions";
 import { NewAreaForm } from "@/components/reservas/new-area-form";
+import { ReservationCalendar } from "@/components/reservas/reservation-calendar";
 import { AreaToggle, ReviewButtons } from "@/components/reservas/reservation-controls";
 import { fmtTime, RESERVATION_STATUS_LABEL, RESERVATION_STATUS_STYLE } from "@/lib/reservas";
 import { formatDate } from "@/lib/format";
@@ -36,6 +38,26 @@ export default async function ReservasStaffPage() {
 
   const pending = (reservations ?? []).filter((r) => r.status === "pendiente");
   const upcoming = (reservations ?? []).filter((r) => r.status === "aprobada");
+
+  // Para el calendario del admin: áreas activas + todas las unidades de la org.
+  const activeAreas = (areas ?? []).filter((a) => a.active);
+  const calendarAreas = activeAreas.map((a) => ({
+    id: a.id,
+    name: a.name,
+    open_time: a.open_time,
+    close_time: a.close_time,
+    advance_days: a.advance_days,
+    requires_approval: a.requires_approval,
+  }));
+  const staffUnits = (units ?? []).map((u) => ({ id: u.id, label: u.code }));
+
+  // "Próximas reservas" agrupadas por área (luego ya vienen ordenadas por fecha/hora).
+  const upcomingByArea = new Map<string, typeof upcoming>();
+  for (const r of upcoming) {
+    const list = upcomingByArea.get(r.area_id);
+    if (list) list.push(r);
+    else upcomingByArea.set(r.area_id, [r]);
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-7">
@@ -79,6 +101,16 @@ export default async function ReservasStaffPage() {
         </section>
       )}
 
+      {/* Reservar a nombre de una unidad (el admin reserva por un residente) */}
+      {calendarAreas.length > 0 && staffUnits.length > 0 && (
+        <ReservationCalendar
+          areas={calendarAreas}
+          units={staffUnits}
+          today={todayPa}
+          action={createStaffReservation}
+        />
+      )}
+
       {/* Áreas */}
       <section className="space-y-3">
         <h2 className="font-semibold">Áreas</h2>
@@ -115,7 +147,7 @@ export default async function ReservasStaffPage() {
         )}
       </section>
 
-      {/* Próximas reservas */}
+      {/* Próximas reservas — agrupadas por área (fecha · hora · unidad) */}
       <section className="space-y-3">
         <h2 className="font-semibold">Próximas reservas</h2>
         {upcoming.length === 0 ? (
@@ -123,24 +155,36 @@ export default async function ReservasStaffPage() {
             No hay reservas próximas.
           </p>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-            <ul className="divide-y divide-line">
-              {upcoming.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
-                  <span>
-                    <span className="font-medium">{areaName.get(r.area_id) ?? "Área"}</span>
-                    <span className="text-muted">
-                      {" "}
-                      · Unidad {unitCode.get(r.unit_id) ?? "—"} · {formatDate(r.reservation_date)} ·{" "}
-                      {fmtTime(r.start_time)}–{fmtTime(r.end_time)}
-                    </span>
+          <div className="space-y-4">
+            {[...upcomingByArea.entries()].map(([areaId, list]) => (
+              <div key={areaId} className="overflow-hidden rounded-2xl border border-line bg-surface">
+                <h3 className="flex items-center gap-2 border-b border-line px-4 py-2.5 text-sm font-semibold">
+                  <CalendarDays className="size-4 text-brand" />
+                  {areaName.get(areaId) ?? "Área"}
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-muted">
+                    {list.length}
                   </span>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${RESERVATION_STATUS_STYLE[r.status]}`}>
-                    {RESERVATION_STATUS_LABEL[r.status]}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                </h3>
+                <ul className="divide-y divide-line">
+                  {list.map((r) => (
+                    <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+                      <span>
+                        <span className="font-medium capitalize">{formatDate(r.reservation_date)}</span>
+                        <span className="text-muted">
+                          {" "}
+                          · {fmtTime(r.start_time)}–{fmtTime(r.end_time)} · Unidad{" "}
+                          {unitCode.get(r.unit_id) ?? "—"}
+                          {r.guests ? ` · ${r.guests} pers.` : ""}
+                        </span>
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${RESERVATION_STATUS_STYLE[r.status]}`}>
+                        {RESERVATION_STATUS_LABEL[r.status]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
       </section>
