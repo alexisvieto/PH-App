@@ -94,9 +94,9 @@ export default async function PortalVotacionesPage() {
               {archive.map((g, gi) => (
                 <MonthSection key={g.key} label={g.label} count={g.items.length} defaultOpen={gi === 0}>
                   {g.items.map(({ v, t }) => (
-                    <div key={v.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{v.title}</p>
+                    <div key={v.id} className="space-y-3 rounded-2xl border border-line bg-surface p-4">
+                      <div>
+                        <p className="font-medium">{v.title}</p>
                         {t && (
                           <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${DECISION_STYLE[t.decision]}`}>
                             {DECISION_LABEL[t.decision]}
@@ -107,7 +107,6 @@ export default async function PortalVotacionesPage() {
                         url={`/portal/votaciones/${v.id}/acta`}
                         filename={`acta-${v.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40)}.pdf`}
                         title={`Acta · ${v.title}`}
-                        className="shrink-0"
                       />
                     </div>
                   ))}
