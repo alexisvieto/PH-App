@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { FileText, Vote } from "lucide-react";
+import { Vote } from "lucide-react";
 
+import { PdfViewShare } from "@/components/portal/pdf-view-share";
 import { MonthSection } from "@/components/votaciones/month-section";
 import { ABSTAIN, VotePanel } from "@/components/votaciones/vote-panel";
 import { VotationResults } from "@/components/votaciones/votation-results";
@@ -102,14 +103,12 @@ export default async function PortalVotacionesPage() {
                           </span>
                         )}
                       </div>
-                      <a
-                        href={`/portal/votaciones/${v.id}/acta`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
-                      >
-                        <FileText className="size-4" /> Acta
-                      </a>
+                      <PdfViewShare
+                        url={`/portal/votaciones/${v.id}/acta`}
+                        filename={`acta-${v.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40)}.pdf`}
+                        title={`Acta · ${v.title}`}
+                        className="shrink-0"
+                      />
                     </div>
                   ))}
                 </MonthSection>

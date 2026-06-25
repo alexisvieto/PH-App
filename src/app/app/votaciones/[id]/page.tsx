@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileText } from "lucide-react";
 
+import { PdfViewShare } from "@/components/portal/pdf-view-share";
 import { VotationResults } from "@/components/votaciones/votation-results";
 import { VOTATION_PHASE_LABEL, VOTATION_PHASE_STYLE, votationPhase } from "@/lib/votations";
 import { loadVotationResults, tallyFrom } from "@/lib/votations-server";
@@ -58,14 +58,11 @@ export default async function VotacionDetallePage({ params }: { params: Promise<
         </div>
         <div className="flex flex-col items-end gap-2">
           {phase === "cerrada" ? (
-            <a
-              href={`/app/votaciones/${v.id}/acta`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
-            >
-              <FileText className="size-4" /> Ver / compartir acta (PDF)
-            </a>
+            <PdfViewShare
+              url={`/app/votaciones/${v.id}/acta`}
+              filename={`acta-${v.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40)}.pdf`}
+              title={`Acta · ${v.title}`}
+            />
           ) : (
             <p className="text-xs text-muted">El acta se genera al cerrar la votación.</p>
           )}
