@@ -149,7 +149,7 @@ export default async function PortalHome() {
           <div className="mt-6 flex items-end justify-between gap-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-white/70">
-                {owes ? "Saldo pendiente" : "Tu cuenta"}
+                {owes ? "Pago a realizar" : "Tu cuenta"}
               </p>
               {owes ? (
                 <p className="mt-1 text-3xl font-bold tabular-nums">

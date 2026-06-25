@@ -40,7 +40,7 @@ export function StatementPDF({
           <View style={s.saldoBox}>
             <Text style={s.saldoLabel}>Saldo actual</Text>
             <Text style={[s.saldoValue, { color: owes ? brand.primary : ATRIO.ink }]}>{money(st.balance)}</Text>
-            <Text style={s.saldoNote}>{owes ? "Pendiente de pago" : "Estás al día"}</Text>
+            <Text style={s.saldoNote}>{owes ? "Pago a realizar" : "Estás al día"}</Text>
           </View>
         </View>
 

@@ -43,7 +43,7 @@ export default async function PortalEstado({
         <div className="pointer-events-none absolute -right-10 -top-12 size-44 rounded-full bg-white/15 blur-2xl" />
         <div className="relative">
           <p className="text-xs font-medium uppercase tracking-wide text-white/80">
-            {owes ? "Saldo pendiente" : "Tu saldo"}
+            {owes ? "Pago a realizar" : "Tu saldo"}
           </p>
           {owes ? (
             <p className="mt-1 text-4xl font-bold tabular-nums">
