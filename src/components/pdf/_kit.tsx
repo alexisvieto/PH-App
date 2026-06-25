@@ -56,7 +56,7 @@ export function AtrioLockup({ size = 20, tagline = true }: { size?: number; tagl
         </Text>
       </View>
       {tagline ? (
-        <Text style={{ fontSize: 6.5, letterSpacing: 1.3, color: ATRIO.text3, marginTop: 3, marginLeft: 1 }}>
+        <Text style={{ fontSize: 7, letterSpacing: 1.4, color: ATRIO.text3, marginTop: 4, marginLeft: 1 }}>
           ONE APP. ONE COMMUNITY.
         </Text>
       ) : null}
@@ -182,7 +182,7 @@ export function BrandHeader({
   return (
     <>
       <View style={styles.header}>
-        <AtrioLockup size={20} />
+        <AtrioLockup size={26} />
         <View style={styles.headerRight}>
           {docType ? <Text style={styles.eyebrow}>{docType}</Text> : null}
           <Text style={styles.headerSub}>Emitido el {generatedOn}</Text>
