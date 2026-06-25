@@ -20,7 +20,7 @@ export async function createReservation(vars: {
   orgId: string;
   userId: string | null;
   areaId: string;
-  unitId: string;
+  unitId: string | null; // null = bloqueo del área (sin unidad)
   date: string;
   start: string;
   end: string;
@@ -29,7 +29,7 @@ export async function createReservation(vars: {
   forceApprove?: boolean;
 }): Promise<Result> {
   if (!UUID.test(vars.areaId)) return { ok: false, error: "Selecciona un área." };
-  if (!UUID.test(vars.unitId)) return { ok: false, error: "Selecciona una unidad." };
+  if (vars.unitId !== null && !UUID.test(vars.unitId)) return { ok: false, error: "Unidad inválida." };
   if (!ISODATE.test(vars.date)) return { ok: false, error: "Fecha inválida." };
   if (!HHMM.test(vars.start) || !HHMM.test(vars.end))
     return { ok: false, error: "Horario inválido." };

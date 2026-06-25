@@ -37,11 +37,13 @@ export function ReservationCalendar({
   units,
   today,
   action,
+  allowBlock = false,
 }: {
   areas: Area[];
   units: UnitOption[];
   today: string;
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
+  allowBlock?: boolean; // permite "bloquear" el área sin unidad (solo staff)
 }) {
   const router = useRouter();
   const [areaId, setAreaId] = useState(areas.length === 1 ? areas[0].id : "");
@@ -253,15 +255,20 @@ export function ReservationCalendar({
               <form onSubmit={onSubmit} className="space-y-3 border-t border-line pt-3">
                 <input type="hidden" name="area_id" value={areaId} />
                 <input type="hidden" name="date" value={selected} />
-                {units.length === 1 ? (
+                {units.length === 1 && !allowBlock ? (
                   <input type="hidden" name="unit_id" value={units[0].id} />
                 ) : (
                   <label className="block">
-                    <span className="mb-1 block text-sm font-medium">Unidad</span>
+                    <span className="mb-1 block text-sm font-medium">
+                      {allowBlock ? "Unidad o bloqueo" : "Unidad"}
+                    </span>
                     <select name="unit_id" required defaultValue="" className={input}>
                       <option value="" disabled>
                         Selecciona…
                       </option>
+                      {allowBlock && (
+                        <option value="__block__">Bloqueo del área (mantenimiento / evento)</option>
+                      )}
                       {units.map((u) => (
                         <option key={u.id} value={u.id}>
                           {u.label}

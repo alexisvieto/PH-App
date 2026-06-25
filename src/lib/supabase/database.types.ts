@@ -336,7 +336,7 @@ export type Database = {
           reviewed_by: string | null
           start_time: string
           status: Database["public"]["Enums"]["reservation_status"]
-          unit_id: string
+          unit_id: string | null
         }
         Insert: {
           area_id: string
@@ -354,7 +354,7 @@ export type Database = {
           reviewed_by?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["reservation_status"]
-          unit_id: string
+          unit_id?: string | null
         }
         Update: {
           area_id?: string
@@ -372,7 +372,7 @@ export type Database = {
           reviewed_by?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["reservation_status"]
-          unit_id?: string
+          unit_id?: string | null
         }
         Relationships: [
           {

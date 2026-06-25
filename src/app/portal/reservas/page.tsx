@@ -112,7 +112,7 @@ export default async function PortalReservasPage() {
                 <div className="min-w-0">
                   <p className="font-medium">
                     {areaName.get(r.area_id) ?? "Área"}
-                    {showUnit ? ` · Unidad ${unitCode.get(r.unit_id) ?? "—"}` : ""}
+                    {showUnit && r.unit_id ? ` · Unidad ${unitCode.get(r.unit_id) ?? "—"}` : ""}
                   </p>
                   <p className="text-sm text-muted">
                     {formatDate(r.reservation_date)} · {fmtTime(r.start_time)}–{fmtTime(r.end_time)}

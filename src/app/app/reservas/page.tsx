@@ -35,6 +35,8 @@ export default async function ReservasStaffPage() {
   const buildingName = new Map((buildings ?? []).map((b) => [b.id, b.name]));
   const unitCode = new Map((units ?? []).map((u) => [u.id, u.code]));
   const buildingOptions = (buildings ?? []).map((b) => ({ id: b.id, label: b.name }));
+  // unit_id puede ser null = bloqueo del área (sin unidad).
+  const unitLabel = (uid: string | null) => (uid ? `Unidad ${unitCode.get(uid) ?? "—"}` : "Bloqueo");
 
   const pending = (reservations ?? []).filter((r) => r.status === "pendiente");
   const upcoming = (reservations ?? []).filter((r) => r.status === "aprobada");
@@ -87,7 +89,7 @@ export default async function ReservasStaffPage() {
                   <div>
                     <p className="font-semibold">{areaName.get(r.area_id) ?? "Área"}</p>
                     <p className="mt-0.5 text-sm text-muted">
-                      Unidad {unitCode.get(r.unit_id) ?? "—"} · {formatDate(r.reservation_date)} ·{" "}
+                      {unitLabel(r.unit_id)} · {formatDate(r.reservation_date)} ·{" "}
                       {fmtTime(r.start_time)}–{fmtTime(r.end_time)}
                       {r.guests ? ` · ${r.guests} pers.` : ""}
                     </p>
@@ -108,6 +110,7 @@ export default async function ReservasStaffPage() {
           units={staffUnits}
           today={todayPa}
           action={createStaffReservation}
+          allowBlock
         />
       )}
 
@@ -172,8 +175,7 @@ export default async function ReservasStaffPage() {
                         <span className="font-medium capitalize">{formatDate(r.reservation_date)}</span>
                         <span className="text-muted">
                           {" "}
-                          · {fmtTime(r.start_time)}–{fmtTime(r.end_time)} · Unidad{" "}
-                          {unitCode.get(r.unit_id) ?? "—"}
+                          · {fmtTime(r.start_time)}–{fmtTime(r.end_time)} · {unitLabel(r.unit_id)}
                           {r.guests ? ` · ${r.guests} pers.` : ""}
                         </span>
                       </span>

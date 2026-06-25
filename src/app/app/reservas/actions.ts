@@ -71,17 +71,21 @@ export async function createStaffReservation(
   const orgId = ctx?.activeOrg?.id;
   if (!orgId) return { error: "Sin organización activa.", ok: false };
 
-  const unitId = String(formData.get("unit_id") ?? "");
-  if (!UUID.test(unitId)) return { error: "Selecciona una unidad.", ok: false };
-
-  const supabase = await createClient();
-  const { data: unit } = await supabase
-    .from("units")
-    .select("id")
-    .eq("id", unitId)
-    .eq("organization_id", orgId)
-    .maybeSingle();
-  if (!unit) return { error: "Unidad no encontrada.", ok: false };
+  // "__block__" = bloqueo del área sin unidad (mantenimiento / evento del edificio).
+  const raw = String(formData.get("unit_id") ?? "");
+  let unitId: string | null = null;
+  if (raw !== "__block__") {
+    if (!UUID.test(raw)) return { error: "Selecciona una unidad.", ok: false };
+    const supabase = await createClient();
+    const { data: unit } = await supabase
+      .from("units")
+      .select("id")
+      .eq("id", raw)
+      .eq("organization_id", orgId)
+      .maybeSingle();
+    if (!unit) return { error: "Unidad no encontrada.", ok: false };
+    unitId = raw;
+  }
 
   const guestsRaw = String(formData.get("guests") ?? "").trim();
   const guests = guestsRaw === "" ? null : Number(guestsRaw);
