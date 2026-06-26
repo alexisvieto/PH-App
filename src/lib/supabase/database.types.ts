@@ -3734,6 +3734,10 @@ export type Database = {
         }
         Returns: Json
       }
+      platform_set_org_module: {
+        Args: { p_enabled: boolean; p_module: string; p_org: string }
+        Returns: undefined
+      }
       post_charge: {
         Args: { c: Database["public"]["Tables"]["charges"]["Row"] }
         Returns: undefined

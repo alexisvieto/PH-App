@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 
-import { addOrgAdmin, onboardSubscriber } from "@/app/admin/suscriptores/actions";
+import { addOrgAdmin, onboardSubscriber, setOrgModule } from "@/app/admin/suscriptores/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { useFormPanel } from "@/components/use-form-panel";
 import { EMPTY_ACTION_STATE } from "@/lib/action-state";
@@ -96,5 +97,29 @@ export function AddAdminForm({ orgId }: { orgId: string }) {
         </button>
       </div>
     </form>
+  );
+}
+
+/** Activa/desactiva un módulo (add-on pago) de un suscriptor. */
+export function OrgModuleToggle({ orgId, moduleKey, label, enabled }: { orgId: string; moduleKey: string; label: string; enabled: boolean }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        await setOrgModule(orgId, moduleKey, !enabled);
+        setBusy(false);
+        router.refresh();
+      }}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+        enabled ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+      }`}
+      title={enabled ? "Clic para desactivar" : "Clic para activar"}
+    >
+      <span className={`size-2 rounded-full ${enabled ? "bg-emerald-500" : "bg-gray-400"}`} /> {label} · {enabled ? "activo" : "inactivo"}
+    </button>
   );
 }

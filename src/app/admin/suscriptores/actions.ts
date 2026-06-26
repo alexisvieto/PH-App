@@ -72,3 +72,23 @@ export async function addOrgAdmin(_prev: ActionState, formData: FormData): Promi
   revalidatePath("/admin/suscriptores");
   return { error: null, ok: true };
 }
+
+/** Nexera activa/desactiva un módulo (add-on pago) de un suscriptor. */
+export async function setOrgModule(orgId: string, moduleKey: string, enabled: boolean): Promise<ActionState> {
+  const admin = await getPlatformAdmin();
+  if (!admin) return { error: "Sin acceso.", ok: false };
+  if (!UUID.test(orgId)) return { error: "Organización inválida.", ok: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("platform_set_org_module", {
+    p_org: orgId,
+    p_module: moduleKey,
+    p_enabled: enabled,
+  });
+  if (error) {
+    console.error("setOrgModule:", error.code, error.message);
+    return { error: "No se pudo actualizar el módulo.", ok: false };
+  }
+  revalidatePath("/admin/suscriptores");
+  return { error: null, ok: true };
+}
