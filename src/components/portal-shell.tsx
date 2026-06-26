@@ -16,7 +16,7 @@ function tabFor(p: string): string {
   if (p === "/portal") return "/portal";
   if (/^\/portal\/(cuenta|unidades|finanzas|proyectos|recibo)/.test(p)) return "/portal/cuenta";
   if (/^\/portal\/(accesos|citofono|paquetes|sos)/.test(p)) return "/portal/accesos";
-  if (/^\/portal\/(comunidad|comunicados|reservas|votaciones|quejas|a-domicilio)/.test(p)) return "/portal/comunidad";
+  if (/^\/portal\/(comunidad|comunicados|reservas|votaciones|quejas|a-domicilio|proveedores)/.test(p)) return "/portal/comunidad";
   if (p.startsWith("/portal/mas")) return "/portal/mas";
   return "/portal";
 }

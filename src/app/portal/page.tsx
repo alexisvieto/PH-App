@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, DoorOpen, Megaphone, Package, Siren, Vote } from "lucide-react";
+import { ArrowRight, CheckCircle2, DoorOpen, Megaphone, Package, Siren, Vote, Wrench } from "lucide-react";
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
 import { AdBanner, type PortalAd } from "@/components/portal/ad-banner";
@@ -160,6 +160,21 @@ export default async function PortalHome() {
           )}
         </div>
       )}
+
+      {/* Proveedores para el hogar (la joya): acceso destacado */}
+      <Link
+        href="/portal/proveedores"
+        className="flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand-soft p-4 transition hover:opacity-90"
+      >
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+          <Wrench className="size-6" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold text-brand">Proveedores para tu hogar</span>
+          <span className="block text-xs text-brand/70">Electricistas, electrodomésticos, remodelación y más · con reseñas</span>
+        </span>
+        <ArrowRight className="size-5 shrink-0 text-brand" />
+      </Link>
 
       {/* Botón de pánico (SOS) — siempre a la mano si el módulo está activo */}
       {accesosMod && (

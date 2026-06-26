@@ -2601,6 +2601,158 @@ export type Database = {
           },
         ]
       }
+      service_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      service_provider_categories: {
+        Row: {
+          category_id: string
+          provider_id: string
+        }
+        Insert: {
+          category_id: string
+          provider_id: string
+        }
+        Update: {
+          category_id?: string
+          provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_provider_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_provider_categories_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_provider_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          photo_path: string | null
+          provider_id: string
+          rating: number
+          reviewer_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          photo_path?: string | null
+          provider_id: string
+          rating: number
+          reviewer_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          photo_path?: string | null
+          provider_id?: string
+          rating?: number
+          reviewer_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_provider_reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_providers: {
+        Row: {
+          active: boolean
+          contact_name: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          logo_path: string | null
+          name: string
+          phone: string | null
+          priority: number
+          rating_avg: number
+          rating_count: number
+          whatsapp: string | null
+        }
+        Insert: {
+          active?: boolean
+          contact_name?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_path?: string | null
+          name: string
+          phone?: string | null
+          priority?: number
+          rating_avg?: number
+          rating_count?: number
+          whatsapp?: string | null
+        }
+        Update: {
+          active?: boolean
+          contact_name?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_path?: string | null
+          name?: string
+          phone?: string | null
+          priority?: number
+          rating_avg?: number
+          rating_count?: number
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           contact_name: string | null
@@ -3569,6 +3721,10 @@ export type Database = {
       }
       post_payroll_period: { Args: { p_period: string }; Returns: undefined }
       purge_old_access_records: { Args: never; Returns: undefined }
+      recompute_provider_rating: {
+        Args: { p_provider: string }
+        Returns: undefined
+      }
       register_ad_click: { Args: { p_campaign: string }; Returns: undefined }
       register_lease: {
         Args: {

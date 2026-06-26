@@ -1,4 +1,4 @@
-import { CalendarCheck, Megaphone, MessageSquareWarning, ShoppingBag, Vote } from "lucide-react";
+import { CalendarCheck, Megaphone, MessageSquareWarning, ShoppingBag, Vote, Wrench } from "lucide-react";
 
 import { HubHeader, HubRow, HubSection } from "@/components/portal/hub";
 import { getResidentContext } from "@/lib/session";
@@ -27,6 +27,7 @@ export default async function ComunidadHub() {
       </HubSection>
 
       <HubSection title="Servicios">
+        <HubRow href="/portal/proveedores" icon={Wrench} color="violet" label="Proveedores" sub="Técnicos para tu hogar, con reseñas" />
         {hasReservas && (
           <HubRow href="/portal/reservas" icon={CalendarCheck} color="violet" label="Reservas" sub="Áreas comunes" />
         )}
