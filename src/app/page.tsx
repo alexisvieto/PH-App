@@ -6,6 +6,7 @@ import { getResidentContext, getSessionContext } from "@/lib/session";
 export default async function Home() {
   const ctx = await getSessionContext();
   if (!ctx) redirect("/login");
+  if (ctx.mustChangePassword) redirect("/cambiar-clave");
   if (ctx.activeOrg) redirect("/app");
 
   const res = await getResidentContext();

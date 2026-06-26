@@ -2385,6 +2385,7 @@ export type Database = {
           doc_type: Database["public"]["Enums"]["doc_type"] | null
           full_name: string | null
           id: string
+          must_change_password: boolean
           phone: string | null
           updated_at: string
         }
@@ -2395,6 +2396,7 @@ export type Database = {
           doc_type?: Database["public"]["Enums"]["doc_type"] | null
           full_name?: string | null
           id: string
+          must_change_password?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -2405,6 +2407,7 @@ export type Database = {
           doc_type?: Database["public"]["Enums"]["doc_type"] | null
           full_name?: string | null
           id?: string
+          must_change_password?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -3703,6 +3706,7 @@ export type Database = {
         Args: { p_email: string; p_user: string }
         Returns: undefined
       }
+      mark_password_changed: { Args: never; Returns: undefined }
       notif_is_staff: {
         Args: { p_org: string; p_uid: string }
         Returns: boolean

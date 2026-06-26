@@ -40,6 +40,7 @@ export type SessionContext = {
   activeOrg: OrgRow | null;
   role: OrgRole | null;
   brand: Brand;
+  mustChangePassword: boolean;
 };
 
 /**
@@ -56,7 +57,7 @@ export const getSessionContext = cache(
     if (!user) return null;
 
     const [{ data: profile }, { data: rawMemberships }] = await Promise.all([
-      supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("full_name, must_change_password").eq("id", user.id).maybeSingle(),
       supabase
         .from("organization_members")
         .select(`organization_id, role, org:organizations(id, slug, type, ${ORG_BRAND_COLUMNS})`)
@@ -85,6 +86,7 @@ export const getSessionContext = cache(
       activeOrg,
       role: active?.role ?? null,
       brand: brandFromOrg(activeOrg),
+      mustChangePassword: profile?.must_change_password ?? false,
     };
   },
 );

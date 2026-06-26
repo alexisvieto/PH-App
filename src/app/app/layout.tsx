@@ -12,6 +12,7 @@ export default async function AppLayout({
 }) {
   const ctx = await getSessionContext();
   if (!ctx) redirect("/login");
+  if (ctx.mustChangePassword) redirect("/cambiar-clave");
   if (!ctx.activeOrg) redirect("/"); // resolver: residente → /portal, nuevo → /onboarding
 
   // El guardia solo puede estar en su inicio + garita + paquetería (server-side,
