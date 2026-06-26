@@ -53,6 +53,7 @@ export async function createResidentReservation(
     rulesAccepted: true,
   });
   if (!r.ok) return { error: r.error, ok: false };
+  revalidatePath("/portal/reservas");
   return { error: null, ok: true };
 }
 

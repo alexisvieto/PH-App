@@ -102,9 +102,10 @@ export function ReservationCalendar({
     const res = await action(EMPTY_ACTION_STATE, fd);
     setBusy(false);
     if (res.ok) {
-      toast.success("Reserva enviada.");
+      toast.success(area?.requires_approval ? "Solicitud enviada · pendiente de aprobación." : "Reserva confirmada.");
       form.reset();
       setAccepted(false);
+      setSelected(null); // cierra el formulario del día tras enviar
       await loadSlots(); // la nueva franja aparece como ocupada
       router.refresh(); // refresca "Mis reservas"
     } else {

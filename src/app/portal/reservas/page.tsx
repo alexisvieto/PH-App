@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 
 import { createResidentReservation } from "@/app/portal/reservas/actions";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { ReservationCalendar } from "@/components/reservas/reservation-calendar";
 import { CancelReservation } from "@/components/reservas/reservar-form";
 import { fmtTime, RESERVATION_STATUS_LABEL, RESERVATION_STATUS_STYLE } from "@/lib/reservas";
@@ -60,6 +61,7 @@ export default async function PortalReservasPage() {
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <div>
         <Link href="/portal" className="text-sm text-muted hover:text-ink">
           ← Inicio
