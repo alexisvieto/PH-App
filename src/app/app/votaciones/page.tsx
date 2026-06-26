@@ -48,7 +48,8 @@ export default async function VotacionesPage() {
       .from("votations")
       .select("id, title, kind, opens_at, closes_at, building_id, created_at")
       .eq("organization_id", orgId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(200),
     supabase.from("buildings").select("id, name").eq("organization_id", orgId).order("name"),
   ]);
   const buildingName = new Map((buildings ?? []).map((b) => [b.id, b.name]));

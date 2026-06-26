@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
 import { createReservation } from "@/lib/reservas-server";
-import { getSessionContext } from "@/lib/session";
+import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -21,6 +21,8 @@ export async function createArea(_prev: ActionState, formData: FormData): Promis
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;
   if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!canManage(ctx?.role ?? null))
+    return { error: "Solo un administrador puede crear áreas.", ok: false };
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "El nombre del área es obligatorio.", ok: false };

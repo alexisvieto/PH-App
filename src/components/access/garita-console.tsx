@@ -254,8 +254,8 @@ export function GaritaConsole({
             <div className="rounded-2xl border border-line p-4">
               <p className="text-lg font-semibold">{found.pass.visitor_name}</p>
               <p className="mt-1 text-sm text-muted">
-                {PASS_TYPE_LABEL[found.pass.type]} · Unidad {found.unitCode ?? "—"} · Vence{" "}
-                {formatDate(found.pass.valid_to)}
+                {PASS_TYPE_LABEL[found.pass.type]} · Unidad {found.unitCode ?? "—"} ·{" "}
+                {found.pass.valid_to ? `Vence ${formatDate(found.pass.valid_to)}` : "Sin vencimiento"}
                 {found.pass.vehicle_plate ? ` · Placa ${found.pass.vehicle_plate}` : ""}
                 {found.pass.max_uses !== null ? ` · Usos ${found.pass.uses_count}/${found.pass.max_uses}` : ""}
               </p>

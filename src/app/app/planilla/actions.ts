@@ -182,15 +182,21 @@ export async function markPeriodPaid(periodId: string): Promise<ActionState> {
   if (!UUID.test(periodId)) return { error: "Período inválido.", ok: false };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const todayPa = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
+  // Guard: solo se paga un período PROCESADO (no un borrador sin renglones).
+  const { data, error } = await supabase
     .from("payroll_periods")
-    .update({ status: "pagada", pay_date: new Date().toISOString().slice(0, 10) })
+    .update({ status: "pagada", pay_date: todayPa })
     .eq("id", periodId)
-    .eq("organization_id", orgId);
+    .eq("organization_id", orgId)
+    .eq("status", "procesada")
+    .select("id")
+    .maybeSingle();
   if (error) {
     console.error("markPeriodPaid:", error.code, error.message);
-    return { error: "No se pudo marcar como pagada.", ok: false };
+    return { error: "No se pudo registrar el pago.", ok: false };
   }
+  if (!data) return { error: "El período debe estar procesado para registrar el pago.", ok: false };
   revalidatePath(`/app/planilla/${periodId}`);
   revalidatePath("/app/planilla");
   return { error: null, ok: true };

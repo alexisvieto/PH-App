@@ -25,6 +25,7 @@ export default async function PortalPassDetail({
     .from("visitor_passes")
     .select("*")
     .eq("id", passId)
+    .eq("organization_id", res.orgId)
     .maybeSingle();
   if (!pass) notFound();
 

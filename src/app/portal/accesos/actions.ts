@@ -127,7 +127,8 @@ export async function anularResidentPass(passId: string): Promise<ActionState> {
     .from("visitor_passes")
     .update({ status: "anulado" })
     .eq("id", passId)
-    .eq("organization_id", orgId);
+    .eq("organization_id", orgId)
+    .in("unit_id", res.units.map((u) => u.id));
   if (error) {
     console.error("anularResidentPass:", error.code, error.message);
     return { error: "No se pudo anular el pase.", ok: false };

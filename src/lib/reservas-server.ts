@@ -25,12 +25,15 @@ export async function getUnitOverdueMonths(unitId: string): Promise<number> {
   const supabase = await createClient();
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
   const [{ data: charges }, { data: payments }] = await Promise.all([
-    supabase.from("charges").select("amount, period, due_date").eq("unit_id", unitId).eq("concept", "mantenimiento"),
+    supabase.from("charges").select("concept, amount, period, due_date").eq("unit_id", unitId),
     supabase.from("payments").select("amount").eq("unit_id", unitId),
   ]);
   const totalPaid = (payments ?? []).reduce((s, p) => s + Number(p.amount ?? 0), 0);
-  const maint = (charges ?? [])
+  // Los pagos cubren los cargos más ANTIGUOS primero (FIFO), de cualquier concepto;
+  // así un pago de multa no "tapa" una cuota de mantenimiento.
+  const all = (charges ?? [])
     .map((c) => ({
+      concept: c.concept,
       amount: Number(c.amount ?? 0),
       key: c.period ?? c.due_date ?? "9999-12-31",
       due: c.due_date ?? c.period ?? "9999-12-31",
@@ -38,9 +41,10 @@ export async function getUnitOverdueMonths(unitId: string): Promise<number> {
     .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   let cum = 0;
   let overdueUnpaid = 0;
-  for (const c of maint) {
+  for (const c of all) {
     cum += c.amount;
-    if (cum > totalPaid + 0.005 && c.due < today) overdueUnpaid++;
+    // Cuentan solo las CUOTAS de mantenimiento ya vencidas y no cubiertas por los pagos.
+    if (cum > totalPaid + 0.005 && c.concept === "mantenimiento" && c.due < today) overdueUnpaid++;
   }
   return overdueUnpaid;
 }

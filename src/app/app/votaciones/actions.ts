@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
-import { getSessionContext } from "@/lib/session";
+import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { Constants } from "@/lib/supabase/database.types";
 
@@ -22,6 +22,9 @@ export async function createVotation(_prev: ActionState, formData: FormData): Pr
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;
   if (!orgId) return { error: "Sin organización activa.", ok: false };
+
+  if (!canManage(ctx?.role ?? null))
+    return { error: "Solo un administrador puede crear votaciones.", ok: false };
 
   const title = String(formData.get("title") ?? "").trim();
   if (!title) return { error: "El título es obligatorio.", ok: false };

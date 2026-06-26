@@ -118,6 +118,7 @@ export async function logMaintenance(
     .from("equipment")
     .select("organization_id, building_id")
     .eq("id", equipmentId)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (!eq) return { error: "Equipo no encontrado.", ok: false };
 
@@ -157,6 +158,7 @@ export async function markAttended(equipmentId: string): Promise<ActionState> {
     .from("equipment")
     .select("organization_id, building_id, maintenance_frequency_days")
     .eq("id", equipmentId)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (!eq) return { error: "Equipo no encontrado.", ok: false };
 
