@@ -1,6 +1,7 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { StatementPDF } from "@/components/pdf/statement-pdf";
+import { getResidentContext } from "@/lib/session";
 import { getUnitStatement } from "@/lib/statement";
 
 export const runtime = "nodejs";
@@ -10,8 +11,10 @@ export async function GET(
   { params }: { params: Promise<{ unitId: string }> },
 ) {
   const { unitId } = await params;
-  // getUnitStatement corre bajo RLS: solo devuelve la unidad si el residente
-  // (o staff) tiene acceso; null en cualquier otro caso.
+  // Defensa en profundidad: además de RLS (getUnitStatement devuelve null sin
+  // acceso), exige explícitamente que la unidad sea del residente.
+  const res = await getResidentContext();
+  if (!res?.units?.some((u) => u.id === unitId)) return new Response("No autorizado", { status: 403 });
   const st = await getUnitStatement(unitId);
   if (!st) return new Response("No autorizado", { status: 403 });
 

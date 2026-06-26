@@ -17,13 +17,15 @@ export default async function PortalEstado({
   params: Promise<{ unitId: string }>;
 }) {
   const { unitId } = await params;
+  // Defensa en profundidad: además de RLS, exige que la unidad sea del residente.
+  const res = await getResidentContext();
+  if (!res?.units?.some((u) => u.id === unitId)) notFound();
   const st = await getUnitStatement(unitId);
   if (!st) notFound();
 
   const owes = st.balance > BALANCE_TOLERANCE;
   // ¿El PH tiene pagos en línea (Yappy) activos? Para mostrar el botón de pago.
-  const res = await getResidentContext();
-  const yappy = res?.orgId ? await getYappyConfig(res.orgId) : null;
+  const yappy = res.orgId ? await getYappyConfig(res.orgId) : null;
   // El hero comunica el estado por color: marca (al día) o cálido (pendiente).
   const heroBg = owes
     ? "linear-gradient(135deg, #f43f5e 0%, #f97316 100%)"

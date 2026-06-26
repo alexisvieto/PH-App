@@ -2,6 +2,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 
 import { PazSalvoPDF } from "@/components/pdf/paz-salvo-pdf";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
+import { getResidentContext } from "@/lib/session";
 import { getUnitStatement } from "@/lib/statement";
 
 export const runtime = "nodejs";
@@ -11,6 +12,9 @@ export async function GET(
   { params }: { params: Promise<{ unitId: string }> },
 ) {
   const { unitId } = await params;
+  // Defensa en profundidad: además de RLS, exige que la unidad sea del residente.
+  const res = await getResidentContext();
+  if (!res?.units?.some((u) => u.id === unitId)) return new Response("No autorizado", { status: 403 });
   const st = await getUnitStatement(unitId);
   if (!st) return new Response("No autorizado", { status: 403 });
 

@@ -21,6 +21,16 @@ export default async function PassDetailPage({
   if (!orgId) return null;
 
   const supabase = await createClient();
+  // Gating del módulo pago (además del nav): ruta inaccesible si no está activo.
+  const { data: mod } = await supabase
+    .from("organization_modules")
+    .select("module_key")
+    .eq("organization_id", orgId)
+    .eq("module_key", "accesos")
+    .eq("enabled", true)
+    .maybeSingle();
+  if (!mod) notFound();
+
   const { data: pass } = await supabase
     .from("visitor_passes")
     .select("*")
