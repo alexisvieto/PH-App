@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 
 import { PanicListener } from "@/components/access/panic-listener";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { NotificationsProvider } from "@/components/notifications/notifications-provider";
 import { OrgSwitcher, type OrgOption } from "@/components/org-switcher";
 import type { Brand } from "@/lib/brand";
 import { ORG_ROLE_LABEL, ORG_TYPE_LABEL } from "@/lib/padron";
@@ -160,6 +162,7 @@ export function AppShell({
   );
 
   return (
+    <NotificationsProvider orgId={guardOnly ? null : activeOrgId}>
     <div
       className="flex min-h-screen w-full md:h-screen md:overflow-hidden"
       style={
@@ -174,7 +177,10 @@ export function AppShell({
 
       {/* Sidebar escritorio */}
       <aside className="safe-top hidden w-64 shrink-0 flex-col border-r border-line bg-surface p-4 md:flex">
-        {sidebarHead}
+        <div className="flex items-center justify-between gap-2">
+          {sidebarHead}
+          {!guardOnly && <NotificationBell align="left" />}
+        </div>
         {orgs.length > 1 && (
           <OrgSwitcher options={orgs} activeId={activeOrgId} />
         )}
@@ -212,6 +218,7 @@ export function AppShell({
             <Menu className="size-5" />
           </button>
           <span className="font-semibold">{orgName}</span>
+          {!guardOnly && <NotificationBell align="right" className="ml-auto" />}
         </header>
         <main className={`flex-1 p-4 md:min-h-0 md:overflow-y-auto md:p-8 ${guardOnly ? "pb-28 md:pb-8" : ""}`}>{children}</main>
       </div>
@@ -239,6 +246,7 @@ export function AppShell({
         </nav>
       )}
     </div>
+    </NotificationsProvider>
   );
 }
 

@@ -1594,6 +1594,53 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          organization_id: string
+          read_at: string | null
+          source_id: string | null
+          source_type: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          organization_id: string
+          read_at?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          organization_id?: string
+          read_at?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_payment_settings: {
         Row: {
           enabled: boolean
@@ -3503,6 +3550,10 @@ export type Database = {
       link_people_to_user: {
         Args: { p_email: string; p_user: string }
         Returns: undefined
+      }
+      notif_is_staff: {
+        Args: { p_org: string; p_uid: string }
+        Returns: boolean
       }
       post_charge: {
         Args: { c: Database["public"]["Tables"]["charges"]["Row"] }
