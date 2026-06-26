@@ -27,7 +27,9 @@ export function VotationResults({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm">
             <span className="font-semibold">Participación: {pct(tally.participationPct)}</span>{" "}
-            <span className="text-muted">de coeficiente (quórum requerido {pct(quorumPct)})</span>
+            <span className="text-muted">
+              de las unidades al día ({tally.votedUnits}/{tally.eligibleUnits} · quórum {pct(quorumPct)})
+            </span>
           </p>
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -42,7 +44,7 @@ export function VotationResults({
         </div>
       </div>
 
-      {/* Resultado por opción (ponderado por coeficiente) */}
+      {/* Resultado por opción (conteo de unidades al día) */}
       <div className="space-y-3">
         {tally.options.map((o, i) => {
           const winner = tally.winnerId === o.id;
@@ -50,7 +52,9 @@ export function VotationResults({
             <div key={o.id}>
               <div className="mb-1 flex items-center justify-between text-sm">
                 <span className={winner ? "font-semibold text-brand" : "font-medium"}>{o.label}</span>
-                <span className="tabular-nums text-muted">{pct(o.pct)}</span>
+                <span className="tabular-nums text-muted">
+                  {o.count} {o.count === 1 ? "unidad" : "unidades"} · {pct(o.pct)}
+                </span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-gray-100">
                 <div

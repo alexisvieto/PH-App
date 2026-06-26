@@ -21,7 +21,6 @@ export default async function PortalVotacionesPage() {
   const res = await getResidentContext();
   if (!res?.orgId) return null;
 
-  const myUnitCodes = new Set(res.units.map((u) => u.code));
   const supabase = await createClient();
   // El residente ve las votaciones ya iniciadas (abiertas o cerradas), nunca las programadas.
   const { data: votations } = await supabase
@@ -33,18 +32,34 @@ export default async function PortalVotacionesPage() {
     .limit(50);
 
   const list = votations ?? [];
-  const results = await Promise.all(list.map((v) => loadVotationResults(v.id)));
+  const [results, votable] = await Promise.all([
+    Promise.all(list.map((v) => loadVotationResults(v.id))),
+    Promise.all(
+      list.map((v) =>
+        supabase
+          .rpc("votable_units_for", { p_votation: v.id })
+          .then((r) => (r.data ?? []) as { unit_id: string; unit_code: string; is_current: boolean }[]),
+      ),
+    ),
+  ]);
 
   const items = list.map((v, idx) => {
     const r = results[idx];
     const phase = votationPhase(v.opens_at, v.closes_at);
     const t = r ? tallyFrom(r, Number(v.quorum_pct), Number(v.approval_pct), v.kind) : null;
-    const mine = r?.votes.find((x) => myUnitCodes.has(x.unit_code));
-    const myChoice = mine ? (mine.is_abstention ? ABSTAIN : mine.option_id) : null;
-    return { v, r, phase, t, myChoice };
+    // Una boleta por unidad AL DÍA del residente (Ley 284). El moroso no recibe boleta.
+    const ballots = votable[idx]
+      .filter((u) => u.is_current)
+      .map((u) => {
+        const mine = r?.votes.find((x) => x.unit_code === u.unit_code);
+        return { unitId: u.unit_id, unitCode: u.unit_code, myChoice: mine ? (mine.is_abstention ? ABSTAIN : mine.option_id) : null };
+      });
+    return { v, r, phase, t, ballots, owns: votable[idx].length > 0, multiUnit: ballots.length > 1 };
   });
-  const active = items.filter((x) => x.phase !== "cerrada");
-  const archive = groupByMonth(items.filter((x) => x.phase === "cerrada"), (x) => x.v.closes_at);
+  // Activas: solo si el residente tiene al menos una unidad que puede votar (oculta al moroso).
+  const active = items.filter((x) => x.phase !== "cerrada" && x.ballots.length > 0);
+  // Archivo: votaciones cerradas de los edificios donde el residente tiene unidad.
+  const archive = groupByMonth(items.filter((x) => x.phase === "cerrada" && x.owns), (x) => x.v.closes_at);
 
   return (
     <div className="space-y-6">
@@ -55,7 +70,7 @@ export default async function PortalVotacionesPage() {
         <h1 className="mt-1 flex items-center gap-2 text-2xl font-semibold">
           <Vote className="size-6 text-brand" /> Votaciones
         </h1>
-        <p className="text-sm text-muted">Decisiones de la comunidad, ponderadas por coeficiente.</p>
+        <p className="text-sm text-muted">Cada unidad al día equivale a un voto (Ley 284).</p>
       </div>
 
       {items.length === 0 ? (
@@ -66,7 +81,7 @@ export default async function PortalVotacionesPage() {
         <div className="space-y-6">
           {active.length > 0 && (
             <div className="space-y-4">
-              {active.map(({ v, r, phase, t, myChoice }) => (
+              {active.map(({ v, r, phase, t, ballots, multiUnit }) => (
                 <article key={v.id} className="space-y-4 rounded-2xl border border-line bg-surface p-5">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -79,7 +94,19 @@ export default async function PortalVotacionesPage() {
                   </div>
 
                   {phase === "abierta" && (
-                    <VotePanel votationId={v.id} options={(r?.options ?? []).map((o) => ({ id: o.id, label: o.label }))} myChoice={myChoice} />
+                    <div className="space-y-3">
+                      {ballots.map((b) => (
+                        <VotePanel
+                          key={b.unitId}
+                          votationId={v.id}
+                          unitId={b.unitId}
+                          unitCode={b.unitCode}
+                          options={(r?.options ?? []).map((o) => ({ id: o.id, label: o.label }))}
+                          myChoice={b.myChoice}
+                          showUnit={multiUnit}
+                        />
+                      ))}
+                    </div>
                   )}
 
                   {t && <VotationResults tally={t} quorumPct={Number(v.quorum_pct)} approvalPct={Number(v.approval_pct)} closed={false} />}

@@ -67,46 +67,44 @@ export function groupByMonth<T>(items: T[], closesAt: (x: T) => string | null): 
   return [...map.values()].sort((a, b) => (a.key < b.key ? 1 : -1));
 }
 
-export type VoteRow = { option_id: string | null; is_abstention: boolean; weight: number | string };
+export type VoteRow = { option_id: string | null; is_abstention: boolean };
 export type OptionRow = { id: string; label: string; sort_order: number };
 
 export type Tally = {
-  totalCoef: number;
-  votedWeight: number;
-  abstWeight: number;
+  eligibleUnits: number; // electorado: unidades al día (Ley 284)
+  votedUnits: number;
+  abstentions: number;
   participationPct: number;
   quorumReached: boolean;
-  options: { id: string; label: string; weight: number; pct: number }[];
+  options: { id: string; label: string; count: number; pct: number }[];
   decision: "aprobada" | "rechazada" | "sin_quorum";
   winnerId: string | null;
 };
 
 /**
- * Escrutinio ponderado por coeficiente. Para 'si_no', la opción de orden 0 es
- * la que aprueba ("Sí"). El % de cada opción se calcula sobre lo "decidido"
- * (excluye abstenciones). Aprueba si hay quórum y se alcanza el umbral.
+ * Escrutinio POR UNIDAD (Ley 284): 1 unidad al día = 1 voto. El denominador de
+ * quórum y de aprobación es el total de **unidades al día** del edificio (el
+ * ausente cuenta como no-favorable). Para 'si_no', la opción de orden 0 es "Sí":
+ * aprueba si Sí ≥ umbral del electorado. Para 'multiple', gana la más votada.
  */
 export function tally(
   opts: OptionRow[],
   votes: VoteRow[],
-  totalCoef: number,
+  eligibleUnits: number,
   quorumPct: number,
   approvalPct: number,
   kind: Enums["votation_kind"],
 ): Tally {
-  const n = (v: number | string) => Number(v) || 0;
   const sorted = [...opts].sort((a, b) => a.sort_order - b.sort_order);
-  const votedWeight = votes.reduce((s, v) => s + n(v.weight), 0);
-  const abstWeight = votes.filter((v) => v.is_abstention).reduce((s, v) => s + n(v.weight), 0);
-  const perOption = sorted.map((o) => ({
-    id: o.id,
-    label: o.label,
-    weight: votes.filter((v) => v.option_id === o.id).reduce((s, v) => s + n(v.weight), 0),
-  }));
-  const decided = perOption.reduce((s, o) => s + o.weight, 0);
-  const options = perOption.map((o) => ({ ...o, pct: decided > 0 ? (o.weight / decided) * 100 : 0 }));
+  const eligible = Math.max(0, eligibleUnits);
+  const votedUnits = votes.length;
+  const abstentions = votes.filter((v) => v.is_abstention).length;
+  const options = sorted.map((o) => {
+    const count = votes.filter((v) => v.option_id === o.id).length;
+    return { id: o.id, label: o.label, count, pct: eligible > 0 ? (count / eligible) * 100 : 0 };
+  });
 
-  const participationPct = totalCoef > 0 ? (votedWeight / totalCoef) * 100 : 0;
+  const participationPct = eligible > 0 ? (votedUnits / eligible) * 100 : 0;
   const quorumReached = participationPct >= quorumPct;
 
   let decision: Tally["decision"] = "rechazada";
@@ -116,12 +114,12 @@ export function tally(
   } else if (kind === "si_no") {
     const yes = options[0]; // orden 0 = "Sí"
     decision = (yes?.pct ?? 0) >= approvalPct ? "aprobada" : "rechazada";
-    winnerId = yes && (yes.pct ?? 0) >= approvalPct ? yes.id : null;
+    winnerId = decision === "aprobada" && yes ? yes.id : null;
   } else {
-    const top = [...options].sort((a, b) => b.weight - a.weight)[0];
-    winnerId = top && top.weight > 0 ? top.id : null;
+    const top = [...options].sort((a, b) => b.count - a.count)[0];
+    winnerId = top && top.count > 0 ? top.id : null;
     decision = winnerId ? "aprobada" : "rechazada";
   }
 
-  return { totalCoef, votedWeight, abstWeight, participationPct, quorumReached, options, decision, winnerId };
+  return { eligibleUnits: eligible, votedUnits, abstentions, participationPct, quorumReached, options, decision, winnerId };
 }

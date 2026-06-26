@@ -3410,7 +3410,12 @@ export type Database = {
         Returns: undefined
       }
       cast_vote: {
-        Args: { p_abstention: boolean; p_option: string; p_votation: string }
+        Args: {
+          p_abstention: boolean
+          p_option: string
+          p_unit: string
+          p_votation: string
+        }
         Returns: undefined
       }
       change_employee_salary: {
@@ -3553,6 +3558,16 @@ export type Database = {
         Args: { p_acquired_on?: string; p_person_id: string; p_unit_id: string }
         Returns: undefined
       }
+      unit_overdue_maint_count: { Args: { p_unit: string }; Returns: number }
+      votable_units_for: {
+        Args: { p_votation: string }
+        Returns: {
+          is_current: boolean
+          unit_code: string
+          unit_id: string
+        }[]
+      }
+      votation_eligible_units: { Args: { p_votation: string }; Returns: number }
     }
     Enums: {
       account_fund: "operativo" | "imprevistos"

@@ -59,7 +59,6 @@ export async function renderActaPdf(votationId: string, brand: Brand): Promise<R
     votes: results.votes.map((x) => ({
       unit_code: x.unit_code,
       choice: x.is_abstention ? "Abstención" : optionLabel.get(x.option_id ?? "") ?? "—",
-      coef: Number(x.weight).toFixed(4),
       voted_at: dtShort(x.voted_at),
     })),
   };

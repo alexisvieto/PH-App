@@ -67,7 +67,7 @@ export default async function VotacionesPage() {
           <h1 className="flex items-center gap-2 text-2xl font-semibold">
             <Vote className="size-6 text-brand" /> Votaciones
           </h1>
-          <p className="text-sm text-muted">Asambleas digitales ponderadas por coeficiente.</p>
+          <p className="text-sm text-muted">Asambleas digitales · un voto por unidad al día (Ley 284).</p>
         </div>
         <NewVotationForm buildings={buildingOptions} />
       </div>

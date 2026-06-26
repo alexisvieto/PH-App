@@ -5,9 +5,10 @@ import { revalidatePath } from "next/cache";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
-/** El propietario principal emite/cambia el voto de su unidad (vía RPC seguro). */
+/** El propietario principal emite/cambia el voto de UNA de sus unidades (RPC seguro). */
 export async function castVote(
   votationId: string,
+  unitId: string,
   optionId: string | null,
   abstention: boolean,
 ): Promise<{ ok: boolean; error: string | null }> {
@@ -17,6 +18,7 @@ export async function castVote(
   const supabase = await createClient();
   const { error } = await supabase.rpc("cast_vote", {
     p_votation: votationId,
+    p_unit: unitId,
     // El tipo generado lo marca como string; en runtime null es válido (abstención).
     p_option: optionId as string,
     p_abstention: abstention,

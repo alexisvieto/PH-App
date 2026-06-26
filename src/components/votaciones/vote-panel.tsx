@@ -9,26 +9,34 @@ import { castVote } from "@/app/portal/votaciones/actions";
 
 const ABSTAIN = "__abstain__";
 
+/** Boleta de UNA unidad (Ley 284: 1 unidad al día = 1 voto). */
 export function VotePanel({
   votationId,
+  unitId,
+  unitCode,
   options,
   myChoice,
+  showUnit = false,
 }: {
   votationId: string;
+  unitId: string;
+  unitCode: string;
   options: { id: string; label: string }[];
   myChoice: string | null; // option id, ABSTAIN, o null
+  showUnit?: boolean; // mostrar la etiqueta de unidad (cuando hay varias)
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<string>(myChoice ?? "");
   const [busy, setBusy] = useState(false);
+  const group = `v-${votationId}-${unitId}`;
 
   async function submit() {
     if (busy || !selected) return;
     setBusy(true);
-    const res = await castVote(votationId, selected === ABSTAIN ? null : selected, selected === ABSTAIN);
+    const res = await castVote(votationId, unitId, selected === ABSTAIN ? null : selected, selected === ABSTAIN);
     setBusy(false);
     if (res.ok) {
-      toast.success("Voto registrado.");
+      toast.success(`Voto registrado · Unidad ${unitCode}.`);
       router.refresh();
     } else {
       toast.error(res.error ?? "No se pudo votar.");
@@ -36,7 +44,8 @@ export function VotePanel({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 rounded-xl border border-line bg-white p-3">
+      {showUnit && <p className="text-xs font-semibold text-muted">Unidad {unitCode}</p>}
       {myChoice && (
         <p className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">
           <CheckCircle2 className="size-4" /> Ya votaste — puedes cambiarlo hasta el cierre.
@@ -50,7 +59,7 @@ export function VotePanel({
               selected === o.id ? "border-brand bg-brand-soft" : "border-line hover:border-brand/50"
             }`}
           >
-            <input type="radio" name={`v-${votationId}`} checked={selected === o.id} onChange={() => setSelected(o.id)} className="size-4" />
+            <input type="radio" name={group} checked={selected === o.id} onChange={() => setSelected(o.id)} className="size-4" />
             {o.label}
           </label>
         ))}
@@ -59,7 +68,7 @@ export function VotePanel({
             selected === ABSTAIN ? "border-brand bg-brand-soft" : "border-line hover:border-brand/50"
           }`}
         >
-          <input type="radio" name={`v-${votationId}`} checked={selected === ABSTAIN} onChange={() => setSelected(ABSTAIN)} className="size-4" />
+          <input type="radio" name={group} checked={selected === ABSTAIN} onChange={() => setSelected(ABSTAIN)} className="size-4" />
           Abstención
         </label>
       </div>

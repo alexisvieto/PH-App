@@ -23,7 +23,7 @@ export type ActaData = {
   approvalPct: number;
   generatedOn: string;
   tally: Tally;
-  votes: { unit_code: string; choice: string; coef: string; voted_at: string }[];
+  votes: { unit_code: string; choice: string; voted_at: string }[];
 };
 
 export function ActaVotacionPDF({ data, brand }: { data: ActaData; brand: Brand }) {
@@ -43,10 +43,10 @@ export function ActaVotacionPDF({ data, brand }: { data: ActaData; brand: Brand 
           <Meta s={s} label="Tipo" value={data.kindLabel} />
           <Meta s={s} label="Abrió" value={data.opensAt} />
           <Meta s={s} label="Cerró" value={data.closesAt} />
-          <Meta s={s} label="Quórum requerido" value={pct(data.quorumPct)} />
-          <Meta s={s} label="Participación (coeficiente)" value={pct(t.participationPct)} />
+          <Meta s={s} label="Unidades al día (electorado)" value={String(t.eligibleUnits)} />
+          <Meta s={s} label="Participación" value={`${pct(t.participationPct)} (${t.votedUnits}/${t.eligibleUnits})`} />
+          <Meta s={s} label="Quórum requerido" value={`${pct(data.quorumPct)} · ${t.quorumReached ? "alcanzado" : "no alcanzado"}`} />
           <Meta s={s} label="Umbral de aprobación" value={pct(data.approvalPct)} />
-          <Meta s={s} label="Quórum" value={t.quorumReached ? "Alcanzado" : "No alcanzado"} />
         </View>
 
         {/* Decisión */}
@@ -59,11 +59,11 @@ export function ActaVotacionPDF({ data, brand }: { data: ActaData; brand: Brand 
 
         {/* Resultado por opción */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Resultado por opción (ponderado por coeficiente)</Text>
+          <Text style={s.sectionTitle}>Resultado por opción (unidades al día)</Text>
           {t.options.map((o) => (
             <View style={s.row} key={o.id}>
               <Text style={s.rowLabel}>{o.label}</Text>
-              <Text style={s.rowValue}>{pct(o.pct)}</Text>
+              <Text style={s.rowValue}>{o.count} · {pct(o.pct)}</Text>
             </View>
           ))}
         </View>
@@ -72,28 +72,26 @@ export function ActaVotacionPDF({ data, brand }: { data: ActaData; brand: Brand 
         <View style={s.section}>
           <Text style={s.sectionTitle}>Detalle por unidad</Text>
           <View style={s.tHead}>
-            <Text style={[s.th, { width: "30%" }]}>Unidad</Text>
-            <Text style={[s.th, { width: "35%" }]}>Voto</Text>
-            <Text style={[s.th, { width: "17%", textAlign: "right" }]}>Coef.</Text>
-            <Text style={[s.th, { width: "18%", textAlign: "right" }]}>Fecha</Text>
+            <Text style={[s.th, { width: "40%" }]}>Unidad</Text>
+            <Text style={[s.th, { width: "38%" }]}>Voto</Text>
+            <Text style={[s.th, { width: "22%", textAlign: "right" }]}>Fecha</Text>
           </View>
           {data.votes.length === 0 ? (
             <Text style={{ paddingVertical: 7, color: ATRIO.text3 }}>Nadie votó.</Text>
           ) : (
             data.votes.map((v, i) => (
               <View key={i} style={{ flexDirection: "row", borderBottomWidth: 1, borderColor: ATRIO.border, paddingVertical: 5 }} wrap={false}>
-                <Text style={{ width: "30%", paddingHorizontal: 4 }}>{v.unit_code}</Text>
-                <Text style={{ width: "35%", paddingHorizontal: 4 }}>{v.choice}</Text>
-                <Text style={{ width: "17%", paddingHorizontal: 4, textAlign: "right" }}>{v.coef}</Text>
-                <Text style={{ width: "18%", paddingHorizontal: 4, textAlign: "right" }}>{v.voted_at}</Text>
+                <Text style={{ width: "40%", paddingHorizontal: 4 }}>{v.unit_code}</Text>
+                <Text style={{ width: "38%", paddingHorizontal: 4 }}>{v.choice}</Text>
+                <Text style={{ width: "22%", paddingHorizontal: 4, textAlign: "right" }}>{v.voted_at}</Text>
               </View>
             ))
           )}
         </View>
 
         <Text style={s.note}>
-          Acta generada automáticamente por {brand.name}. La votación se ponderó por el coeficiente de
-          participación de cada unidad.
+          Acta generada automáticamente por {brand.name}. Conforme a la Ley 284, cada unidad inmobiliaria
+          al día en gastos comunes equivale a un voto.
         </Text>
 
         <Footer brand={brand} styles={s} />
