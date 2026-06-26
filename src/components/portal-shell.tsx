@@ -2,13 +2,23 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Bell, Home, LogOut, MessagesSquare, PhoneCall, QrCode } from "lucide-react";
+import { Bell, Home, KeyRound, LogOut, Menu, UsersRound, Wallet } from "lucide-react";
 
 import { IntercomListener } from "@/components/access/intercom-listener";
 import { type Brand, brandInitial } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/client";
 
-type Tab = { href: string; label: string; icon: typeof Home; exact: boolean };
+type Tab = { href: string; label: string; icon: typeof Home };
+
+// Qué pestaña (hub) resaltar según la ruta: una sub-función ilumina su hub.
+function tabFor(p: string): string {
+  if (p === "/portal") return "/portal";
+  if (/^\/portal\/(cuenta|unidades|finanzas|proyectos|recibo)/.test(p)) return "/portal/cuenta";
+  if (/^\/portal\/(accesos|citofono|paquetes|sos)/.test(p)) return "/portal/accesos";
+  if (/^\/portal\/(comunidad|comunicados|reservas|votaciones|quejas|a-domicilio)/.test(p)) return "/portal/comunidad";
+  if (p.startsWith("/portal/mas")) return "/portal/mas";
+  return "/portal";
+}
 
 export function PortalShell({
   brand,
@@ -40,17 +50,15 @@ export function PortalShell({
 
   const initial = brandInitial(brand);
 
-  // Navegación inferior (móvil): pocas secciones, accesibles con el pulgar.
+  // Navegación inferior: pocos hubs temáticos (cada uno crece por dentro).
   const tabs: Tab[] = [
-    { href: "/portal", label: "Inicio", icon: Home, exact: true },
-    ...(accesosActive
-      ? ([
-          { href: "/portal/accesos", label: "Visitas", icon: QrCode, exact: false },
-          { href: "/portal/citofono", label: "Citófono", icon: PhoneCall, exact: false },
-        ] as Tab[])
-      : []),
-    { href: "/portal/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
+    { href: "/portal", label: "Inicio", icon: Home },
+    { href: "/portal/cuenta", label: "Cuenta", icon: Wallet },
+    ...(accesosActive ? ([{ href: "/portal/accesos", label: "Accesos", icon: KeyRound }] as Tab[]) : []),
+    { href: "/portal/comunidad", label: "Comunidad", icon: UsersRound },
+    { href: "/portal/mas", label: "Más", icon: Menu },
   ];
+  const activeTab = tabFor(pathname);
 
   return (
     <div
@@ -101,14 +109,14 @@ export function PortalShell({
         </div>
       </header>
 
-      {/* pb extra en móvil para no quedar bajo la barra inferior */}
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 pb-28 md:pb-6">{children}</main>
+      {/* pb extra para no quedar bajo la barra inferior */}
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 pb-28">{children}</main>
 
-      {/* Navegación inferior (solo móvil) */}
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface md:hidden">
+      {/* Navegación inferior (hubs) — siempre visible, tipo app */}
+      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface">
         <div className="mx-auto flex max-w-2xl items-stretch justify-around">
-          {tabs.map(({ href, label, icon: Icon, exact }) => {
-            const active = exact ? pathname === href : pathname.startsWith(href);
+          {tabs.map(({ href, label, icon: Icon }) => {
+            const active = activeTab === href;
             return (
               <Link
                 key={href}

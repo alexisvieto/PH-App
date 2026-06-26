@@ -1,25 +1,9 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarDays,
-  CheckCircle2,
-  FileText,
-  HardHat,
-  type LucideIcon,
-  Mail,
-  Megaphone,
-  MessagesSquare,
-  Phone,
-  PhoneCall,
-  PieChart,
-  QrCode,
-  ShoppingBag,
-  Siren,
-  Vote,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, DoorOpen, Megaphone, Package, Siren, Vote } from "lucide-react";
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
 import { AdBanner, type PortalAd } from "@/components/portal/ad-banner";
+import { AttentionCard } from "@/components/portal/hub";
 import { BALANCE_TOLERANCE } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
@@ -31,6 +15,8 @@ export default async function PortalHome() {
   if (!res?.orgId) return null;
 
   const supabase = await createClient();
+  const unitIds = res.units.map((u) => u.id);
+
   const { data: announcements } = await supabase
     .from("announcements")
     .select("id, title, body, published_at")
@@ -48,15 +34,7 @@ export default async function PortalHome() {
     .eq("enabled", true)
     .maybeSingle();
 
-  // ¿Hay áreas comunes activas para reservar? (define si mostramos el acceso)
-  const { count: areasCount } = await supabase
-    .from("common_areas")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", res.orgId)
-    .eq("active", true);
-  const hasReservas = (areasCount ?? 0) > 0;
-
-  // ¿Hay una votación abierta? (para mostrar el acceso en el inicio)
+  // ¿Hay una votación abierta? (tarjeta de atención)
   const { count: openVotes } = await supabase
     .from("votations")
     .select("id", { count: "exact", head: true })
@@ -64,28 +42,28 @@ export default async function PortalHome() {
     .eq("status", "abierta");
   const hasVotacion = (openVotes ?? 0) > 0;
 
-  // ¿Hay proyectos publicados? (cotizaciones a la vista, transparencia del gasto)
-  const { count: projectsCount } = await supabase
-    .from("projects")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", res.orgId);
-  const hasProjects = (projectsCount ?? 0) > 0;
-
-  // ¿Hay una visita esperando en garita (citófono)? — urgente.
-  const unitIds = res.units.map((u) => u.id);
+  // Pendientes en garita (urgentes): visita esperando + paquete por retirar.
   let pendingIntercom = 0;
+  let pendingPackages = 0;
   if (accesosMod && unitIds.length > 0) {
-    const { count } = await supabase
-      .from("intercom_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", res.orgId)
-      .in("unit_id", unitIds)
-      .eq("status", "pendiente");
-    pendingIntercom = count ?? 0;
+    const [{ count: ic }, { count: pk }] = await Promise.all([
+      supabase
+        .from("intercom_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", res.orgId)
+        .in("unit_id", unitIds)
+        .eq("status", "pendiente"),
+      supabase
+        .from("packages")
+        .select("id", { count: "exact", head: true })
+        .in("unit_id", unitIds)
+        .eq("status", "en_garita"),
+    ]);
+    pendingIntercom = ic ?? 0;
+    pendingPackages = pk ?? 0;
   }
 
-  // Publicidad (red Nexera): campañas activas, en vigencia, globales o
-  // dirigidas a esta organización.
+  // Publicidad (red Nexera): campañas activas, en vigencia, globales o de esta org.
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
   const [{ data: adRows }, { data: adTargets }] = await Promise.all([
     supabase
@@ -117,35 +95,24 @@ export default async function PortalHome() {
 
   const firstName = (res.fullName ?? "").split(" ")[0];
 
-  // Saldo para el hero: suma de las unidades del residente (RLS limita acceso).
+  // Saldo del hero: suma de las unidades del residente (RLS limita acceso).
   const statements = await Promise.all(res.units.map((u) => getUnitStatement(u.id)));
-  const totalBalance = Math.round(
-    statements.reduce((sum, s) => sum + (s?.balance ?? 0), 0) * 100,
-  ) / 100;
+  const totalBalance = Math.round(statements.reduce((sum, s) => sum + (s?.balance ?? 0), 0) * 100) / 100;
   const owes = totalBalance > BALANCE_TOLERANCE;
-  // El botón del hero lleva al estado de cuenta solo si hay una unidad; con
-  // varias, los tiles de abajo dan acceso unidad por unidad.
-  const statementHref =
-    res.units.length === 1 ? `/portal/unidades/${res.units[0].id}` : null;
+  // Una unidad → directo al estado; varias → al hub de Cuenta.
+  const accountHref = res.units.length === 1 ? `/portal/unidades/${res.units[0].id}` : "/portal/cuenta";
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       {/* Hero: saludo + estado de cuenta a todo color (marca del tenant) */}
       <section
         className="relative overflow-hidden rounded-3xl p-6 text-white shadow-sm"
-        style={{
-          background: `linear-gradient(135deg, ${res.brand.primary} 0%, ${res.brand.accent} 100%)`,
-        }}
+        style={{ background: `linear-gradient(135deg, ${res.brand.primary} 0%, ${res.brand.accent} 100%)` }}
       >
-        {/* destello decorativo */}
         <div className="pointer-events-none absolute -right-10 -top-12 size-44 rounded-full bg-white/15 blur-2xl" />
         <div className="relative">
-          <h1 className="text-2xl font-semibold">
-            Hola{firstName ? `, ${firstName}` : ""} 👋
-          </h1>
-          <p className="mt-0.5 text-sm text-white/80">
-            {res.orgName ?? res.brand.name}
-          </p>
+          <h1 className="text-2xl font-semibold">Hola{firstName ? `, ${firstName}` : ""} 👋</h1>
+          <p className="mt-0.5 text-sm text-white/80">{res.orgName ?? res.brand.name}</p>
 
           <div className="mt-6 flex items-end justify-between gap-4">
             <div>
@@ -153,29 +120,46 @@ export default async function PortalHome() {
                 {owes ? "Pago a realizar" : "Tu cuenta"}
               </p>
               {owes ? (
-                <p className="mt-1 text-3xl font-bold tabular-nums">
-                  {formatMoney(totalBalance)}
-                </p>
+                <p className="mt-1 text-3xl font-bold tabular-nums">{formatMoney(totalBalance)}</p>
               ) : (
                 <p className="mt-1 flex items-center gap-1.5 text-xl font-semibold">
                   <CheckCircle2 className="size-6" /> Estás al día
                 </p>
               )}
             </div>
-            {statementHref && (
-              <Link
-                href={statementHref}
-                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-white/90"
-                style={{ color: res.brand.primary }}
-              >
-                Ver estado <ArrowRight className="size-4" />
-              </Link>
-            )}
+            <Link
+              href={accountHref}
+              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-white/90"
+              style={{ color: res.brand.primary }}
+            >
+              {owes ? "Ver y pagar" : "Ver estado"} <ArrowRight className="size-4" />
+            </Link>
           </div>
         </div>
       </section>
 
       <MarkAnnouncementsRead ids={news.map((a) => a.id)} />
+
+      {/* Tarjetas de atención: SOLO aparecen cuando hay algo que hacer */}
+      {(pendingIntercom > 0 || pendingPackages > 0 || hasVotacion) && (
+        <div className="space-y-2">
+          {pendingIntercom > 0 && (
+            <AttentionCard href="/portal/citofono" icon={DoorOpen} tone="red" title="Visita en garita" sub="Toca para autorizar" />
+          )}
+          {pendingPackages > 0 && (
+            <AttentionCard
+              href="/portal/paquetes"
+              icon={Package}
+              tone="amber"
+              title={`Paquete en garita${pendingPackages > 1 ? ` (${pendingPackages})` : ""}`}
+              sub="Listo para retirar"
+            />
+          )}
+          {hasVotacion && (
+            <AttentionCard href="/portal/votaciones" icon={Vote} tone="brand" title="Votación abierta" sub="Tu voto cuenta — participa" />
+          )}
+        </div>
+      )}
 
       {/* Botón de pánico (SOS) — siempre a la mano si el módulo está activo */}
       {accesosMod && (
@@ -188,101 +172,12 @@ export default async function PortalHome() {
           </span>
           <span>
             <span className="block font-semibold text-red-700">Emergencia · SOS</span>
-            <span className="mt-0.5 block text-xs text-red-600/80">
-              Alerta inmediata a la garita
-            </span>
+            <span className="mt-0.5 block text-xs text-red-600/80">Alerta inmediata a la garita</span>
           </span>
         </Link>
       )}
 
-      {/* Accesos rápidos: tarjetas con ícono (mobile-first, táctil) */}
-      <div className="grid grid-cols-2 gap-3">
-        {pendingIntercom > 0 && (
-          <ActionTile
-            href="/portal/citofono"
-            icon={PhoneCall}
-            color="red"
-            label="Visita en garita"
-            sub="Toca para autorizar"
-          />
-        )}
-        {res.units.map((u) => (
-          <ActionTile
-            key={u.id}
-            href={`/portal/unidades/${u.id}`}
-            icon={FileText}
-            color="emerald"
-            label="Estado de cuenta"
-            sub={res.units.length > 1 ? `Unidad ${u.code}` : "Saldo y pagos"}
-          />
-        ))}
-        <ActionTile
-          href="/portal/finanzas"
-          icon={PieChart}
-          color="cyan"
-          label="Finanzas del PH"
-          sub="Ingresos y gastos"
-        />
-        {accesosMod && (
-          <ActionTile
-            href="/portal/accesos"
-            icon={QrCode}
-            color="indigo"
-            label="Mis visitas"
-            sub="Pases con QR"
-          />
-        )}
-        {hasReservas && (
-          <ActionTile
-            href="/portal/reservas"
-            icon={CalendarDays}
-            color="violet"
-            label="Reservas"
-            sub="Áreas comunes"
-          />
-        )}
-        {hasVotacion && (
-          <ActionTile
-            href="/portal/votaciones"
-            icon={Vote}
-            color="rose"
-            label="Votaciones"
-            sub="Hay una votación abierta"
-          />
-        )}
-        {hasProjects && (
-          <ActionTile
-            href="/portal/proyectos"
-            icon={HardHat}
-            color="teal"
-            label="Proyectos"
-            sub="Cotizaciones y gastos"
-          />
-        )}
-        <ActionTile
-          href="/portal/a-domicilio"
-          icon={ShoppingBag}
-          color="orange"
-          label="A domicilio"
-          sub="Comida, súper y más"
-        />
-        <ActionTile
-          href="/portal/quejas"
-          icon={MessagesSquare}
-          color="amber"
-          label="Quejas"
-          sub="Escríbele a la admin"
-        />
-        <ActionTile
-          href="/portal/comunicados"
-          icon={Megaphone}
-          color="sky"
-          label="Comunicados"
-          sub="Avisos del edificio"
-        />
-      </div>
-
-      {/* Comunicados recientes */}
+      {/* Comunicados recientes — el corazón de la comunicación */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Megaphone className="size-5 text-brand" />
@@ -295,25 +190,15 @@ export default async function PortalHome() {
         ) : (
           <div className="space-y-3">
             {news.map((a) => (
-              <article
-                key={a.id}
-                className="rounded-2xl border border-line bg-surface p-4"
-              >
+              <article key={a.id} className="rounded-2xl border border-line bg-surface p-4">
                 <div className="flex items-baseline justify-between gap-3">
                   <h3 className="font-medium">{a.title}</h3>
-                  <span className="shrink-0 text-xs text-muted">
-                    {formatDate(a.published_at)}
-                  </span>
+                  <span className="shrink-0 text-xs text-muted">{formatDate(a.published_at)}</span>
                 </div>
-                <p className="mt-1 whitespace-pre-line text-sm text-ink/80">
-                  {a.body}
-                </p>
+                <p className="mt-1 whitespace-pre-line text-sm text-ink/80">{a.body}</p>
               </article>
             ))}
-            <Link
-              href="/portal/comunicados"
-              className="inline-block text-sm font-medium text-brand hover:underline"
-            >
+            <Link href="/portal/comunicados" className="inline-block text-sm font-medium text-brand hover:underline">
               Ver todos →
             </Link>
           </div>
@@ -322,76 +207,6 @@ export default async function PortalHome() {
 
       {/* Publicidad (red Nexera) */}
       <AdBanner ads={ads} />
-
-      {/* Contacto con la administración */}
-      {(res.contactEmail || res.contactPhone) && (
-        <section className="rounded-2xl border border-line bg-surface p-4 text-sm">
-          <p className="font-medium">¿Dudas? Escríbele a la administración</p>
-          <div className="mt-2 flex flex-col gap-1 text-muted">
-            {res.contactEmail && (
-              <a
-                href={`mailto:${res.contactEmail}`}
-                className="flex items-center gap-2 hover:text-brand"
-              >
-                <Mail className="size-4" /> {res.contactEmail}
-              </a>
-            )}
-            {res.contactPhone && (
-              <a
-                href={`tel:${res.contactPhone}`}
-                className="flex items-center gap-2 hover:text-brand"
-              >
-                <Phone className="size-4" /> {res.contactPhone}
-              </a>
-            )}
-          </div>
-        </section>
-      )}
     </div>
-  );
-}
-
-// Paleta plana por función (estilo "flat design", íconos sólidos sin sombra).
-const TILE_COLORS: Record<string, string> = {
-  emerald: "bg-emerald-500",
-  indigo: "bg-indigo-500",
-  amber: "bg-amber-500",
-  sky: "bg-sky-500",
-  violet: "bg-violet-500",
-  rose: "bg-rose-500",
-  red: "bg-red-500",
-  orange: "bg-orange-500",
-  teal: "bg-teal-600",
-  cyan: "bg-cyan-600",
-};
-
-function ActionTile({
-  href,
-  icon: Icon,
-  color,
-  label,
-  sub,
-}: {
-  href: string;
-  icon: LucideIcon;
-  color: string;
-  label: string;
-  sub: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 transition-colors duration-200 hover:border-brand/50"
-    >
-      <span
-        className={`flex size-11 items-center justify-center rounded-xl text-white ${TILE_COLORS[color] ?? "bg-brand"}`}
-      >
-        <Icon className="size-5" />
-      </span>
-      <span>
-        <span className="block font-medium leading-tight">{label}</span>
-        <span className="mt-0.5 block text-xs text-muted">{sub}</span>
-      </span>
-    </Link>
   );
 }

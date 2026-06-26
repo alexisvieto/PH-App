@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { QrCode } from "lucide-react";
+import { Package, PhoneCall, QrCode, Siren, type LucideIcon } from "lucide-react";
 
 import { createResidentPass } from "@/app/portal/accesos/actions";
+import { HubHeader } from "@/components/portal/hub";
 import { NewPassForm } from "@/components/forms/new-pass-form";
 import { isPassActive, PASS_TYPE_LABEL, passState } from "@/lib/access";
 import { formatDate } from "@/lib/format";
@@ -40,16 +41,21 @@ export default async function PortalAccesosPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-semibold">
-          <QrCode className="size-6 text-brand" /> Mis visitas
-        </h1>
-        <p className="text-sm text-muted">
-          Crea un pase y compártelo con tu visita; lo presenta en la garita.
-        </p>
+      <HubHeader title="Accesos" sub="Visitas, citófono, paquetes y emergencias" />
+
+      <div className="grid grid-cols-3 gap-2">
+        <AccessChip href="/portal/citofono" icon={PhoneCall} label="Citófono" />
+        <AccessChip href="/portal/paquetes" icon={Package} label="Paquetes" />
+        <AccessChip href="/portal/sos" icon={Siren} label="SOS" danger />
       </div>
 
-      <NewPassForm units={unitOptions} action={createResidentPass} />
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-semibold">
+          <QrCode className="size-5 text-brand" /> Mis visitas
+        </h2>
+        <p className="text-sm text-muted">Crea un pase y compártelo con tu visita; lo presenta en la garita.</p>
+        <NewPassForm units={unitOptions} action={createResidentPass} />
+      </section>
 
       <div className="space-y-3">
         {list.length === 0 ? (
@@ -79,5 +85,19 @@ export default async function PortalAccesosPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function AccessChip({ href, icon: Icon, label, danger = false }: { href: string; icon: LucideIcon; label: string; danger?: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={`flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-2xl border p-3 text-sm font-medium transition-colors duration-200 ${
+        danger ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100" : "border-line bg-surface text-ink hover:border-brand/50"
+      }`}
+    >
+      <Icon className={`size-6 ${danger ? "text-red-600" : "text-indigo-500"}`} />
+      {label}
+    </Link>
   );
 }
