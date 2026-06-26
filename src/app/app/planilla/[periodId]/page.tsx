@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 
 import { OvertimeEditor } from "@/components/rrhh/overtime-editor";
 import { PayrollPeriodActions } from "@/components/rrhh/payroll-period-actions";
@@ -137,8 +137,25 @@ export default async function PayrollPeriodDetailPage({
             {PAYROLL_STATUS_LABEL[period.status]}
           </span>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 space-y-3">
           <PayrollPeriodActions periodId={period.id} status={period.status} />
+          {period.status === "procesada" && rows.length > 0 && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <strong>Pendiente de pago.</strong> Al procesar se causó el gasto (queda como <em>nómina por pagar</em>).
+              Pulsa <strong>“Registrar pago”</strong> para el desembolso: <strong>neto a pagar {formatMoney(totals.net)}</strong>{" "}
+              (sale del banco operativo).
+            </p>
+          )}
+          {period.status === "pagada" && (
+            <a
+              href={`/app/planilla/${period.id}/comprobante`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm font-medium transition hover:border-brand hover:text-brand"
+            >
+              <FileText className="size-4" /> Comprobante de pago (PDF)
+            </a>
+          )}
         </div>
         {isXiii && (
           <p className="mt-3 text-xs text-muted">

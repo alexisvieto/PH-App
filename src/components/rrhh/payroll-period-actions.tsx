@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, Play } from "lucide-react";
+import { Banknote, Loader2, Play } from "lucide-react";
 import { toast } from "sonner";
 
 import { markPeriodPaid, processPayrollPeriod } from "@/app/app/planilla/actions";
@@ -47,11 +47,11 @@ export function PayrollPeriodActions({
       </button>
       {status === "procesada" && (
         <button
-          onClick={() => run(() => markPeriodPaid(periodId), "Planilla marcada como pagada.")}
+          onClick={() => run(() => markPeriodPaid(periodId), "Pago de planilla registrado.")}
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
         >
-          <CheckCircle2 className="size-4" /> Marcar pagada
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <Banknote className="size-4" />} Registrar pago
         </button>
       )}
     </div>
