@@ -21,11 +21,15 @@ export function PdfViewShare({
   url,
   filename,
   title,
+  label,
+  variant = "outline",
   className = "",
 }: {
   url: string;
   filename: string;
   title: string;
+  label?: string;
+  variant?: "outline" | "primary";
   className?: string;
 }) {
   const [busy, setBusy] = useState(false);
@@ -77,30 +81,40 @@ export function PdfViewShare({
     }
   }
 
-  const btn =
-    "inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm font-medium transition hover:border-brand hover:text-brand";
+  const base = "inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition";
+  const verCls =
+    variant === "primary"
+      ? `${base} bg-brand text-white hover:opacity-90`
+      : `${base} border border-line bg-surface hover:border-brand hover:text-brand`;
+  const shareCls =
+    variant === "primary"
+      ? `${base} border border-brand bg-surface text-brand hover:bg-brand-soft`
+      : `${base} border border-line bg-surface hover:border-brand hover:text-brand`;
 
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`}>
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        onPointerDown={() => {
-          if (isTouch()) ensureBlob().catch(() => {});
-        }}
-        className={btn}
-      >
-        <Eye className="size-4" /> Ver
-      </a>
-      <button
-        type="button"
-        onClick={share}
-        disabled={busy}
-        className={`${btn} ${busy ? "pointer-events-none opacity-60" : ""}`}
-      >
-        {busy ? <Loader2 className="size-4 animate-spin" /> : <Share2 className="size-4" />} Compartir
-      </button>
+    <div className={className}>
+      {label && <p className="mb-1.5 text-sm font-medium">{label}</p>}
+      <div className="flex flex-wrap gap-2">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onPointerDown={() => {
+            if (isTouch()) ensureBlob().catch(() => {});
+          }}
+          className={verCls}
+        >
+          <Eye className="size-4" /> Ver
+        </a>
+        <button
+          type="button"
+          onClick={share}
+          disabled={busy}
+          className={`${shareCls} ${busy ? "pointer-events-none opacity-60" : ""}`}
+        >
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <Share2 className="size-4" />} Compartir
+        </button>
+      </div>
     </div>
   );
 }
