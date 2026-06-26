@@ -95,6 +95,14 @@ Monetización estilo Munily: Nexera vende/coloca anuncios cross-tenant; el resid
 - [ ] **Reservas — choque de horario no atómico** (TOCTOU SELECT+INSERT): probabilidad baja (poca concurrencia); fix = exclusion constraint o RPC con `FOR UPDATE`.
 - [ ] `freeze_votation_result` ejecutable cross-tenant (write-once + datos correctos tras cierre → daño nulo; añadir check de org rompería el cron que no tiene `auth.uid()`). Aceptado.
 
+## 🔍 Auditoría 2-agentes — campanita + reservas (2026-06-26) — APLICADO + diferidos
+**Aplicado:** grants de `notifications` cerrados (anon sin nada; authenticated solo `SELECT` + `UPDATE(read_at)` → no puede alterar título/link/org, solo marcar leído); RLS `notif_select`/`notif_update` ahora **excluyen al guardia** (`has_org_role` owner/administrador/asistente); `notif_is_staff` excluye guardia; **los 4 triggers son best-effort** (`BEGIN…EXCEPTION WHEN OTHERS RAISE WARNING`) → un fallo al notificar NO aborta el pago/reserva/queja; `markRead`/`markAll` filtran por `organization_id` (+ `reload()` de resync); `playDing` reusa un único `AudioContext`.
+**Diferidos (con criterio):**
+- [ ] **Purga de notificaciones leídas** (crece sin límite): cron `pg_cron` `DELETE … WHERE read_at < now()-interval '60 days'` (patrón de retención como los pases). No urgente (0 filas hoy).
+- [ ] **Notificaciones huérfanas**: `source_id` no es FK (es polimórfico) → si se borra el pago/reserva/ticket, queda el link muerto (404 tolerado por el front). Opción: triggers `AFTER DELETE` en las tablas origen que borren su notificación.
+- [ ] **`read_at` es por-org (broadcast)**: un admin marca leído para todos los admin de la org. Si se quiere por-usuario, tabla `notification_reads(notification_id, user_id, read_at)`. Hoy es por diseño (compartido).
+- [ ] **Notificar al RESIDENTE** cuando su reserva se aprueba/rechaza (trigger `AFTER UPDATE` de status) — feature de notificaciones staff→residente, fase futura.
+
 ## 🔵 Deuda de verificación
 - [x] Otros embeds de PostgREST por FK compuesta (clase del bug de cobros): revisados — el resto (`units`/`buildings` en unidades, session, statement) van sobre FKs simples, **no ambiguos**. Solo cobros lo era (corregido con hint).
 - [ ] **E2E pendientes:** Fase 3 acuse de visto (se omitió; RLS sí verificado por SQL); **Fase 5 — subida real de foto** (cliente con JWT → bucket privado): no ejercida end-to-end (requiere sesión de navegador con Playwright); políticas de Storage y data-layer sí verificados por SQL.

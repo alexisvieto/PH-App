@@ -33,12 +33,17 @@ export function useNotifications(): Ctx {
 
 const MUTE_KEY = "atrio.notif.muted";
 
-/** "Ding" corto generado con Web Audio (sin assets). Silencioso si el navegador bloquea el audio. */
+/** "Ding" corto generado con Web Audio (sin assets). Reusa un único AudioContext
+ *  (evita acumularlos) y queda silencioso si el navegador bloquea el audio. */
+let audioCtx: AudioContext | null = null;
 function playDing() {
   try {
-    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AC) return;
-    const ctx = new AC();
+    if (!audioCtx) {
+      const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+    }
+    const ctx = audioCtx;
     if (ctx.state === "suspended") void ctx.resume();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
@@ -52,7 +57,6 @@ function playDing() {
     g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
     o.start();
     o.stop(ctx.currentTime + 0.42);
-    o.onended = () => void ctx.close();
   } catch {
     /* navegador bloqueó el audio sin gesto del usuario: queda silencioso */
   }
@@ -104,21 +108,26 @@ export function NotificationsProvider({ orgId, children }: { orgId: string | nul
     };
   }, [reload]);
 
-  const markRead = useCallback(async (id: string) => {
-    setItems((xs) => xs.filter((x) => x.id !== id));
-    if (lastUnread.current !== null) lastUnread.current = Math.max(0, lastUnread.current - 1);
-    const supabase = createClient();
-    await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", id);
-  }, []);
+  const markRead = useCallback(
+    async (id: string) => {
+      setItems((xs) => xs.filter((x) => x.id !== id));
+      if (lastUnread.current !== null) lastUnread.current = Math.max(0, lastUnread.current - 1);
+      if (!orgId) return;
+      const supabase = createClient();
+      await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", id).eq("organization_id", orgId);
+    },
+    [orgId],
+  );
 
   const markAll = useCallback(async () => {
     const ids = items.map((x) => x.id);
     setItems([]);
     lastUnread.current = 0;
-    if (ids.length === 0) return;
+    if (ids.length === 0 || !orgId) return;
     const supabase = createClient();
-    await supabase.from("notifications").update({ read_at: new Date().toISOString() }).in("id", ids);
-  }, [items]);
+    await supabase.from("notifications").update({ read_at: new Date().toISOString() }).in("id", ids).eq("organization_id", orgId);
+    void reload(); // resincroniza por si llegaron nuevas mientras se marcaban
+  }, [items, orgId, reload]);
 
   const toggleMute = useCallback(() => {
     setMuted((m) => {
