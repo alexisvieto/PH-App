@@ -11,6 +11,40 @@ const HHMM = /^\d{2}:\d{2}$/;
 
 type Result = { ok: boolean; error: string | null; autoApproved?: boolean };
 
+/** Si el propietario debe esta cantidad de meses de cuota (o más), no puede reservar. */
+export const MAX_OVERDUE_MONTHS = 2;
+export const OVERDUE_BLOCK_MESSAGE =
+  "Tu unidad tiene 2 o más meses de cuota vencidos. Para reservar, comunícate con la administración.";
+
+/**
+ * Meses de cuota de mantenimiento **vencidos y sin pagar** de una unidad. Los
+ * pagos cubren primero las cuotas más antiguas (FIFO); cuenta cuántas cuotas ya
+ * vencidas (due_date pasado) quedan sin cubrir. Sirve para el bloqueo de reservas.
+ */
+export async function getUnitOverdueMonths(unitId: string): Promise<number> {
+  const supabase = await createClient();
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
+  const [{ data: charges }, { data: payments }] = await Promise.all([
+    supabase.from("charges").select("amount, period, due_date").eq("unit_id", unitId).eq("concept", "mantenimiento"),
+    supabase.from("payments").select("amount").eq("unit_id", unitId),
+  ]);
+  const totalPaid = (payments ?? []).reduce((s, p) => s + Number(p.amount ?? 0), 0);
+  const maint = (charges ?? [])
+    .map((c) => ({
+      amount: Number(c.amount ?? 0),
+      key: c.period ?? c.due_date ?? "9999-12-31",
+      due: c.due_date ?? c.period ?? "9999-12-31",
+    }))
+    .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  let cum = 0;
+  let overdueUnpaid = 0;
+  for (const c of maint) {
+    cum += c.amount;
+    if (cum > totalPaid + 0.005 && c.due < today) overdueUnpaid++;
+  }
+  return overdueUnpaid;
+}
+
 /**
  * Crea una reserva validando reglas del área y evitando choques de horario.
  * La RLS garantiza el acceso (el residente solo reserva para su unidad; el

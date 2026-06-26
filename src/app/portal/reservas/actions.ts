@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
-import { createReservation } from "@/lib/reservas-server";
+import {
+  createReservation,
+  getUnitOverdueMonths,
+  MAX_OVERDUE_MONTHS,
+  OVERDUE_BLOCK_MESSAGE,
+} from "@/lib/reservas-server";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,6 +26,10 @@ export async function createResidentReservation(
   // El residente solo reserva para SUS unidades (defensa además de la RLS).
   if (!res.units.some((u) => u.id === unitId))
     return { error: "Selecciona una de tus unidades.", ok: false };
+
+  // Bloqueo por morosidad: con 2+ meses de cuota vencidos no puede reservar.
+  if ((await getUnitOverdueMonths(unitId)) >= MAX_OVERDUE_MONTHS)
+    return { error: OVERDUE_BLOCK_MESSAGE, ok: false };
 
   const guestsRaw = String(formData.get("guests") ?? "").trim();
   const guests = guestsRaw === "" ? null : Number(guestsRaw);

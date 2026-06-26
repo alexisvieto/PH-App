@@ -5,6 +5,11 @@ import { createResidentReservation } from "@/app/portal/reservas/actions";
 import { ReservationCalendar } from "@/components/reservas/reservation-calendar";
 import { CancelReservation } from "@/components/reservas/reservar-form";
 import { fmtTime, RESERVATION_STATUS_LABEL, RESERVATION_STATUS_STYLE } from "@/lib/reservas";
+import {
+  getUnitOverdueMonths,
+  MAX_OVERDUE_MONTHS,
+  OVERDUE_BLOCK_MESSAGE,
+} from "@/lib/reservas-server";
 import { formatDate } from "@/lib/format";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
@@ -42,7 +47,11 @@ export default async function PortalReservasPage() {
     advance_days: a.advance_days,
     requires_approval: a.requires_approval,
   }));
-  const unitOptions = res.units.map((u) => ({ id: u.id, label: u.code }));
+  // Morosidad: una unidad con 2+ meses de cuota vencidos no puede reservar.
+  const overdueByUnit = await Promise.all(res.units.map((u) => getUnitOverdueMonths(u.id)));
+  const allowedUnits = res.units.filter((_, i) => overdueByUnit[i] < MAX_OVERDUE_MONTHS);
+  const unitOptions = allowedUnits.map((u) => ({ id: u.id, label: u.code }));
+  const someBlocked = allowedUnits.length < res.units.length;
 
   const mine = reservations ?? [];
   const isCancelable = (r: (typeof mine)[number]) =>
@@ -64,13 +73,24 @@ export default async function PortalReservasPage() {
         <p className="rounded-2xl border border-dashed border-line bg-surface p-8 text-center text-sm text-muted">
           Por ahora no hay áreas disponibles para reservar.
         </p>
+      ) : allowedUnits.length === 0 ? (
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm font-medium text-amber-800">
+          {OVERDUE_BLOCK_MESSAGE}
+        </p>
       ) : (
-        <ReservationCalendar
-          areas={calendarAreas}
-          units={unitOptions}
-          today={todayPa}
-          action={createResidentReservation}
-        />
+        <>
+          {someBlocked && (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              Una de tus unidades tiene 2 o más meses vencidos y no puede reservar; comunícate con la administración.
+            </p>
+          )}
+          <ReservationCalendar
+            areas={calendarAreas}
+            units={unitOptions}
+            today={todayPa}
+            action={createResidentReservation}
+          />
+        </>
       )}
 
       {/* Mis reservas */}

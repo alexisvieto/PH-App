@@ -70,7 +70,8 @@ export function NewAreaForm({ buildings }: { buildings: { id: string; label: str
         </label>
         <label className="block">
           <span className="mb-1 block text-sm font-medium">Anticipación máx. (días)</span>
-          <input name="advance_days" type="number" min="1" step="1" defaultValue="30" className={input} />
+          <input name="advance_days" type="number" min="1" step="1" defaultValue="90" className={input} />
+          <span className="mt-1 block text-xs text-muted">Hasta cuántos días antes se puede reservar (90 = 3 meses).</span>
         </label>
         <label className="block sm:col-span-2">
           <span className="mb-1 block text-sm font-medium">Descripción</span>
