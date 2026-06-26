@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
+import { playChime } from "@/lib/alert-sound";
 import { createClient } from "@/lib/supabase/client";
 
 export type Notif = {
@@ -33,35 +34,6 @@ export function useNotifications(): Ctx {
 
 const MUTE_KEY = "atrio.notif.muted";
 
-/** "Ding" corto generado con Web Audio (sin assets). Reusa un único AudioContext
- *  (evita acumularlos) y queda silencioso si el navegador bloquea el audio. */
-let audioCtx: AudioContext | null = null;
-function playDing() {
-  try {
-    if (!audioCtx) {
-      const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AC) return;
-      audioCtx = new AC();
-    }
-    const ctx = audioCtx;
-    if (ctx.state === "suspended") void ctx.resume();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.type = "sine";
-    o.frequency.setValueAtTime(880, ctx.currentTime);
-    o.frequency.setValueAtTime(1175, ctx.currentTime + 0.12);
-    g.gain.setValueAtTime(0.0001, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
-    o.start();
-    o.stop(ctx.currentTime + 0.42);
-  } catch {
-    /* navegador bloqueó el audio sin gesto del usuario: queda silencioso */
-  }
-}
-
 export function NotificationsProvider({ orgId, children }: { orgId: string | null; children: React.ReactNode }) {
   const [items, setItems] = useState<Notif[]>([]);
   const [muted, setMuted] = useState(false);
@@ -88,7 +60,7 @@ export function NotificationsProvider({ orgId, children }: { orgId: string | nul
       .limit(40);
     const list = (data ?? []) as Notif[];
     const unread = list.length;
-    if (lastUnread.current !== null && unread > lastUnread.current && !mutedRef.current) playDing();
+    if (lastUnread.current !== null && unread > lastUnread.current && !mutedRef.current) playChime();
     lastUnread.current = unread;
     setItems(list);
   }, [orgId]);

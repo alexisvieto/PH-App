@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Home, KeyRound, LogOut, Menu, Package, Siren, UsersRound, Wallet } from "lucide-react";
 
 import { IntercomListener } from "@/components/access/intercom-listener";
+import { PackageWatcher } from "@/components/portal/package-watcher";
 import { type Brand, brandInitial } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/client";
 
@@ -71,6 +72,7 @@ export function PortalShell({
       }
     >
       {accesosActive && unitIds.length > 0 && <IntercomListener orgId={orgId} unitIds={unitIds} />}
+      {accesosActive && unitIds.length > 0 && <PackageWatcher unitIds={unitIds} initialCount={pendingPackages} />}
 
       <header className="safe-top border-b border-line bg-surface">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
