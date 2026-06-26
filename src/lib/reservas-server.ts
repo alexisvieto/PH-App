@@ -61,6 +61,7 @@ export async function createReservation(vars: {
   guests?: number | null;
   notes?: string;
   forceApprove?: boolean;
+  rulesAccepted?: boolean; // el residente marcó el checkbox del reglamento
 }): Promise<Result> {
   if (!UUID.test(vars.areaId)) return { ok: false, error: "Selecciona un área." };
   if (vars.unitId !== null && !UUID.test(vars.unitId)) return { ok: false, error: "Unidad inválida." };
@@ -73,7 +74,7 @@ export async function createReservation(vars: {
   const supabase = await createClient();
   const { data: area } = await supabase
     .from("common_areas")
-    .select("building_id, open_time, close_time, max_minutes, advance_days, active, capacity, requires_approval")
+    .select("building_id, open_time, close_time, max_minutes, advance_days, active, capacity, requires_approval, rules")
     .eq("id", vars.areaId)
     .eq("organization_id", vars.orgId)
     .maybeSingle();
@@ -124,6 +125,9 @@ export async function createReservation(vars: {
     notes: (vars.notes ?? "").trim() || null,
     status: autoApprove ? "aprobada" : "pendiente",
     reviewed_at: autoApprove ? new Date().toISOString() : null,
+    // El reglamento aceptado se guarda CONGELADO junto con la reserva (la "firma").
+    rules_snapshot: area.rules ?? null,
+    rules_accepted_at: vars.rulesAccepted ? new Date().toISOString() : null,
   });
   if (error) {
     console.error("createReservation:", error.code, error.message);

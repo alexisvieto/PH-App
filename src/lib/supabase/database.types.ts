@@ -334,6 +334,8 @@ export type Database = {
           review_note: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          rules_accepted_at: string | null
+          rules_snapshot: string | null
           start_time: string
           status: Database["public"]["Enums"]["reservation_status"]
           unit_id: string | null
@@ -352,6 +354,8 @@ export type Database = {
           review_note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          rules_accepted_at?: string | null
+          rules_snapshot?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["reservation_status"]
           unit_id?: string | null
@@ -370,6 +374,8 @@ export type Database = {
           review_note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          rules_accepted_at?: string | null
+          rules_snapshot?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["reservation_status"]
           unit_id?: string | null
@@ -555,6 +561,7 @@ export type Database = {
           open_time: string
           organization_id: string
           requires_approval: boolean
+          rules: string | null
         }
         Insert: {
           active?: boolean
@@ -571,6 +578,7 @@ export type Database = {
           open_time?: string
           organization_id: string
           requires_approval?: boolean
+          rules?: string | null
         }
         Update: {
           active?: boolean
@@ -587,6 +595,7 @@ export type Database = {
           open_time?: string
           organization_id?: string
           requires_approval?: boolean
+          rules?: string | null
         }
         Relationships: [
           {

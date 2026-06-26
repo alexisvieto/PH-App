@@ -8,6 +8,7 @@ import { AREA_ICON_OPTIONS } from "@/components/reservas/area-icons";
 import { SubmitButton } from "@/components/submit-button";
 import { useFormPanel } from "@/components/use-form-panel";
 import { EMPTY_ACTION_STATE } from "@/lib/action-state";
+import { GENERIC_AREA_RULES } from "@/lib/reservas";
 
 const input =
   "w-full min-h-11 rounded-lg border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-brand";
@@ -76,6 +77,18 @@ export function NewAreaForm({ buildings }: { buildings: { id: string; label: str
         <label className="block sm:col-span-2">
           <span className="mb-1 block text-sm font-medium">Descripción</span>
           <input name="description" className={input} placeholder="Reglas, indicaciones… (opcional)" />
+        </label>
+        <label className="block sm:col-span-2">
+          <span className="mb-1 block text-sm font-medium">Reglamento del área (con multas)</span>
+          <textarea
+            name="rules"
+            rows={8}
+            defaultValue={GENERIC_AREA_RULES}
+            className="w-full rounded-lg border border-line bg-white px-3 py-2 text-xs leading-relaxed outline-none focus:border-brand"
+          />
+          <span className="mt-1 block text-xs text-muted">
+            El residente debe aceptarlo (checkbox) al reservar. Viene una plantilla genérica; edítala para tu PH.
+          </span>
         </label>
         <label className="flex min-h-11 cursor-pointer items-center gap-2 sm:col-span-2">
           <input type="checkbox" name="requires_approval" defaultChecked className="size-4" />

@@ -36,6 +36,10 @@ export async function createResidentReservation(
   if (guests !== null && (!Number.isInteger(guests) || guests < 1))
     return { error: "Número de invitados inválido.", ok: false };
 
+  // Aceptación del reglamento (la "firma" por checkbox).
+  if (String(formData.get("rules_accepted") ?? "") !== "on")
+    return { error: "Debes aceptar el reglamento del área para reservar.", ok: false };
+
   const r = await createReservation({
     orgId: res.orgId,
     userId: res.userId,
@@ -46,6 +50,7 @@ export async function createResidentReservation(
     end: String(formData.get("end_time") ?? ""),
     guests,
     notes: String(formData.get("notes") ?? ""),
+    rulesAccepted: true,
   });
   if (!r.ok) return { error: r.error, ok: false };
   return { error: null, ok: true };

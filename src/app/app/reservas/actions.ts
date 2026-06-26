@@ -56,8 +56,9 @@ export async function createArea(_prev: ActionState, formData: FormData): Promis
     open_time: open,
     close_time: close,
     max_minutes: intOrNull(formData.get("max_minutes")),
-    advance_days: intOrNull(formData.get("advance_days")) ?? 30,
+    advance_days: intOrNull(formData.get("advance_days")) ?? 90,
     requires_approval: formData.get("requires_approval") === "on",
+    rules: String(formData.get("rules") ?? "").trim() || null,
   });
   if (error) {
     console.error("createArea:", error.code, error.message);

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { areaIcon, areaIconColor } from "@/components/reservas/area-icons";
 import { EMPTY_ACTION_STATE, type ActionState } from "@/lib/action-state";
-import { fmtTime } from "@/lib/reservas";
+import { fmtTime, RULES_ACCEPT_LEGEND } from "@/lib/reservas";
 import { createClient } from "@/lib/supabase/client";
 
 type Area = {
@@ -20,6 +20,7 @@ type Area = {
   close_time: string;
   advance_days: number;
   requires_approval: boolean;
+  rules?: string | null;
 };
 type UnitOption = { id: string; label: string };
 type Slot = { s: string; e: string };
@@ -42,12 +43,14 @@ export function ReservationCalendar({
   today,
   action,
   allowBlock = false,
+  requireRules = false,
 }: {
   areas: Area[];
   units: UnitOption[];
   today: string;
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
   allowBlock?: boolean; // permite "bloquear" el área sin unidad (solo staff)
+  requireRules?: boolean; // exige aceptar el reglamento del área (residente)
 }) {
   const router = useRouter();
   const [areaId, setAreaId] = useState(areas.length === 1 ? areas[0].id : "");
@@ -58,6 +61,7 @@ export function ReservationCalendar({
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(false);
 
   const maxISO = area ? addDaysISO(today, area.advance_days) : today;
 
@@ -100,6 +104,7 @@ export function ReservationCalendar({
     if (res.ok) {
       toast.success("Reserva enviada.");
       form.reset();
+      setAccepted(false);
       await loadSlots(); // la nueva franja aparece como ocupada
       router.refresh(); // refresca "Mis reservas"
     } else {
@@ -234,7 +239,10 @@ export function ReservationCalendar({
                   key={date}
                   type="button"
                   disabled={outOfRange}
-                  onClick={() => setSelected(date)}
+                  onClick={() => {
+                    setSelected(date);
+                    setAccepted(false);
+                  }}
                   className={`${base} ${cls} ${isSel ? "ring-2 ring-brand" : ""}`}
                 >
                   {d}
@@ -328,9 +336,29 @@ export function ReservationCalendar({
                 {area.requires_approval && (
                   <p className="text-xs text-amber-700">Esta área requiere aprobación del administrador.</p>
                 )}
+
+                {requireRules && area.rules && (
+                  <div className="space-y-2 rounded-xl border border-line bg-gray-50 p-3">
+                    <p className="text-sm font-semibold">Reglamento del área</p>
+                    <div className="max-h-44 overflow-y-auto whitespace-pre-line rounded-lg border border-line bg-white p-3 text-xs leading-relaxed text-ink/80">
+                      {area.rules}
+                    </div>
+                    <label className="flex cursor-pointer items-start gap-2 text-xs text-ink/80">
+                      <input
+                        type="checkbox"
+                        name="rules_accepted"
+                        checked={accepted}
+                        onChange={(e) => setAccepted(e.target.checked)}
+                        className="mt-0.5 size-4 shrink-0"
+                      />
+                      <span>{RULES_ACCEPT_LEGEND}</span>
+                    </label>
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  disabled={busy}
+                  disabled={busy || (requireRules && !!area.rules && !accepted)}
                   className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
                 >
                   {busy ? <Loader2 className="size-4 animate-spin" /> : null}

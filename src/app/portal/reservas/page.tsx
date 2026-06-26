@@ -25,7 +25,7 @@ export default async function PortalReservasPage() {
     supabase.from("common_areas").select("*").eq("organization_id", res.orgId).order("name"),
     supabase
       .from("area_reservations")
-      .select("id, area_id, unit_id, reservation_date, start_time, end_time, guests, status")
+      .select("id, area_id, unit_id, reservation_date, start_time, end_time, guests, status, rules_accepted_at, rules_snapshot")
       .in("unit_id", unitIds.length ? unitIds : ["00000000-0000-0000-0000-000000000000"])
       .order("reservation_date", { ascending: false })
       .limit(100),
@@ -46,6 +46,7 @@ export default async function PortalReservasPage() {
     close_time: a.close_time,
     advance_days: a.advance_days,
     requires_approval: a.requires_approval,
+    rules: a.rules,
   }));
   // Morosidad: una unidad con 2+ meses de cuota vencidos no puede reservar.
   const overdueByUnit = await Promise.all(res.units.map((u) => getUnitOverdueMonths(u.id)));
@@ -89,6 +90,7 @@ export default async function PortalReservasPage() {
             units={unitOptions}
             today={todayPa}
             action={createResidentReservation}
+            requireRules
           />
         </>
       )}
@@ -113,6 +115,23 @@ export default async function PortalReservasPage() {
                     {formatDate(r.reservation_date)} · {fmtTime(r.start_time)}–{fmtTime(r.end_time)}
                     {r.guests ? ` · ${r.guests} pers.` : ""}
                   </p>
+                  {r.rules_accepted_at && (
+                    <details className="mt-1 text-xs">
+                      <summary className="cursor-pointer font-medium text-emerald-700">
+                        ✓ Reglamento aceptado el{" "}
+                        {new Date(r.rules_accepted_at).toLocaleDateString("es-PA", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </summary>
+                      {r.rules_snapshot && (
+                        <pre className="mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-lg border border-line bg-gray-50 p-3 font-sans text-xs leading-relaxed text-ink/80">
+                          {r.rules_snapshot}
+                        </pre>
+                      )}
+                    </details>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${RESERVATION_STATUS_STYLE[r.status]}`}>
