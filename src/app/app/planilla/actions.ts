@@ -4,15 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
 import { isValidIsoDate } from "@/lib/format";
-import {
-  computePeriodPayroll,
-  computeXiii,
-  EMPTY_OVERTIME,
-  monthsBetweenIso,
-  type OvertimeHours,
-  xiiiPartidaWindow,
-} from "@/lib/payroll/engine";
-import { loadRuleSet, type RuleSet } from "@/lib/payroll/rules";
+import { type OvertimeHours, xiiiPartidaWindow } from "@/lib/payroll/engine";
+import { runPayrollPeriod } from "@/lib/payroll/run";
 import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { Constants } from "@/lib/supabase/database.types";
@@ -95,8 +88,6 @@ export async function createXiiiPeriod(
   return { error: null, ok: true };
 }
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-
 // Mapeo tipo de incidencia (DB) ↔ campo de horas extra.
 const OT_TYPES = {
   hora_extra_diurna: "diurna",
@@ -175,118 +166,8 @@ export async function processPayrollPeriod(periodId: string): Promise<ActionStat
   if (!UUID.test(periodId)) return { error: "Período inválido.", ok: false };
 
   const supabase = await createClient();
-  const { data: period } = await supabase
-    .from("payroll_periods")
-    .select("id, kind, frequency, period_start, period_end, pay_date, status")
-    .eq("id", periodId)
-    .eq("organization_id", orgId)
-    .maybeSingle();
-  if (!period) return { error: "Período no encontrado.", ok: false };
-  if (period.status === "pagada") return { error: "El período ya está pagado.", ok: false };
-
-  let q = supabase
-    .from("employees")
-    .select("id, base_salary, work_shift, country_code, declares_dependents, risk_premium_pct, hire_date")
-    .eq("organization_id", orgId)
-    .eq("status", "activo");
-  if (period.kind === "ordinaria") q = q.eq("pay_frequency", period.frequency);
-  const { data: employees } = await q;
-
-  // Horas extra manuales del período (solo ordinaria) → mapa por empleado.
-  const otByEmployee = new Map<string, OvertimeHours>();
-  if (period.kind === "ordinaria") {
-    const { data: incidences } = await supabase
-      .from("payroll_incidences")
-      .select("employee_id, type, hours")
-      .eq("payroll_period_id", periodId)
-      .in("type", OT_INCIDENCE_TYPES);
-    for (const inc of incidences ?? []) {
-      const field = OT_TYPES[inc.type as OtIncidence];
-      if (!field) continue;
-      const cur = otByEmployee.get(inc.employee_id) ?? { ...EMPTY_OVERTIME };
-      cur[field] = (cur[field] ?? 0) + Number(inc.hours ?? 0);
-      otByEmployee.set(inc.employee_id, cur);
-    }
-  }
-
-  const onDate = period.pay_date ?? period.period_end;
-  const ruleCache = new Map<string, RuleSet | null>();
-  const getRule = async (country: string) => {
-    if (!ruleCache.has(country)) ruleCache.set(country, await loadRuleSet(supabase, country, onDate));
-    return ruleCache.get(country) ?? null;
-  };
-
-  type Item = Database["public"]["Tables"]["payroll_items"]["Insert"];
-  const items: Item[] = [];
-  let lastRuleId: string | null = null;
-
-  for (const e of employees ?? []) {
-    const rule = await getRule(e.country_code);
-    if (!rule) continue;
-    lastRuleId = rule.ruleSetId;
-    const base = Number(e.base_salary);
-
-    if (period.kind === "ordinaria") {
-      const r = computePeriodPayroll(rule, {
-        baseSalary: base,
-        workShift: e.work_shift,
-        frequency: period.frequency,
-        declaresDependents: e.declares_dependents,
-        riskPct: Number(e.risk_premium_pct),
-        overtime: otByEmployee.get(e.id),
-      });
-      items.push({
-        organization_id: orgId,
-        payroll_period_id: periodId,
-        employee_id: e.id,
-        gross: r.gross,
-        base_amount: r.base,
-        overtime_amount: r.overtimeAmount,
-        css_employee: r.cssEmployee,
-        seguro_educativo_employee: r.seguroEducativoEmployee,
-        isr: r.isr,
-        css_employer: r.cssEmployer,
-        seguro_educativo_employer: r.seguroEducativoEmployer,
-        riesgos_employer: r.riesgosEmployer,
-        net: r.net,
-        detail: { kind: "ordinaria" },
-      });
-    } else {
-      // XIII: meses trabajados dentro del cuatrimestre (cap 4).
-      const from = e.hire_date > period.period_start ? e.hire_date : period.period_start;
-      const today = new Date().toISOString().slice(0, 10);
-      const to = period.period_end < today ? period.period_end : today;
-      const months = clamp(to >= from ? monthsBetweenIso(from, to) : 0, 0, 4);
-      const r = computeXiii(rule, { baseSalary: base, monthsInQuarter: months });
-      items.push({
-        organization_id: orgId,
-        payroll_period_id: periodId,
-        employee_id: e.id,
-        gross: r.gross,
-        base_amount: r.gross,
-        css_employee: r.cssEmployee,
-        isr: r.isr,
-        css_employer: r.cssEmployer,
-        net: r.net,
-        detail: { kind: "xiii", monthsInQuarter: Math.round(months * 100) / 100 },
-      });
-    }
-  }
-
-  // Re-procesable: se reemplazan los renglones del período.
-  await supabase.from("payroll_items").delete().eq("payroll_period_id", periodId);
-  if (items.length > 0) {
-    const { error } = await supabase.from("payroll_items").insert(items);
-    if (error) {
-      console.error("processPayrollPeriod insert:", error.code, error.message);
-      return { error: "No se pudieron generar los renglones.", ok: false };
-    }
-  }
-  await supabase
-    .from("payroll_periods")
-    .update({ status: "procesada", rule_set_id: lastRuleId })
-    .eq("id", periodId)
-    .eq("organization_id", orgId);
+  const res = await runPayrollPeriod(supabase, orgId, periodId);
+  if (!res.ok) return { error: res.error, ok: false };
 
   revalidatePath(`/app/planilla/${periodId}`);
   revalidatePath("/app/planilla");

@@ -10,6 +10,7 @@ import {
   PAYROLL_STATUS_CLASS,
   PAYROLL_STATUS_LABEL,
 } from "@/lib/payroll/labels";
+import { ensureDuePayrollPeriods } from "@/lib/payroll/run";
 import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,6 +21,13 @@ export default async function PlanillaPage() {
   if (!canManage(ctx.role)) notFound();
 
   const supabase = await createClient();
+  // La planilla de cada quincena (15 y último día) se crea y calcula sola al
+  // vencer; aquí solo se revisa y se autoriza el pago.
+  try {
+    await ensureDuePayrollPeriods(supabase, orgId);
+  } catch (e) {
+    console.error("ensureDuePayrollPeriods:", e);
+  }
   const { data: periods } = await supabase
     .from("payroll_periods")
     .select("id, label, kind, status, period_start, period_end, pay_date")
@@ -34,7 +42,7 @@ export default async function PlanillaPage() {
         <div>
           <h1 className="text-2xl font-semibold">Planilla</h1>
           <p className="text-sm text-muted">
-            Corridas de planilla ordinaria y décimo tercer mes.
+            Las quincenas (15 y último día) se generan y calculan solas. Solo revisa y autoriza el pago.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
