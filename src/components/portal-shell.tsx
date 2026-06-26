@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Bell, Home, KeyRound, LogOut, Menu, UsersRound, Wallet } from "lucide-react";
+import { Home, KeyRound, LogOut, Menu, Package, Siren, UsersRound, Wallet } from "lucide-react";
 
 import { IntercomListener } from "@/components/access/intercom-listener";
 import { type Brand, brandInitial } from "@/lib/brand";
@@ -83,15 +83,24 @@ export function PortalShell({
             </span>
             <span className="font-semibold">{orgName}</span>
           </Link>
-          <div className="ml-auto flex items-center gap-1.5">
-            <span className="hidden text-xs text-muted sm:inline">{userEmail}</span>
+          <div className="ml-auto flex items-center gap-1">
+            <span className="mr-1 hidden text-xs text-muted sm:inline">{userEmail}</span>
+            {accesosActive && (
+              <Link
+                href="/portal/sos"
+                aria-label="Emergencia · SOS"
+                className="flex size-9 items-center justify-center rounded-full bg-red-600 text-white transition hover:bg-red-700"
+              >
+                <Siren className="size-5" />
+              </Link>
+            )}
             {accesosActive && (
               <Link
                 href="/portal/paquetes"
                 aria-label={`Paquetes${pendingPackages > 0 ? ` (${pendingPackages} en garita)` : ""}`}
                 className="relative flex size-11 items-center justify-center rounded-full text-muted transition hover:bg-gray-100 hover:text-ink"
               >
-                <Bell className="size-5" />
+                <Package className="size-5" />
                 {pendingPackages > 0 && (
                   <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white">
                     {pendingPackages > 9 ? "9+" : pendingPackages}
