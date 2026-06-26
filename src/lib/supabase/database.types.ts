@@ -3707,6 +3707,33 @@ export type Database = {
         Args: { p_org: string; p_uid: string }
         Returns: boolean
       }
+      platform_create_org: {
+        Args: {
+          p_name: string
+          p_type?: Database["public"]["Enums"]["org_type"]
+        }
+        Returns: string
+      }
+      platform_create_org_admin: {
+        Args: {
+          p_email: string
+          p_full_name: string
+          p_org_id: string
+          p_password: string
+          p_role?: Database["public"]["Enums"]["org_role"]
+        }
+        Returns: string
+      }
+      platform_onboard_subscriber: {
+        Args: {
+          p_admin_email: string
+          p_admin_name: string
+          p_admin_password: string
+          p_org_name: string
+          p_org_type: Database["public"]["Enums"]["org_type"]
+        }
+        Returns: Json
+      }
       post_charge: {
         Args: { c: Database["public"]["Tables"]["charges"]["Row"] }
         Returns: undefined

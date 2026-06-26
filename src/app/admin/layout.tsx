@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Megaphone, Sparkles } from "lucide-react";
+import { Building2, Megaphone, Sparkles, Wrench } from "lucide-react";
 
 import { PRODUCT_NAME } from "@/lib/brand";
 import { getPlatformAdmin } from "@/lib/session";
@@ -20,7 +20,13 @@ export default async function AdminLayout({
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
           <Sparkles className="size-5 text-emerald-400" />
           <span className="font-semibold">Nexera · Plataforma</span>
-          <nav className="ml-6 flex items-center gap-4 text-sm">
+          <nav className="ml-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <Link href="/admin/suscriptores" className="flex items-center gap-1.5 text-white/80 hover:text-white">
+              <Building2 className="size-4" /> Suscriptores
+            </Link>
+            <Link href="/admin/proveedores" className="flex items-center gap-1.5 text-white/80 hover:text-white">
+              <Wrench className="size-4" /> Proveedores
+            </Link>
             <Link href="/admin/publicidad" className="flex items-center gap-1.5 text-white/80 hover:text-white">
               <Megaphone className="size-4" /> Publicidad
             </Link>
