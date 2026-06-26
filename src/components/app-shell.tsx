@@ -50,29 +50,55 @@ type NavItem = {
   module?: string; // si está, el item solo se muestra con ese módulo pago activo
 };
 
-const NAV: NavItem[] = [
-  { href: "/app", label: "Inicio", icon: Home, exact: true },
-  { href: "/app/edificios", label: "Edificios", icon: Building2, exact: false },
-  { href: "/app/propietarios", label: "Propietarios", icon: Users, exact: false },
-  { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
-  { href: "/app/reservas", label: "Reservas", icon: CalendarDays, exact: false },
-  { href: "/app/votaciones", label: "Votaciones", icon: Vote, exact: false },
-  { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
-  { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
-  { href: "/app/accesos", label: "Accesos", icon: ShieldCheck, exact: false, module: "accesos" },
-  { href: "/app/garita", label: "Garita", icon: DoorOpen, exact: false, module: "accesos" },
-  { href: "/app/paqueteria", label: "Paquetería", icon: Package, exact: false, module: "accesos" },
-  { href: "/app/emergencias", label: "Emergencias", icon: Siren, exact: false, module: "accesos" },
-  { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
-  { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
-  { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
-  { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },
-  { href: "/app/planilla", label: "Planilla", icon: Receipt, exact: false },
-  { href: "/app/proyectos", label: "Proyectos", icon: HardHat, exact: false },
-  { href: "/app/contabilidad", label: "Contabilidad", icon: Calculator, exact: false },
-  { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
-  { href: "/app/configuracion", label: "Configuración", icon: Settings, exact: false },
+type NavGroup = { title: string; items: NavItem[] };
+
+// Inicio (arriba) y Configuración (abajo) van fijos, fuera de los grupos.
+const HOME_ITEM: NavItem = { href: "/app", label: "Inicio", icon: Home, exact: true };
+const CONFIG_ITEM: NavItem = { href: "/app/configuracion", label: "Configuración", icon: Settings, exact: false };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    title: "Administración",
+    items: [
+      { href: "/app/edificios", label: "Edificios", icon: Building2, exact: false },
+      { href: "/app/propietarios", label: "Propietarios", icon: Users, exact: false },
+      { href: "/app/contabilidad", label: "Contabilidad", icon: Calculator, exact: false },
+      { href: "/app/planilla", label: "Planilla", icon: Receipt, exact: false },
+      { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },
+      { href: "/app/reportes", label: "Reportes", icon: FileBarChart, exact: false },
+    ],
+  },
+  {
+    title: "Operaciones",
+    items: [
+      { href: "/app/mantenimiento", label: "Mantenimiento", icon: Wrench, exact: false },
+      { href: "/app/anomalias", label: "Anomalías", icon: AlertTriangle, exact: false },
+      { href: "/app/proveedores", label: "Proveedores", icon: Truck, exact: false },
+      { href: "/app/proyectos", label: "Proyectos", icon: HardHat, exact: false },
+    ],
+  },
+  {
+    title: "Seguridad y accesos",
+    items: [
+      { href: "/app/accesos", label: "Accesos", icon: ShieldCheck, exact: false, module: "accesos" },
+      { href: "/app/garita", label: "Garita", icon: DoorOpen, exact: false, module: "accesos" },
+      { href: "/app/paqueteria", label: "Paquetería", icon: Package, exact: false, module: "accesos" },
+      { href: "/app/emergencias", label: "Emergencias", icon: Siren, exact: false, module: "accesos" },
+    ],
+  },
+  {
+    title: "Servicios al propietario",
+    items: [
+      { href: "/app/comunicados", label: "Comunicados", icon: Megaphone, exact: false },
+      { href: "/app/reservas", label: "Reservas", icon: CalendarDays, exact: false },
+      { href: "/app/votaciones", label: "Votaciones", icon: Vote, exact: false },
+      { href: "/app/quejas", label: "Quejas", icon: MessagesSquare, exact: false },
+      { href: "/app/sanciones", label: "Sanciones", icon: Gavel, exact: false },
+    ],
+  },
 ];
+
+const ALL_ITEMS: NavItem[] = [HOME_ITEM, ...NAV_GROUPS.flatMap((g) => g.items), CONFIG_ITEM];
 
 export function AppShell({
   brand,
@@ -101,11 +127,9 @@ export function AppShell({
   // El guardia solo ve Inicio + Garita (rol acotado).
   const guardOnly = role === "guardia";
   const guardAllowed = new Set(["/app", "/app/garita", "/app/paqueteria"]);
-  const visibleNav = NAV.filter(
-    (item) =>
-      (!item.module || modules.includes(item.module)) &&
-      (!guardOnly || guardAllowed.has(item.href)),
-  );
+  const isVisible = (item: NavItem) =>
+    (!item.module || modules.includes(item.module)) && (!guardOnly || guardAllowed.has(item.href));
+  const visibleNav = ALL_ITEMS.filter(isVisible);
 
   // Bloquea el scroll del contenido detrás del drawer móvil mientras está abierto.
   useEffect(() => {
@@ -123,28 +147,45 @@ export function AppShell({
 
   const initial = (brand.name.trim()[0] ?? "P").toUpperCase();
 
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => setOpen(false)}
+        className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+          active ? "bg-brand-soft text-brand" : "text-ink/70 hover:bg-gray-100"
+        }`}
+      >
+        <Icon className="size-4" />
+        {item.label}
+      </Link>
+    );
+  };
+
+  // Menú agrupado por secciones (siempre a la vista). Una sección se oculta si
+  // ninguno de sus ítems es visible (módulo inactivo / rol guardia).
   const nav = (
     <nav className="flex flex-col gap-1">
-      {visibleNav.map(({ href, label, icon: Icon, exact }) => {
-        const active = exact ? pathname === href : pathname.startsWith(href);
+      {isVisible(HOME_ITEM) && renderItem(HOME_ITEM)}
+      {NAV_GROUPS.map((g) => {
+        const items = g.items.filter(isVisible);
+        if (items.length === 0) return null;
         return (
-          <Link
-            key={href}
-            href={href}
-            onClick={() => setOpen(false)}
-            className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-              active
-                ? "bg-brand-soft text-brand"
-                : "text-ink/70 hover:bg-gray-100"
-            }`}
-          >
-            <Icon className="size-4" />
-            {label}
-          </Link>
+          <div key={g.title} className="mt-4 first:mt-2">
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{g.title}</p>
+            <div className="flex flex-col gap-1">{items.map(renderItem)}</div>
+          </div>
         );
       })}
     </nav>
   );
+
+  const configLink = isVisible(CONFIG_ITEM) ? (
+    <div className="mt-3 border-t border-line pt-3">{renderItem(CONFIG_ITEM)}</div>
+  ) : null;
 
   const sidebarHead = (
     <div className="flex items-center gap-3 px-1">
@@ -185,6 +226,7 @@ export function AppShell({
           <OrgSwitcher options={orgs} activeId={activeOrgId} />
         )}
         <div className="mt-6 flex-1 md:min-h-0 md:overflow-y-auto">{nav}</div>
+        {configLink}
         <UserFooter userEmail={userEmail} role={role} onLogout={logout} />
       </aside>
 
@@ -206,6 +248,7 @@ export function AppShell({
               <OrgSwitcher options={orgs} activeId={activeOrgId} />
             )}
             <div className="mt-4 flex-1">{nav}</div>
+            {configLink}
             <UserFooter userEmail={userEmail} role={role} onLogout={logout} />
           </aside>
         </div>
