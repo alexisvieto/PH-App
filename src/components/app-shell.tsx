@@ -161,7 +161,7 @@ export function AppShell({
 
   return (
     <div
-      className="flex min-h-screen w-full"
+      className="flex min-h-screen w-full md:h-screen md:overflow-hidden"
       style={
         {
           "--brand": brand.primary,
@@ -178,7 +178,7 @@ export function AppShell({
         {orgs.length > 1 && (
           <OrgSwitcher options={orgs} activeId={activeOrgId} />
         )}
-        <div className="mt-6 flex-1">{nav}</div>
+        <div className="mt-6 flex-1 md:min-h-0 md:overflow-y-auto">{nav}</div>
         <UserFooter userEmail={userEmail} role={role} onLogout={logout} />
       </aside>
 
@@ -213,7 +213,7 @@ export function AppShell({
           </button>
           <span className="font-semibold">{orgName}</span>
         </header>
-        <main className={`flex-1 p-4 md:p-8 ${guardOnly ? "pb-28 md:pb-8" : ""}`}>{children}</main>
+        <main className={`flex-1 p-4 md:min-h-0 md:overflow-y-auto md:p-8 ${guardOnly ? "pb-28 md:pb-8" : ""}`}>{children}</main>
       </div>
 
       {/* Navegación inferior para el guardia (móvil): pocas opciones, táctil. */}
