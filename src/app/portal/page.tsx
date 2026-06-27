@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, DoorOpen, Megaphone, Package, Siren, Vote, Wrench } from "lucide-react";
+import { ArrowRight, CheckCircle2, DoorOpen, Megaphone, Package, ShoppingBag, Siren, Vote, Wrench } from "lucide-react";
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
 import { AdBanner, type PortalAd } from "@/components/portal/ad-banner";
@@ -174,6 +174,21 @@ export default async function PortalHome() {
           <span className="block text-xs text-brand/70">Electricistas, electrodomésticos, remodelación y más · con reseñas</span>
         </span>
         <ArrowRight className="size-5 shrink-0 text-brand" />
+      </Link>
+
+      {/* A domicilio: comercios a la mano del residente */}
+      <Link
+        href="/portal/a-domicilio"
+        className="flex items-center gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 p-4 transition hover:opacity-90"
+      >
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+          <ShoppingBag className="size-6" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold text-amber-900">A domicilio</span>
+          <span className="block text-xs text-amber-700">Comida, súper, farmacia y más — directo a tu casa</span>
+        </span>
+        <ArrowRight className="size-5 shrink-0 text-amber-600" />
       </Link>
 
       {/* Botón de pánico (SOS) — siempre a la mano si el módulo está activo */}
