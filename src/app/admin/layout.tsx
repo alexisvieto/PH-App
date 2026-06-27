@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Building2, Megaphone, Sparkles, Wrench } from "lucide-react";
 
+import { AdminSignOut } from "@/components/admin/admin-sign-out";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { getPlatformAdmin } from "@/lib/session";
 
@@ -31,7 +32,10 @@ export default async function AdminLayout({
               <Megaphone className="size-4" /> Publicidad
             </Link>
           </nav>
-          <span className="ml-auto truncate text-xs text-white/50">{admin.email}</span>
+          <div className="ml-auto flex items-center gap-3">
+            <span className="hidden max-w-[160px] truncate text-xs text-white/50 sm:inline">{admin.email}</span>
+            <AdminSignOut />
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-8">{children}</main>
