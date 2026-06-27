@@ -3,10 +3,12 @@ import { ArrowRight, HardHat, Trophy } from "lucide-react";
 
 import { formatMoney } from "@/lib/format";
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_STYLE } from "@/lib/projects";
+import { blockTenant } from "@/lib/portal-guard";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PortalProyectos() {
+  await blockTenant();
   const res = await getResidentContext();
   if (!res?.orgId) return null;
 

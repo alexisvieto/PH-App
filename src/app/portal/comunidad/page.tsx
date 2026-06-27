@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function ComunidadHub() {
   const res = await getResidentContext();
   if (!res?.orgId) return null;
+  const isTenant = res.residentType === "inquilino";
 
   const supabase = await createClient();
   const { count: areas } = await supabase
@@ -22,7 +23,9 @@ export default async function ComunidadHub() {
 
       <HubSection title="Comunicación">
         <HubRow href="/portal/comunicados" icon={Megaphone} color="violet" label="Comunicados" sub="Avisos del edificio" />
-        <HubRow href="/portal/votaciones" icon={Vote} color="violet" label="Votaciones" sub="Asambleas y decisiones" />
+        {!isTenant && (
+          <HubRow href="/portal/votaciones" icon={Vote} color="violet" label="Votaciones" sub="Asambleas y decisiones" />
+        )}
         <HubRow href="/portal/quejas" icon={MessageSquareWarning} color="violet" label="Quejas y solicitudes" sub="Escríbele a la administración" />
       </HubSection>
 

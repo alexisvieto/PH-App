@@ -1,9 +1,11 @@
 import { HardHat, PieChart, ReceiptText } from "lucide-react";
 
 import { HubHeader, HubRow, HubSection } from "@/components/portal/hub";
+import { blockTenant } from "@/lib/portal-guard";
 import { getResidentContext } from "@/lib/session";
 
 export default async function CuentaHub() {
+  await blockTenant();
   const res = await getResidentContext();
   if (!res?.orgId) return null;
   const multi = res.units.length > 1;

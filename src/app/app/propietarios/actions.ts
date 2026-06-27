@@ -150,6 +150,49 @@ export async function transferSale(
   return { error: null, ok: true };
 }
 
+/** Da acceso al portal a un inquilino: crea persona + arrendamiento (RPC atómico).
+ *  Su correo entra al padrón → se auto-registra y entra con la vista de inquilino. */
+export async function grantTenantAccess(
+  unitId: string,
+  vars: { fullName: string; email: string; phone: string },
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!UUID.test(unitId)) return { error: "Unidad inválida.", ok: false };
+  const fullName = (vars.fullName ?? "").trim();
+  const email = (vars.email ?? "").trim();
+  if (!fullName) return { error: "El nombre del inquilino es obligatorio.", ok: false };
+  if (!email) return { error: "El correo del inquilino es obligatorio para darle acceso.", ok: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("grant_tenant_access", {
+    p_unit_id: unitId,
+    p_full_name: fullName,
+    p_email: email,
+    p_phone: vars.phone || "",
+  });
+  if (error) {
+    console.error("grantTenantAccess:", error.code, error.message);
+    return { error: error.code === "P0001" ? error.message : "No se pudo dar acceso al inquilino.", ok: false };
+  }
+  revalidatePath(`/app/propietarios/${unitId}`);
+  return { error: null, ok: true };
+}
+
+/** Retira el acceso del inquilino (cierra su arrendamiento activo). */
+export async function revokeTenantAccess(unitId: string): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!UUID.test(unitId)) return { error: "Unidad inválida.", ok: false };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("revoke_tenant_access", { p_unit_id: unitId });
+  if (error) return { error: error.message, ok: false };
+  revalidatePath(`/app/propietarios/${unitId}`);
+  return { error: null, ok: true };
+}
+
 export async function removeOwner(ownershipId: string): Promise<ActionState> {
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;

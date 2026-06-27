@@ -3695,17 +3695,32 @@ export type Database = {
         Returns: Json
       }
       get_votation_results: { Args: { p_votation: string }; Returns: Json }
+      grant_tenant_access: {
+        Args: {
+          p_email: string
+          p_full_name: string
+          p_phone?: string
+          p_unit_id: string
+        }
+        Returns: string
+      }
       has_module: { Args: { org: string; p_module: string }; Returns: boolean }
       has_org_role: {
         Args: { org: string; roles: Database["public"]["Enums"]["org_role"][] }
         Returns: boolean
       }
       is_building_resident: { Args: { building: string }; Returns: boolean }
+      is_building_resident_any: { Args: { building: string }; Returns: boolean }
+      is_building_tenant: { Args: { building: string }; Returns: boolean }
       is_org_member: { Args: { org: string }; Returns: boolean }
       is_org_resident: { Args: { org: string }; Returns: boolean }
+      is_org_resident_any: { Args: { org: string }; Returns: boolean }
       is_org_staff: { Args: { org: string }; Returns: boolean }
+      is_org_tenant: { Args: { org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_unit_resident: { Args: { unit: string }; Returns: boolean }
+      is_unit_resident_any: { Args: { unit: string }; Returns: boolean }
+      is_unit_tenant: { Args: { unit: string }; Returns: boolean }
       link_people_to_user: {
         Args: { p_email: string; p_user: string }
         Returns: undefined
@@ -3810,6 +3825,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      revoke_tenant_access: { Args: { p_unit_id: string }; Returns: undefined }
       seed_ledger_accounts: { Args: { p_org: string }; Returns: undefined }
       set_yappy_config: {
         Args: {

@@ -29,6 +29,7 @@ export function PortalShell({
   unitIds = [],
   accesosActive = false,
   pendingPackages = 0,
+  isTenant = false,
   children,
 }: {
   brand: Brand;
@@ -38,6 +39,7 @@ export function PortalShell({
   unitIds?: string[];
   accesosActive?: boolean;
   pendingPackages?: number;
+  isTenant?: boolean;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -54,7 +56,8 @@ export function PortalShell({
   // Navegación inferior: pocos hubs temáticos (cada uno crece por dentro).
   const tabs: Tab[] = [
     { href: "/portal", label: "Inicio", icon: Home },
-    { href: "/portal/cuenta", label: "Cuenta", icon: Wallet },
+    // El inquilino no ve "Cuenta" (finanzas son del propietario).
+    ...(isTenant ? [] : ([{ href: "/portal/cuenta", label: "Cuenta", icon: Wallet }] as Tab[])),
     ...(accesosActive ? ([{ href: "/portal/accesos", label: "Accesos", icon: KeyRound }] as Tab[]) : []),
     { href: "/portal/comunidad", label: "Comunidad", icon: UsersRound },
     { href: "/portal/mas", label: "Más", icon: Menu },

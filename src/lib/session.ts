@@ -131,6 +131,7 @@ export type ResidentContext = {
   email: string | null;
   fullName: string | null;
   units: ResidentUnit[];
+  residentType: "propietario" | "inquilino";
   brand: Brand;
   orgId: string | null;
   orgName: string | null;
@@ -163,6 +164,7 @@ export const getResidentContext = cache(
       return {
         ...base,
         units: [],
+        residentType: "propietario",
         brand: DEFAULT_BRAND,
         orgId: null,
         orgName: null,
@@ -171,39 +173,73 @@ export const getResidentContext = cache(
       };
     }
 
-    const { data: owns } = await supabase
-      .from("unit_ownerships")
-      .select(
-        `unit:units(id, code, building:buildings(name, org:organizations(id, ${ORG_BRAND_COLUMNS})))`,
-      )
-      .eq("is_active", true)
-      .in("person_id", personIds)
-      .limit(50);
+    // El residente puede ser DUEÑO (unit_ownerships) o INQUILINO (unit_leases activo).
+    const [{ data: owns }, { data: leased }] = await Promise.all([
+      supabase
+        .from("unit_ownerships")
+        .select("unit_id")
+        .eq("is_active", true)
+        .in("person_id", personIds)
+        .limit(50),
+      supabase
+        .from("unit_leases")
+        .select("unit_id")
+        .eq("is_active", true)
+        .in("tenant_person_id", personIds)
+        .limit(50),
+    ]);
+    const ownedIds = new Set((owns ?? []).map((o) => o.unit_id as string));
+    const leasedIds = new Set((leased ?? []).map((l) => l.unit_id as string));
+    const allIds = [...new Set([...ownedIds, ...leasedIds])];
+    if (allIds.length === 0) {
+      return {
+        ...base,
+        units: [],
+        residentType: "propietario",
+        brand: DEFAULT_BRAND,
+        orgId: null,
+        orgName: null,
+        contactEmail: null,
+        contactPhone: null,
+      };
+    }
 
-    type OwnedUnit = {
+    const { data: unitRows } = await supabase
+      .from("units")
+      .select(
+        `id, code, building:buildings(name, org:organizations(id, ${ORG_BRAND_COLUMNS}))`,
+      )
+      .in("id", allIds);
+
+    type ResUnit = {
       id: string;
       code: string;
       building: { name: string; org: OrgBrandingWithId | null } | null;
     };
-    const owned = (owns ?? [])
-      .map((o) => o.unit as OwnedUnit | null)
-      .filter((u): u is OwnedUnit => !!u);
-
-    // v1: el portal opera sobre UNA organización (la primera). Si el dueño
-    // tuviera unidades en varias orgs, se mostrarían solo las de esa org
-    // (selector multi-org = pendiente).
-    const org = owned.find((u) => u.building?.org)?.building?.org ?? null;
-    const units: ResidentUnit[] = owned
+    const rows = (unitRows ?? []) as ResUnit[];
+    // v1: el portal opera sobre UNA organización: la de una unidad propia primero,
+    // si no, la de una arrendada (selector multi-org = pendiente).
+    const ownedRow = rows.find((u) => ownedIds.has(u.id) && u.building?.org);
+    const org =
+      ownedRow?.building?.org ??
+      rows.find((u) => u.building?.org)?.building?.org ??
+      null;
+    const units: ResidentUnit[] = rows
       .filter((u) => !org || u.building?.org?.id === org.id)
       .map((u) => ({
         id: u.id,
         code: u.code,
         buildingName: u.building?.name ?? "Edificio",
       }));
+    // Propietario si posee al menos una unidad en la org; si solo arrienda, inquilino.
+    const ownsInOrg = rows.some(
+      (u) => ownedIds.has(u.id) && (!org || u.building?.org?.id === org.id),
+    );
 
     return {
       ...base,
       units,
+      residentType: ownsInOrg ? "propietario" : "inquilino",
       brand: brandFromOrg(org),
       orgId: org?.id ?? null,
       orgName: org?.name ?? null,

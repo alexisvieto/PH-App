@@ -3,6 +3,7 @@ import { PieChart, Users } from "lucide-react";
 
 import { MonthPicker } from "@/components/portal/month-picker";
 import { formatMoney } from "@/lib/format";
+import { blockTenant } from "@/lib/portal-guard";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -49,6 +50,7 @@ export default async function PortalFinanzas({
 }: {
   searchParams: Promise<{ m?: string }>;
 }) {
+  await blockTenant();
   const res = await getResidentContext();
   if (!res?.orgId) return null;
   const sp = await searchParams;

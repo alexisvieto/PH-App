@@ -14,10 +14,12 @@ import {
   votationPhase,
 } from "@/lib/votations";
 import { loadVotationResults, tallyFrom } from "@/lib/votations-server";
+import { blockTenant } from "@/lib/portal-guard";
 import { getResidentContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PortalVotacionesPage() {
+  await blockTenant();
   const res = await getResidentContext();
   if (!res?.orgId) return null;
 

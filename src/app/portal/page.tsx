@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function PortalHome() {
   const res = await getResidentContext();
   if (!res?.orgId) return null;
+  const isTenant = res.residentType === "inquilino";
 
   const supabase = await createClient();
   const unitIds = res.units.map((u) => u.id);
@@ -98,7 +99,8 @@ export default async function PortalHome() {
   const firstName = (res.fullName ?? "").split(" ")[0];
 
   // Saldo del hero: suma de las unidades del residente (RLS limita acceso).
-  const statements = await Promise.all(res.units.map((u) => getUnitStatement(u.id)));
+  // El inquilino no ve finanzas (la cuota es del propietario).
+  const statements = isTenant ? [] : await Promise.all(res.units.map((u) => getUnitStatement(u.id)));
   const totalBalance = Math.round(statements.reduce((sum, s) => sum + (s?.balance ?? 0), 0) * 100) / 100;
   const owes = totalBalance > BALANCE_TOLERANCE;
   // Una unidad → directo al estado; varias → al hub de Cuenta.
@@ -116,27 +118,29 @@ export default async function PortalHome() {
           <h1 className="text-2xl font-semibold">Hola{firstName ? `, ${firstName}` : ""} 👋</h1>
           <p className="mt-0.5 text-sm text-white/80">{res.orgName ?? res.brand.name}</p>
 
-          <div className="mt-6 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-white/70">
-                {owes ? "Pago a realizar" : "Tu cuenta"}
-              </p>
-              {owes ? (
-                <p className="mt-1 text-3xl font-bold tabular-nums">{formatMoney(totalBalance)}</p>
-              ) : (
-                <p className="mt-1 flex items-center gap-1.5 text-xl font-semibold">
-                  <CheckCircle2 className="size-6" /> Estás al día
+          {!isTenant && (
+            <div className="mt-6 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-white/70">
+                  {owes ? "Pago a realizar" : "Tu cuenta"}
                 </p>
-              )}
+                {owes ? (
+                  <p className="mt-1 text-3xl font-bold tabular-nums">{formatMoney(totalBalance)}</p>
+                ) : (
+                  <p className="mt-1 flex items-center gap-1.5 text-xl font-semibold">
+                    <CheckCircle2 className="size-6" /> Estás al día
+                  </p>
+                )}
+              </div>
+              <Link
+                href={accountHref}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-white/90"
+                style={{ color: res.brand.primary }}
+              >
+                {owes ? "Ver y pagar" : "Ver estado"} <ArrowRight className="size-4" />
+              </Link>
             </div>
-            <Link
-              href={accountHref}
-              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-white/90"
-              style={{ color: res.brand.primary }}
-            >
-              {owes ? "Ver y pagar" : "Ver estado"} <ArrowRight className="size-4" />
-            </Link>
-          </div>
+          )}
         </div>
       </section>
 

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AmenityManager, type AmenityRow } from "@/components/rrhh/amenity-manager";
 import { OwnerManager, type OwnerRow } from "@/components/rrhh/owner-manager";
 import { UnitInfoForm } from "@/components/rrhh/unit-info-form";
+import { TenantAccess } from "@/components/forms/tenant-access";
 import { TransferSale } from "@/components/forms/transfer-sale";
 import { UnitFeeEditor } from "@/components/forms/unit-fee-editor";
 import { formatPct } from "@/lib/format";
@@ -36,7 +37,7 @@ export default async function UnitDetailPage({
     .maybeSingle();
   if (!unit) notFound();
 
-  const [{ data: ownerships }, { data: amenities }] = await Promise.all([
+  const [{ data: ownerships }, { data: amenities }, { data: lease }] = await Promise.all([
     supabase
       .from("unit_ownerships")
       .select(
@@ -52,6 +53,13 @@ export default async function UnitDetailPage({
       .eq("unit_id", unitId)
       .eq("organization_id", orgId)
       .order("type"),
+    supabase
+      .from("unit_leases")
+      .select("tenant:people!unit_leases_tenant_person_id_fkey(full_name, email)")
+      .eq("unit_id", unitId)
+      .eq("organization_id", orgId)
+      .eq("is_active", true)
+      .maybeSingle(),
   ]);
 
   const owners: OwnerRow[] = (ownerships ?? []).map((o) => {
@@ -73,6 +81,10 @@ export default async function UnitDetailPage({
     };
   });
   const amenityRows = (amenities ?? []) as AmenityRow[];
+  const leaseTenant = lease?.tenant as { full_name: string; email: string | null } | null;
+  const tenantInfo = leaseTenant
+    ? { name: leaseTenant.full_name, email: leaseTenant.email }
+    : null;
   const buildingName =
     (unit.building as { name: string } | null)?.name ?? "Edificio";
 
@@ -124,6 +136,7 @@ export default async function UnitDetailPage({
         tenantName={unit.tenant_name}
         tenantPhone={unit.tenant_phone}
       />
+      <TenantAccess unitId={unitId} tenant={tenantInfo} />
     </div>
   );
 }

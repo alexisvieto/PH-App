@@ -46,6 +46,7 @@ export default async function PortalLayout({
       unitIds={unitIds}
       accesosActive={!!accesosMod}
       pendingPackages={pendingPackages}
+      isTenant={res.residentType === "inquilino"}
     >
       {children}
     </PortalShell>
