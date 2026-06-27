@@ -20,20 +20,29 @@ export default async function EdificiosPage() {
         .select("id, name, type, address")
         .eq("organization_id", orgId)
         .order("created_at", { ascending: true }),
-      supabase.from("units").select("id, building_id").eq("organization_id", orgId),
+      supabase.from("units").select("id, building_id, is_rented").eq("organization_id", orgId),
       supabase
         .from("unit_leases")
-        .select("building_id")
+        .select("unit_id, building_id")
         .eq("organization_id", orgId)
         .eq("is_active", true),
     ]);
 
+  const unitBuilding = new Map<string, string>();
   const unitsByBuilding = new Map<string, number>();
-  for (const u of units ?? [])
+  for (const u of units ?? []) {
+    unitBuilding.set(u.id, u.building_id);
     unitsByBuilding.set(u.building_id, (unitsByBuilding.get(u.building_id) ?? 0) + 1);
-  const leasesByBuilding = new Map<string, number>();
-  for (const l of leases ?? [])
-    leasesByBuilding.set(l.building_id, (leasesByBuilding.get(l.building_id) ?? 0) + 1);
+  }
+  // Alquilada = inquilino liviano (is_rented) o contrato formal (unit_leases), sin duplicar.
+  const rentedUnits = new Set<string>();
+  for (const u of units ?? []) if (u.is_rented) rentedUnits.add(u.id);
+  for (const l of leases ?? []) if (l.unit_id) rentedUnits.add(l.unit_id);
+  const rentedByBuilding = new Map<string, number>();
+  for (const uid of rentedUnits) {
+    const bid = unitBuilding.get(uid);
+    if (bid) rentedByBuilding.set(bid, (rentedByBuilding.get(bid) ?? 0) + 1);
+  }
 
   const list = buildings ?? [];
 
@@ -61,7 +70,7 @@ export default async function EdificiosPage() {
         <div className="grid gap-3">
           {list.map((b) => {
             const total = unitsByBuilding.get(b.id) ?? 0;
-            const rented = leasesByBuilding.get(b.id) ?? 0;
+            const rented = rentedByBuilding.get(b.id) ?? 0;
             const pct = total > 0 ? (rented / total) * 100 : 0;
             return (
               <Link

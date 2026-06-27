@@ -36,7 +36,7 @@ export default async function BuildingDetailPage({
     await Promise.all([
       supabase
         .from("units")
-        .select("id, code, type, floor, area_m2, coefficient, status")
+        .select("id, code, type, floor, area_m2, coefficient, status, is_rented, tenant_name")
         .eq("building_id", buildingId)
         .order("code", { ascending: true }),
       supabase
@@ -65,7 +65,8 @@ export default async function BuildingDetailPage({
   const list = units ?? [];
   const coefSum = list.reduce((a, u) => a + Number(u.coefficient ?? 0), 0);
   const coefOk = Math.abs(coefSum - 100) < 0.5;
-  const rented = tenantByUnit.size;
+  // Alquilada = contrato formal (unit_leases) o inquilino liviano (is_rented).
+  const rented = list.filter((u) => tenantByUnit.has(u.id) || u.is_rented).length;
   const pctRented = list.length > 0 ? (rented / list.length) * 100 : 0;
 
   return (
@@ -147,7 +148,7 @@ export default async function BuildingDetailPage({
                   <td className="px-4 py-3 text-muted">{UNIT_TYPE_LABEL[u.type]}</td>
                   <td className="px-4 py-3 text-muted">{formatPct(u.coefficient)}</td>
                   <td className="px-4 py-3">{ownerByUnit.get(u.id) ?? "—"}</td>
-                  <td className="px-4 py-3">{tenantByUnit.get(u.id) ?? "—"}</td>
+                  <td className="px-4 py-3">{tenantByUnit.get(u.id) ?? u.tenant_name ?? "—"}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${UNIT_STATUS_CLASS[u.status]}`}
