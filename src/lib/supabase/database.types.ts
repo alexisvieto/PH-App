@@ -3667,6 +3667,7 @@ export type Database = {
         }
         Returns: string
       }
+      email_is_registered: { Args: { p_email: string }; Returns: boolean }
       end_lease: { Args: { p_unit_id: string }; Returns: undefined }
       freeze_votation_result: {
         Args: { p_votation: string }
@@ -3710,6 +3711,16 @@ export type Database = {
       notif_is_staff: {
         Args: { p_org: string; p_uid: string }
         Returns: boolean
+      }
+      org_create_member: {
+        Args: {
+          p_email: string
+          p_full_name: string
+          p_org_id: string
+          p_password: string
+          p_role: Database["public"]["Enums"]["org_role"]
+        }
+        Returns: string
       }
       platform_create_org: {
         Args: {

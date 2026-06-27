@@ -29,6 +29,15 @@ export default function LoginPage() {
         router.replace("/"); // el resolver decide /app o /portal
         router.refresh();
       } else {
+        // Solo se puede crear cuenta si el correo ya está registrado en el padrón
+        // de algún edificio (lo enforce además un trigger en el servidor).
+        const { data: allowed } = await supabase.rpc("email_is_registered", { p_email: email });
+        if (!allowed) {
+          toast.error(
+            "Tu correo no está registrado. Pídele a la administración de tu edificio que te agregue primero.",
+          );
+          return; // el finally restablece loading
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
