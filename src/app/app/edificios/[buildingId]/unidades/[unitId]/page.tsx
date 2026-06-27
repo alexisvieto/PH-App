@@ -7,6 +7,7 @@ import {
   type OwnershipRow,
   type PersonOpt,
 } from "@/components/unit-manager";
+import { UnitFeeEditor } from "@/components/forms/unit-fee-editor";
 import { formatPct } from "@/lib/format";
 import {
   UNIT_STATUS_CLASS,
@@ -29,7 +30,7 @@ export default async function UnitDetailPage({
   const supabase = await createClient();
   const { data: unit } = await supabase
     .from("units")
-    .select("id, code, type, floor, area_m2, coefficient, status, building:buildings(name)")
+    .select("id, code, type, floor, area_m2, coefficient, status, monthly_fee, building:buildings(name)")
     .eq("id", unitId)
     .eq("organization_id", orgId)
     .maybeSingle();
@@ -109,6 +110,13 @@ export default async function UnitDetailPage({
           {formatPct(unit.coefficient)}
           {unit.area_m2 ? ` · ${unit.area_m2} m²` : ""}
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-line bg-surface p-5">
+        <p className="text-sm text-muted">Cuota de mantenimiento mensual</p>
+        <div className="mt-1">
+          <UnitFeeEditor unitId={unitId} fee={Number(unit.monthly_fee ?? 0)} />
+        </div>
       </div>
 
       <UnitManager

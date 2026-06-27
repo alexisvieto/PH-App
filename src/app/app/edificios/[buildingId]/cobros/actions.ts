@@ -5,10 +5,6 @@ import { revalidatePath } from "next/cache";
 import type { ActionState, GenState } from "@/lib/action-state";
 import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { Constants } from "@/lib/supabase/database.types";
-import type { Database } from "@/lib/supabase/database.types";
-
-type FeeMethod = Database["public"]["Enums"]["fee_method"];
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -42,14 +38,6 @@ export async function saveFeeSettings(
   const buildingId = String(formData.get("building_id") ?? "");
   if (!UUID.test(buildingId)) return { error: "Edificio inválido.", ok: false };
 
-  const method = String(formData.get("method") ?? "") as FeeMethod;
-  if (!(Constants.public.Enums.fee_method as readonly string[]).includes(method))
-    return { error: "Método de cuota inválido.", ok: false };
-
-  const base = Number(formData.get("base_amount"));
-  if (!Number.isFinite(base) || base < 0)
-    return { error: "Monto inválido.", ok: false };
-
   const lateFeePct = Number(formData.get("late_fee_pct"));
   if (!Number.isFinite(lateFeePct) || lateFeePct < 0 || lateFeePct > 20)
     return { error: "El recargo por morosidad debe estar entre 0% y 20%.", ok: false };
@@ -73,8 +61,6 @@ export async function saveFeeSettings(
       {
         organization_id: orgId,
         building_id: buildingId,
-        method,
-        base_amount: base,
         late_fee_pct: lateFeePct,
         late_fee_day: lateDay,
         reserve_pct: reservePct,
@@ -124,4 +110,52 @@ export async function generateCharges(
   revalidatePath(`/app/edificios/${buildingId}/cobros`);
   revalidatePath(`/app/edificios/${buildingId}`);
   return { error: null, ok: true, count: data ?? 0 };
+}
+
+/** Reparte un presupuesto mensual entre las unidades según su coeficiente y lo
+ *  guarda como cuota (monthly_fee) de cada unidad. Atajo del cálculo por metraje
+ *  (cuota = m² × tasa = presupuesto × coeficiente). */
+export async function calcFeesByCoefficient(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!canManage(ctx.role))
+    return { error: "Solo un administrador puede configurar la cuota.", ok: false };
+
+  const buildingId = String(formData.get("building_id") ?? "");
+  if (!UUID.test(buildingId)) return { error: "Edificio inválido.", ok: false };
+
+  const budget = Number(formData.get("budget"));
+  if (!Number.isFinite(budget) || budget <= 0)
+    return { error: "Escribe el presupuesto mensual del edificio.", ok: false };
+
+  const supabase = await createClient();
+  if (!(await buildingInOrg(supabase, buildingId, orgId)))
+    return { error: "Edificio no encontrado.", ok: false };
+
+  const { data: units } = await supabase
+    .from("units")
+    .select("id, coefficient")
+    .eq("building_id", buildingId)
+    .eq("organization_id", orgId);
+  if (!units || units.length === 0)
+    return { error: "El edificio no tiene unidades todavía.", ok: false };
+
+  // cuota = presupuesto × coeficiente% (los coeficientes deberían sumar 100%).
+  for (const u of units) {
+    const fee = Math.round(budget * (Number(u.coefficient) || 0)) / 100;
+    const { error } = await supabase
+      .from("units")
+      .update({ monthly_fee: fee })
+      .eq("id", u.id)
+      .eq("organization_id", orgId);
+    if (error) return { error: error.message, ok: false };
+  }
+
+  revalidatePath(`/app/edificios/${buildingId}/cobros`);
+  revalidatePath(`/app/edificios/${buildingId}`);
+  return { error: null, ok: true };
 }

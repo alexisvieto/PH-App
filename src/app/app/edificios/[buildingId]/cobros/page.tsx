@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { CalcFeesForm } from "@/components/forms/calc-fees-form";
 import { FeeSettingsForm } from "@/components/forms/fee-settings-form";
 import { GenerateChargesForm } from "@/components/forms/generate-charges-form";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -27,10 +28,10 @@ export default async function CobrosPage({
     .maybeSingle();
   if (!building) notFound();
 
-  const [{ data: fee }, { data: charges }] = await Promise.all([
+  const [{ data: fee }, { data: charges }, { data: units }] = await Promise.all([
     supabase
       .from("fee_settings")
-      .select("method, base_amount, late_fee_pct, late_fee_day, reserve_pct")
+      .select("late_fee_pct, late_fee_day, reserve_pct")
       .eq("building_id", buildingId)
       .maybeSingle(),
     supabase
@@ -42,10 +43,14 @@ export default async function CobrosPage({
       .order("period", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(300),
+    supabase.from("units").select("coefficient, monthly_fee").eq("building_id", buildingId),
   ]);
 
   const list = charges ?? [];
   const total = list.reduce((a, c) => a + Number(c.amount ?? 0), 0);
+  const unitList = units ?? [];
+  const coefSum = unitList.reduce((a, u) => a + Number(u.coefficient ?? 0), 0);
+  const totalFee = unitList.reduce((a, u) => a + Number(u.monthly_fee ?? 0), 0);
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
@@ -66,12 +71,12 @@ export default async function CobrosPage({
 
       <FeeSettingsForm
         buildingId={buildingId}
-        method={fee?.method ?? null}
-        baseAmount={fee?.base_amount ?? null}
         lateFeePct={fee?.late_fee_pct ?? null}
         lateFeeDay={fee?.late_fee_day ?? null}
         reservePct={fee?.reserve_pct ?? null}
       />
+
+      <CalcFeesForm buildingId={buildingId} coefSum={coefSum} totalFee={totalFee} />
 
       <GenerateChargesForm
         buildingId={buildingId}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
 import { NewUnitForm } from "@/components/forms/new-unit-form";
-import { formatPct } from "@/lib/format";
+import { formatMoney, formatPct } from "@/lib/format";
 import {
   BUILDING_TYPE_LABEL,
   UNIT_STATUS_CLASS,
@@ -36,7 +36,7 @@ export default async function BuildingDetailPage({
     await Promise.all([
       supabase
         .from("units")
-        .select("id, code, type, floor, area_m2, coefficient, status, is_rented, tenant_name")
+        .select("id, code, type, floor, area_m2, coefficient, status, is_rented, tenant_name, monthly_fee")
         .eq("building_id", buildingId)
         .order("code", { ascending: true }),
       supabase
@@ -125,6 +125,7 @@ export default async function BuildingDetailPage({
                 <th className="px-4 py-3 font-medium">Unidad</th>
                 <th className="px-4 py-3 font-medium">Tipo</th>
                 <th className="px-4 py-3 font-medium">Coef.</th>
+                <th className="px-4 py-3 font-medium">Cuota</th>
                 <th className="px-4 py-3 font-medium">Propietario</th>
                 <th className="px-4 py-3 font-medium">Inquilino</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
@@ -147,6 +148,7 @@ export default async function BuildingDetailPage({
                   </td>
                   <td className="px-4 py-3 text-muted">{UNIT_TYPE_LABEL[u.type]}</td>
                   <td className="px-4 py-3 text-muted">{formatPct(u.coefficient)}</td>
+                  <td className="px-4 py-3 font-medium">{formatMoney(u.monthly_fee)}</td>
                   <td className="px-4 py-3">{ownerByUnit.get(u.id) ?? "—"}</td>
                   <td className="px-4 py-3">{tenantByUnit.get(u.id) ?? u.tenant_name ?? "—"}</td>
                   <td className="px-4 py-3">

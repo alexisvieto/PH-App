@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/lib/action-state";
-import { getSessionContext } from "@/lib/session";
+import { canManage, getSessionContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { Constants } from "@/lib/supabase/database.types";
 import type { Database } from "@/lib/supabase/database.types";
@@ -81,6 +81,7 @@ export async function createUnit(
     area_m2: num(formData.get("area_m2")),
     coefficient: num(formData.get("coefficient")) ?? 0,
     parking_spots: num(formData.get("parking_spots")) ?? 0,
+    monthly_fee: num(formData.get("monthly_fee")) ?? 0,
   });
   if (error) {
     if (error.code === "23505")
@@ -90,5 +91,30 @@ export async function createUnit(
 
   revalidatePath(`/app/edificios/${buildingId}`);
   revalidatePath("/app");
+  return { error: null, ok: true };
+}
+
+/** Actualiza la cuota de mantenimiento de una unidad (override individual). */
+export async function setUnitFee(unitId: string, amount: number): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!canManage(ctx.role))
+    return { error: "Solo un administrador puede editar la cuota.", ok: false };
+  if (!Number.isFinite(amount) || amount < 0) return { error: "Monto inválido.", ok: false };
+
+  const supabase = await createClient();
+  const { data: unit, error } = await supabase
+    .from("units")
+    .update({ monthly_fee: amount })
+    .eq("id", unitId)
+    .eq("organization_id", orgId)
+    .select("building_id")
+    .maybeSingle();
+  if (error) return { error: error.message, ok: false };
+  if (unit?.building_id) {
+    revalidatePath(`/app/edificios/${unit.building_id}`);
+    revalidatePath(`/app/edificios/${unit.building_id}/unidades/${unitId}`);
+  }
   return { error: null, ok: true };
 }

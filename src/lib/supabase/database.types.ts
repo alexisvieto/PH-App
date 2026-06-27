@@ -1009,40 +1009,40 @@ export type Database = {
       }
       fee_settings: {
         Row: {
-          base_amount: number
+          base_amount: number | null
           building_id: string
           created_by: string | null
           currency: string
           id: string
           late_fee_day: number | null
           late_fee_pct: number
-          method: Database["public"]["Enums"]["fee_method"]
+          method: Database["public"]["Enums"]["fee_method"] | null
           organization_id: string
           reserve_pct: number
           updated_at: string
         }
         Insert: {
-          base_amount?: number
+          base_amount?: number | null
           building_id: string
           created_by?: string | null
           currency?: string
           id?: string
           late_fee_day?: number | null
           late_fee_pct?: number
-          method?: Database["public"]["Enums"]["fee_method"]
+          method?: Database["public"]["Enums"]["fee_method"] | null
           organization_id: string
           reserve_pct?: number
           updated_at?: string
         }
         Update: {
-          base_amount?: number
+          base_amount?: number | null
           building_id?: string
           created_by?: string | null
           currency?: string
           id?: string
           late_fee_day?: number | null
           late_fee_pct?: number
-          method?: Database["public"]["Enums"]["fee_method"]
+          method?: Database["public"]["Enums"]["fee_method"] | null
           organization_id?: string
           reserve_pct?: number
           updated_at?: string
@@ -3175,6 +3175,7 @@ export type Database = {
           id: string
           is_rented: boolean
           letter: string | null
+          monthly_fee: number
           notes: string | null
           organization_id: string
           parking_spots: number
@@ -3195,6 +3196,7 @@ export type Database = {
           id?: string
           is_rented?: boolean
           letter?: string | null
+          monthly_fee?: number
           notes?: string | null
           organization_id: string
           parking_spots?: number
@@ -3215,6 +3217,7 @@ export type Database = {
           id?: string
           is_rented?: boolean
           letter?: string | null
+          monthly_fee?: number
           notes?: string | null
           organization_id?: string
           parking_spots?: number
