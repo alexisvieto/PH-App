@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import {
-  UnitManager,
-  type LeaseRow,
-  type OwnershipRow,
-  type PersonOpt,
-} from "@/components/unit-manager";
+import { AmenityManager, type AmenityRow } from "@/components/rrhh/amenity-manager";
+import { OwnerManager, type OwnerRow } from "@/components/rrhh/owner-manager";
+import { UnitInfoForm } from "@/components/rrhh/unit-info-form";
+import { TransferSale } from "@/components/forms/transfer-sale";
 import { UnitFeeEditor } from "@/components/forms/unit-fee-editor";
 import { formatPct } from "@/lib/format";
 import {
@@ -30,59 +28,56 @@ export default async function UnitDetailPage({
   const supabase = await createClient();
   const { data: unit } = await supabase
     .from("units")
-    .select("id, code, type, floor, area_m2, coefficient, status, monthly_fee, building:buildings(name)")
+    .select(
+      "id, code, type, floor, area_m2, coefficient, status, monthly_fee, is_rented, tenant_name, tenant_phone, building:buildings(name)",
+    )
     .eq("id", unitId)
     .eq("organization_id", orgId)
     .maybeSingle();
   if (!unit) notFound();
 
-  const [{ data: ownerships }, { data: lease }, { data: people }] =
-    await Promise.all([
-      supabase
-        .from("unit_ownerships")
-        .select("id, acquired_on, ended_on, is_active, person:people(full_name)")
-        .eq("unit_id", unitId)
-        .order("is_active", { ascending: false })
-        .order("acquired_on", { ascending: false }),
-      supabase
-        .from("unit_leases")
-        .select(
-          "id, start_date, rent_amount, person:people!unit_leases_tenant_person_id_fkey(full_name)",
-        )
-        .eq("unit_id", unitId)
-        .eq("is_active", true)
-        .maybeSingle(),
-      supabase
-        .from("people")
-        .select("id, full_name")
-        .eq("organization_id", orgId)
-        .order("full_name", { ascending: true }),
-    ]);
+  const [{ data: ownerships }, { data: amenities }] = await Promise.all([
+    supabase
+      .from("unit_ownerships")
+      .select(
+        "id, is_primary, person:people(full_name, doc_type, doc_number, email, phone)",
+      )
+      .eq("unit_id", unitId)
+      .eq("organization_id", orgId)
+      .eq("is_active", true)
+      .order("is_primary", { ascending: false }),
+    supabase
+      .from("unit_amenities")
+      .select("id, type, location, identifier")
+      .eq("unit_id", unitId)
+      .eq("organization_id", orgId)
+      .order("type"),
+  ]);
 
-  const history: OwnershipRow[] = (ownerships ?? []).map((o) => ({
-    id: o.id,
-    acquired_on: o.acquired_on,
-    ended_on: o.ended_on,
-    is_active: o.is_active,
-    name: (o.person as { full_name: string } | null)?.full_name ?? "—",
-  }));
-
-  const leaseRow: LeaseRow = lease
-    ? {
-        id: lease.id,
-        tenant:
-          (lease.person as { full_name: string } | null)?.full_name ?? "—",
-        start_date: lease.start_date,
-        rent_amount: lease.rent_amount,
-      }
-    : null;
-
-  const peopleOpts: PersonOpt[] = (people ?? []) as PersonOpt[];
+  const owners: OwnerRow[] = (ownerships ?? []).map((o) => {
+    const p = o.person as {
+      full_name: string;
+      doc_type: string | null;
+      doc_number: string | null;
+      email: string | null;
+      phone: string | null;
+    } | null;
+    return {
+      ownershipId: o.id,
+      name: p?.full_name ?? "—",
+      docType: p?.doc_type ?? null,
+      docNumber: p?.doc_number ?? null,
+      email: p?.email ?? null,
+      phone: p?.phone ?? null,
+      primary: o.is_primary,
+    };
+  });
+  const amenityRows = (amenities ?? []) as AmenityRow[];
   const buildingName =
     (unit.building as { name: string } | null)?.name ?? "Edificio";
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <Link
           href={`/app/edificios/${buildingId}`}
@@ -119,11 +114,15 @@ export default async function UnitDetailPage({
         </div>
       </div>
 
-      <UnitManager
+      <OwnerManager unitId={unitId} owners={owners} />
+      <TransferSale unitId={unitId} />
+      <AmenityManager unitId={unitId} amenities={amenityRows} />
+      <UnitInfoForm
         unitId={unitId}
-        history={history}
-        lease={leaseRow}
-        people={peopleOpts}
+        areaM2={unit.area_m2}
+        isRented={unit.is_rented}
+        tenantName={unit.tenant_name}
+        tenantPhone={unit.tenant_phone}
       />
     </div>
   );

@@ -61,7 +61,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "Administración",
     items: [
       { href: "/app/edificios", label: "Edificios", icon: Building2, exact: false },
-      { href: "/app/propietarios", label: "Propietarios", icon: Users, exact: false },
+      { href: "/app/edificios", label: "Propietarios", icon: Users, exact: false },
       { href: "/app/contabilidad", label: "Contabilidad", icon: Calculator, exact: false },
       { href: "/app/planilla", label: "Planilla", icon: Receipt, exact: false },
       { href: "/app/rrhh", label: "RRHH", icon: Users2, exact: false },

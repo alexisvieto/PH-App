@@ -118,6 +118,38 @@ export async function addOwner(
   return { error: null, ok: true };
 }
 
+/** Transferencia por venta: crea al nuevo dueño + cierra el anterior (RPC atómico). */
+export async function transferSale(
+  unitId: string,
+  vars: { fullName: string; docType: string; docNumber: string; email: string; phone: string; acquiredOn: string },
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const orgId = ctx?.activeOrg?.id;
+  if (!orgId) return { error: "Sin organización activa.", ok: false };
+  if (!UUID.test(unitId)) return { error: "Unidad inválida.", ok: false };
+  const fullName = (vars.fullName ?? "").trim();
+  if (!fullName) return { error: "El nombre del nuevo dueño es obligatorio.", ok: false };
+  if (vars.docType && !isEnum("doc_type", vars.docType)) return { error: "Tipo de documento inválido.", ok: false };
+  if (vars.acquiredOn && !isValidIsoDate(vars.acquiredOn)) return { error: "Fecha de la venta inválida.", ok: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("register_sale", {
+    p_unit_id: unitId,
+    p_full_name: fullName,
+    p_doc_type: vars.docType || "cedula",
+    p_doc_number: vars.docNumber || "",
+    p_email: vars.email || "",
+    p_phone: vars.phone || "",
+    ...(vars.acquiredOn ? { p_acquired_on: vars.acquiredOn } : {}),
+  });
+  if (error) {
+    console.error("transferSale:", error.code, error.message);
+    return { error: error.code === "P0001" ? error.message : "No se pudo registrar la venta.", ok: false };
+  }
+  revalidatePath(`/app/propietarios/${unitId}`);
+  return { error: null, ok: true };
+}
+
 export async function removeOwner(ownershipId: string): Promise<ActionState> {
   const ctx = await getSessionContext();
   const orgId = ctx?.activeOrg?.id;

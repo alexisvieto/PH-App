@@ -3784,6 +3784,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      register_sale: {
+        Args: {
+          p_acquired_on?: string
+          p_doc_number?: string
+          p_doc_type?: string
+          p_email?: string
+          p_full_name: string
+          p_phone?: string
+          p_unit_id: string
+        }
+        Returns: string
+      }
       register_visit: {
         Args: {
           p_building: string
