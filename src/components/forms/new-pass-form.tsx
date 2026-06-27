@@ -79,8 +79,7 @@ export function NewPassForm({
         </label>
         {isIndefinido ? (
           <p className="block rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800 sm:col-span-2">
-            El pase indefinido <strong>no vence</strong> (ideal para personal doméstico con contrato indefinido). Queda
-            registrado con nombre y documento por lo delicado del tema.
+            Para este tipo de pase se requiere Nombre completo y ID.
           </p>
         ) : (
           <>

@@ -12,10 +12,14 @@ export const PASS_TYPE_LABEL: Record<Enums["visitor_pass_type"], string> = {
   proveedor: "Proveedor",
   delivery: "Delivery",
 };
-export const PASS_TYPE_OPTIONS = Object.entries(PASS_TYPE_LABEL) as [
-  Enums["visitor_pass_type"],
-  string,
-][];
+// Tipos ofrecidos en el formulario (curado). El enum conserva los demás
+// (domestico/proveedor/delivery) para pases históricos; aquí solo se muestran
+// los vigentes: Visita absorbe proveedor/delivery; Recurrente/Indefinido cubren
+// al personal doméstico.
+const PASS_TYPE_FORM: Enums["visitor_pass_type"][] = ["visita", "evento", "recurrente", "indefinido"];
+export const PASS_TYPE_OPTIONS = PASS_TYPE_FORM.map(
+  (v) => [v, PASS_TYPE_LABEL[v]] as [Enums["visitor_pass_type"], string],
+);
 
 export const LOG_DIRECTION_LABEL: Record<Enums["log_direction"], string> = {
   entrada: "Entrada",
