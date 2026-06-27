@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, DoorOpen, Megaphone, Package, ShoppingBag, Siren, Vote, Wrench } from "lucide-react";
+import { ArrowRight, CheckCircle2, DoorOpen, Megaphone, Package, Siren, Vote } from "lucide-react";
+
+import { ConstructionWorkerIcon, MarketBasketIcon } from "@/components/portal/featured-icons";
 
 import { MarkAnnouncementsRead } from "@/components/mark-announcements-read";
 import { AdBanner, type PortalAd } from "@/components/portal/ad-banner";
@@ -164,31 +166,31 @@ export default async function PortalHome() {
       {/* Proveedores para el hogar (la joya): acceso destacado */}
       <Link
         href="/portal/proveedores"
-        className="flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand-soft p-4 transition hover:opacity-90"
+        className="flex items-center gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 transition hover:bg-orange-100/60"
       >
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
-          <Wrench className="size-6" />
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-orange-500 text-white">
+          <ConstructionWorkerIcon className="size-7" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-semibold text-brand">Proveedores para tu hogar</span>
-          <span className="block text-xs text-brand/70">Electricistas, electrodomésticos, remodelación y más · con reseñas</span>
+          <span className="block font-semibold text-ink">Proveedores para tu hogar</span>
+          <span className="block text-xs text-muted">Electricistas, electrodomésticos, remodelación y más · con reseñas</span>
         </span>
-        <ArrowRight className="size-5 shrink-0 text-brand" />
+        <ArrowRight className="size-5 shrink-0 text-orange-500" />
       </Link>
 
       {/* A domicilio: comercios a la mano del residente */}
       <Link
         href="/portal/a-domicilio"
-        className="flex items-center gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 p-4 transition hover:opacity-90"
+        className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:bg-emerald-100/60"
       >
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
-          <ShoppingBag className="size-6" />
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white">
+          <MarketBasketIcon className="size-6" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-semibold text-amber-900">A domicilio</span>
-          <span className="block text-xs text-amber-700">Comida, súper, farmacia y más — directo a tu casa</span>
+          <span className="block font-semibold text-ink">A domicilio</span>
+          <span className="block text-xs text-muted">Comida, súper, farmacia y más — directo a tu casa</span>
         </span>
-        <ArrowRight className="size-5 shrink-0 text-amber-600" />
+        <ArrowRight className="size-5 shrink-0 text-emerald-600" />
       </Link>
 
       {/* Botón de pánico (SOS) — siempre a la mano si el módulo está activo */}
